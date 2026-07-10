@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio / IntelliJ user state
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# MemoryMtrls — personal workflow scratch (plans, specs, notes); not shared.
+.notes/

@@ -1,0 +1,51 @@
+[versions]
+agp                     = "9.2.1"
+kotlin                  = "2.4.0"
+compose-bom             = "2026.05.01"
+activity-compose        = "1.13.0"
+navigation-compose      = "2.9.8"
+coil                    = "3.5.0"
+graphics-shapes         = "1.1.0"
+material-icons          = "1.7.8"
+reorderable             = "2.5.1"
+junit4                  = "4.13.2"
+
+[libraries]
+# Compose BOM (no version — managed by BOM)
+compose-bom                  = { group = "androidx.compose", name = "compose-bom",                  version.ref = "compose-bom" }
+compose-ui                   = { group = "androidx.compose.ui",         name = "ui" }
+compose-ui-tooling           = { group = "androidx.compose.ui",         name = "ui-tooling" }
+compose-ui-tooling-preview   = { group = "androidx.compose.ui",         name = "ui-tooling-preview" }
+compose-foundation           = { group = "androidx.compose.foundation", name = "foundation" }
+compose-animation            = { group = "androidx.compose.animation",  name = "animation" }
+
+# Activity
+activity-compose             = { group = "androidx.activity",           name = "activity-compose",          version.ref = "activity-compose" }
+
+# Navigation (demo only)
+navigation-compose           = { group = "androidx.navigation",         name = "navigation-compose",        version.ref = "navigation-compose" }
+
+# Coil 3 image loading (mtrls + demo)
+coil-compose                 = { group = "io.coil-kt.coil3",            name = "coil-compose",              version.ref = "coil" }
+coil-network-okhttp          = { group = "io.coil-kt.coil3",            name = "coil-network-okhttp",       version.ref = "coil" }
+
+# Graphics shapes (corner smoothing — Phase 12)
+graphics-shapes              = { group = "androidx.graphics",           name = "graphics-shapes",           version.ref = "graphics-shapes" }
+
+# Material ripple node (BOM-managed; low-level ripple primitive — NOT Material3)
+material-ripple              = { group = "androidx.compose.material",   name = "material-ripple" }
+
+# Material Icons (NOT in BOM — explicit version; demo only for extended, mtrls for core)
+material-icons-core          = { group = "androidx.compose.material",   name = "material-icons-core",       version.ref = "material-icons" }
+material-icons-extended      = { group = "androidx.compose.material",   name = "material-icons-extended",   version.ref = "material-icons" }
+
+# Reorderable lists (sh.calvin.reorderable — Phase 8 reorder engine)
+reorderable                  = { group = "sh.calvin.reorderable",        name = "reorderable",               version.ref = "reorderable" }
+
+# Testing
+junit4                       = { group = "junit",                        name = "junit",                     version.ref = "junit4" }
+
+[plugins]
+android-application  = { id = "com.android.application",                         version.ref = "agp" }
+android-library      = { id = "com.android.library",                             version.ref = "agp" }
+kotlin-compose       = { id = "org.jetbrains.kotlin.plugin.compose",             version.ref = "kotlin" }
