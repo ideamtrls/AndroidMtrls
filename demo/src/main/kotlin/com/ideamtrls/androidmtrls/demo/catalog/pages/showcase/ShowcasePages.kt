@@ -5,5 +5,12 @@ package com.ideamtrls.androidmtrls.demo
  * scene declares its entry in its own folder under `catalog/scenes/`.
  */
 internal object ShowcasePages {
-    val entries: List<ComponentEntry> = listOf()
+    val entries: List<ComponentEntry> = listOf(
+        SocialSceneEntry,
+        MusicSceneEntry,
+        PhotosSceneEntry,
+        CalendarSceneEntry,
+        ShopSceneEntry,
+        AccountSceneEntry,
+    )
 }
