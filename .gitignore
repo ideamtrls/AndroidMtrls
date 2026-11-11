@@ -1,0 +1,10 @@
+build/
+.gradle/
+.gradle-home/
+.kotlin/
+local.properties
+.idea/
+.tmp/
+.notes/
+.DS_Store
+.claude/settings.local.json
