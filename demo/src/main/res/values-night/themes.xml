@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The window before Compose draws: no action bar, on the page color. -->
+    <style name="Theme.Demo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#141416</item>
+    </style>
+</resources>
