@@ -1,8 +1,8 @@
 ---
 scope: The framework's opinions about how to compose its parts into a screen — the two layers, floating surfaces, color under cards, the remote, the spotlight and press and hold, sheets without dimming, folding, quiet defaults. Patterns store taste; they are recipes over existing components, not new widgets.
 globs: []
-keywords: [pattern, patterns, opinion, taste, composition, style layer, native layer, where the line falls, stateless surfaces, stateful controls, floating surfaces, page color, two-layer shadow, dropShadow, hairline, selection ring, nesting, flat card, solid controls, frosted, frosted sheet, color under cards, row-level backdrop, amArtRow, amArtRows, amPageBackdrop, amArtText, status bar, amStatusBarEdge, AMLightStatusBarIcons, empty state, carousel controls, remote, main navigation, bottom bar, floating action button, action grid, tiles, AMScene, AMFloatingActions, AMKeepsPlace, scene-wide overlays, amInstantSwitch, keeps place, landing view, back order, button shape, shapes.medium, spotlight, press and hold, amHoldable, picker, date picker, menu picker, blur-behind, dim fallback, sheets, no dimming, transparent scrim, discard guard, alert, folding, AMDisclosureGroup, quiet defaults]
-updated: 2026-11-10
+keywords: [pattern, patterns, opinion, taste, composition, style layer, native layer, where the line falls, stateless surfaces, stateful controls, floating surfaces, page color, two-layer shadow, dropShadow, hairline, selection ring, nesting, flat card, solid controls, frosted, frosted sheet, color under cards, row-level backdrop, amArtRow, amArtRows, amPageBackdrop, amArtText, readable text over art, light mode, dark mode, appearance, AMTheme.Surface.page, AMTheme.Surface.art, status bar, amStatusBarEdge, AMLightStatusBarIcons, empty state, carousel controls, remote, main navigation, bottom bar, floating action button, action grid, tiles, AMScene, AMFloatingActions, AMKeepsPlace, scene-wide overlays, amInstantSwitch, keeps place, landing view, back order, button shape, shapes.medium, spotlight, press and hold, amHoldable, picker, date picker, menu picker, blur-behind, dim fallback, sheets, no dimming, transparent scrim, discard guard, alert, folding, AMDisclosureGroup, quiet defaults]
+updated: 2026-11-11
 ---
 
 # Patterns
@@ -44,6 +44,16 @@ Any view with cards sits on heavily blurred pictures relevant to the app. The pi
 - **Views with no pictures of their own still get color.** Decoration is not a substitute: use real pictures, never drawn shapes. Blurred backdrops are decoded small, blurred once and cached.
 - **Text on darkened pictures is white art text** (`amArtText`), and art text and headers over a backdrop carry the two-layer text shadow (the text drawn twice).
 - **The status bar's icons turn light over dark art**: an art panel's bar does it at rest, and any other view whose top lies on dark art (a header at rest on its art rows, a full-screen player) says so with `AMLightStatusBarIcons`. The claims count together, so the icons follow whatever is on top.
+
+## Readable text over art
+
+A background generated from row colors can be light or dark in either mode, so the text on it varies with the art, not the mode.
+
+- **The UI follows the system's mode entirely.** Cards, buttons, tiles, sheets, the spotlight, controls and the status bar's icons are all light in light mode and all dark in dark mode. Nothing forces part of a screen into the other mode.
+- **Backgrounds vary.** A background generated from row colors (art rows) takes its lightness from the art, so it can be light or dark in either mode.
+- **Text adapts.** Text that lies right on that background, not on a card, uses light or dark text, whichever reads against the art behind it, so it can differ from the mode. Text on cards follows the mode.
+- **No art means the page color.** Where there's no art (an empty state, art still loading, a page transition), the background is the mode's page color (`AMTheme.Surface.page`), never a fixed dark color.
+- **Where the library stands.** `Modifier.amArtText()` is white only. Art rows and the art backdrop wash the art with black in both modes, and `AMTheme.Surface.art` (`#333333`) shows until a picture arrives. That reads over dark art and fails over light art: a mostly white cover in light mode leaves white text unreadable. `AMLightStatusBarIcons` turns the status bar's icons light over dark art in light mode too. `Modifier.amPageBackdrop` follows the mode, a light background in light mode and a dark one in dark mode.
 
 ## Under the status bar
 
