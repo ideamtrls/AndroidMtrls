@@ -48,7 +48,7 @@ This project's working context lives in `Digest/`, with one file per category of
 | `Digest/SceneShop.md` | working on the Shop scene — catalog, quick add, bag, checkout, order tracking |
 | `Digest/SceneAccount.md` | working on the Account scene — onboarding, sign-in, two-factor, profile, settings |
 | `Digest/Build.md` | building or running the library or demo — Gradle and the version catalog, the environment variables, SDK levels, modules, installing and launching the demo with adb |
-| `Digest/Testing.md` | writing or running tests, or verifying a change — the minimal test policy, JUnit, and the build-and-screenshot check |
+| `Digest/Testing.md` | writing or running tests, or verifying a change — the minimal test policy, JUnit, the instrumented Compose UI tests, and the build-and-screenshot check |
 | `Digest/Notes.md` | writing a plan, spec, or scratch notes, or re-capturing the published screenshots (these go in `.notes/`, which is gitignored) |
 
 <!-- digestmtrls:end -->

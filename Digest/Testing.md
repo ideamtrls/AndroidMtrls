@@ -1,13 +1,13 @@
 ---
-scope: The minimal test policy — JUnit for pure logic in the library and the demo, and verifying a change by building it and looking at the demo on an emulator in light and dark.
-globs: [androidmtrls/build.gradle.kts, androidmtrls/src/test/**, demo/build.gradle.kts, demo/src/test/**]
-keywords: [tests, testing, JUnit, JUnit 4, unit tests, pure logic, testDebugUnitTest, src/test, ImagePipelineTest, ImageDiskCacheTest, FrostedSampleRegionTest, KeepsPlaceBackTest, LightStatusBarClaimsTest, CalendarMonthCellsTest, ListsReorderMathTest, ListsLabeledContentWidthTest, CollectionsIndexClampTest, CollectionsCardStackRulesTest, DataDisplayMathTest, MusicId3Test, demo tests, runBlocking, verification, verify, emulator, screenshots, screencap, light, dark, artwork night, font scale, RTL, no golden tests, no screenshot tests, no benchmarks, no semantics tests]
-updated: 2026-11-10
+scope: The minimal test policy — JUnit for pure logic in the library and the demo, instrumented Compose UI tests for the library behavior only a device shows, and verifying a change by building it and looking at the demo on an emulator in light and dark.
+globs: [androidmtrls/build.gradle.kts, androidmtrls/src/test/**, androidmtrls/src/androidTest/**, demo/build.gradle.kts, demo/src/test/**]
+keywords: [tests, testing, JUnit, JUnit 4, unit tests, pure logic, testDebugUnitTest, src/test, ImagePipelineTest, ImageDiskCacheTest, FrostedSampleRegionTest, KeepsPlaceBackTest, LightStatusBarClaimsTest, PanelBackTest, instrumented tests, androidTest, connectedDebugAndroidTest, Compose UI test, createAndroidComposeRule, mainClock, CalendarMonthCellsTest, ListsReorderMathTest, ListsLabeledContentWidthTest, CollectionsIndexClampTest, CollectionsCardStackRulesTest, DataDisplayMathTest, MusicId3Test, demo tests, runBlocking, verification, verify, emulator, screenshots, screencap, light, dark, artwork night, font scale, RTL, no golden tests, no screenshot tests, no benchmarks]
+updated: 2026-11-13
 ---
 
 # Testing
 
-Testing is minimal on purpose. A change is checked by building it and looking at it.
+Testing is minimal on purpose. A change is checked by building it and looking at it; tests pin pure logic, and a few instrumented ones pin what only a device shows.
 
 ## Unit tests — JUnit, for pure logic only
 
@@ -28,9 +28,17 @@ Testing is minimal on purpose. A change is checked by building it and looking at
 - Run them with `./gradlew :androidmtrls:testDebugUnitTest --console=plain` (environment in `Build.md`).
 - The demo has one, for its own pure logic: `MusicId3Test` (`demo/src/test/kotlin/com/ideamtrls/androidmtrls/demo/`), the Music scene's ID3v2 cover reader over tags built byte by byte — v2.2/v2.3/v2.4 frames, syncsafe sizes, unsynchronisation, extended headers, picture types and description terminators (`SceneMusic.md`). Run it with `./gradlew :demo:testDebugUnitTest --console=plain`.
 
+## Instrumented tests — Compose UI tests, for what only a device shows
+
+- The library's instrumented tests are Jetpack's Compose UI tests (`androidx.compose.ui:ui-test-junit4` through the Compose BOM, its `ui-test-manifest` for the host `ComponentActivity`, the `androidx.test` runner, `espresso-core` 3.7.0 pinned over the 3.5 Compose brings, whose input calls current Android lacks, and Navigation 3 UI to host panels), in `androidmtrls/src/androidTest/kotlin/`, in the library's package. They're for behavior pure logic can't reach: real input, real windows and a real `NavDisplay`.
+- Each test hosts the composable in `createAndroidComposeRule<ComponentActivity>()` (the `v2` rule), drives time with `mainClock` where timing matters, and taps by screen position (`onRoot().performTouchInput { click(spot) }`) when what's under the finger is the point.
+- The test that exists, in `androidmtrls/src/androidTest/kotlin/com/ideamtrls/androidmtrls/`:
+  - `PanelBackTest`: a panel's back button under a real `NavDisplay` — tapped twice at the same spot while its panel pops, `AMPanel`'s arrow and `AMArtPanelChrome`'s button pop once (one panel deep, a second pop would empty the back stack); tapped while the panel slides in, it pops (`Navigation.md`).
+- Run them with an emulator or device attached: `./gradlew :androidmtrls:connectedDebugAndroidTest --console=plain` (environment in `Build.md`).
+
 ## What there isn't
 
-No golden or screenshot tests, no benchmarks, no semantics or Compose UI test suites, and no third-party test tools.
+No golden or screenshot tests, no benchmarks, no instrumented tests in the demo, and no third-party test tools.
 
 ## Verifying a change
 
