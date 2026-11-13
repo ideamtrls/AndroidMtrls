@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.dropUnlessStarted
 
 /**
  * A panel: a screen pushed over the one you were on, under its own top app bar ([AMPanelChrome])
@@ -46,7 +47,9 @@ import androidx.compose.ui.text.style.TextOverflow
  * `NavDisplay` animates the push and the pop, follows predictive back, and keeps each covered
  * view's saved state (its scroll position) until it shows again; the panel adds no motion of its
  * own. Pass the same back action to [onBack] as to `NavDisplay`, so the arrow and system back
- * pop alike.
+ * pop alike. The arrow acts only while its panel is on the back stack: once popped, while it
+ * animates away, a second tap on it does nothing, so it never pops the view under it or empties
+ * the back stack.
  *
  * [content] gets the padding that clears the bar and the system bars: apply it inside the
  * scrolling container, so the content scrolls under the bar edge to edge and the bar picks up the
@@ -95,7 +98,10 @@ public fun AMPanel(
  *
  * The back arrow is an [AMToolbarButton] with Material's `arrow_back`, mirrored in right-to-left
  * layouts, read as "Back", so it follows the same rule as the toolbar buttons in [actions]: a bare
- * glyph on a page, and solid inside an [AMBackdrop], a crucial control over the art. The title
+ * glyph on a page, and solid inside an [AMBackdrop], a crucial control over the art. It calls
+ * [onBack] only while the bar's lifecycle is at least started: Navigation 3 lowers a popped
+ * entry's lifecycle to created while it animates away, so the leaving panel's arrow takes no
+ * second tap, and a panel still sliding in takes the first. The title
  * takes the top app bar's own type, on one line. Without a [scrollBehavior] the bar stays
  * transparent.
  *
@@ -107,7 +113,7 @@ public fun AMPanel(
  * for a bar over dark art with white titles use [AMArtPanelChrome].
  *
  * @param title the panel's title, one line.
- * @param onBack pops the panel: the back arrow calls it.
+ * @param onBack pops the panel: the back arrow calls it while the panel is on the back stack.
  * @param modifier the bar's placement.
  * @param actions trailing icon buttons, such as share: [AMToolbarButton]s. Null shows none.
  * @param scrollBehavior tells the bar when content has scrolled under it, so it takes the page
@@ -132,7 +138,7 @@ public fun AMPanelChrome(
             title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             modifier = barModifier,
             // A toolbar button, so it follows the toolbar's rule: solid over art, plain on a page.
-            navigationIcon = { AMToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, onBack) },
+            navigationIcon = { AMToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack)) },
             actions = actions ?: {},
             windowInsets = windowInsets,
             colors = TopAppBarDefaults.topAppBarColors(
@@ -152,3 +158,15 @@ public fun AMPanelChrome(
 
 /** What a screen reader says for a panel's back arrow. */
 internal const val PanelBackLabel: String = "Back"
+
+/**
+ * [onBack] for a panel bar's back button, acting only while the bar's lifecycle is at least
+ * started. Navigation 3 lowers a popped entry's lifecycle to created at once, but keeps the entry
+ * drawn on top, and touchable, while it animates away. Without this a second tap on the button
+ * would reach the leaving panel and pop again: the view under it, or, from a panel one deep, the
+ * root's own entry, which empties the back stack. System back never reaches a popped entry, so
+ * this makes the button and system back agree. Started, not resumed: an entry still sliding in is
+ * held below resumed until its transition ends, and its button still pops it, as system back does.
+ */
+@Composable
+internal fun panelBack(onBack: () -> Unit): () -> Unit = dropUnlessStarted(block = onBack)

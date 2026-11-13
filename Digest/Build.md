@@ -1,8 +1,8 @@
 ---
 scope: Building and running the AndroidMtrls library and demo — the Gradle setup and version catalog, the environment variables, SDK levels and modules, and installing and launching the demo with adb and its debug extras.
 globs: [settings.gradle.kts, build.gradle.kts, gradle.properties, gradle/libs.versions.toml, gradle/wrapper/gradle-wrapper.properties, androidmtrls/build.gradle.kts, demo/build.gradle.kts, demo/src/main/AndroidManifest.xml, demo/src/main/res/values/themes.xml, demo/src/main/res/values-night/themes.xml, .gitignore]
-keywords: [build, gradle, gradlew, wrapper, Gradle 9.6.1, AGP, Android Gradle Plugin 9.5.1, built-in Kotlin, Kotlin 2.4.21, compose compiler plugin, kotlin.compiler.execution.strategy, in-process, Kotlin daemon, JAVA_HOME, ANDROID_HOME, GRADLE_USER_HOME, .gradle-home, local.properties, version catalog, libs.versions.toml, Compose BOM, material3 1.5.0-rc01, Navigation 3, navigationevent, activity-compose, lifecycle-runtime-compose, core-ktx, JUnit, minSdk 36, compileSdk 37, targetSdk 37, JVM 17, explicitApi, modules, androidmtrls, demo, applicationId, namespace, BuildConfig, assembleDebug, installDebug, adb, am start, launch extras, screencap, portrait, edge-to-edge, INTERNET, Theme.Demo, .gitignore]
-updated: 2026-11-10
+keywords: [build, gradle, gradlew, wrapper, Gradle 9.6.1, AGP, Android Gradle Plugin 9.5.1, built-in Kotlin, Kotlin 2.4.21, compose compiler plugin, kotlin.compiler.execution.strategy, in-process, Kotlin daemon, JAVA_HOME, ANDROID_HOME, GRADLE_USER_HOME, .gradle-home, local.properties, version catalog, libs.versions.toml, Compose BOM, material3 1.5.0-rc01, Navigation 3, navigationevent, activity-compose, lifecycle-runtime-compose, core-ktx, JUnit, androidx.test runner, espresso-core, ui-test-junit4, ui-test-manifest, connectedDebugAndroidTest, testInstrumentationRunner, minSdk 36, compileSdk 37, targetSdk 37, JVM 17, explicitApi, modules, androidmtrls, demo, applicationId, namespace, BuildConfig, assembleDebug, installDebug, adb, am start, launch extras, screencap, portrait, edge-to-edge, INTERNET, Theme.Demo, .gitignore]
+updated: 2026-11-13
 ---
 
 # Build
@@ -40,6 +40,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ```bash
 ./gradlew :androidmtrls:assembleDebug :demo:assembleDebug --console=plain   # build both modules
 ./gradlew :androidmtrls:testDebugUnitTest --console=plain                    # the library's JUnit tests
+./gradlew :androidmtrls:connectedDebugAndroidTest --console=plain            # the library's instrumented tests (an emulator attached)
 ./gradlew :demo:testDebugUnitTest --console=plain                           # the demo's JUnit tests (Music's ID3 reader)
 ./gradlew :demo:installDebug --console=plain                                 # build and install the demo
 ./gradlew --stop                                                             # stop the Gradle daemon
@@ -62,6 +63,9 @@ Outputs: `androidmtrls/build/outputs/aar/androidmtrls-debug.aar` and `demo/build
 | `lifecycle-runtime-compose` | 2.11.0 |
 | `core-ktx` | 1.19.1 |
 | JUnit (tests only) | 4.13.2 |
+| Compose UI test (`ui-test-junit4`, `ui-test-manifest`; instrumented tests only) | from the Compose BOM |
+| `androidx.test` runner (instrumented tests only) | 1.7.0 |
+| `espresso-core` (instrumented tests only, pinned over the 3.5 Compose UI test brings) | 3.7.0 |
 
 - **SDK levels**: minSdk 36 (Android 16), compileSdk 37, targetSdk 37. These library versions need compileSdk 37.
 - **Java and JVM target 17** in both modules (`compileOptions` and `kotlin.compilerOptions.jvmTarget`).
@@ -75,7 +79,7 @@ Outputs: `androidmtrls/build/outputs/aar/androidmtrls-debug.aar` and `demo/build
 **`:androidmtrls`**, the library:
 - Android library, namespace `com.ideamtrls.androidmtrls`, Compose on, `explicitApi()`.
 - One public package, `com.ideamtrls.androidmtrls`, with sources in area folders under `src/main/kotlin/com/ideamtrls/androidmtrls/` (`Conventions.md`).
-- Dependencies: `api` the Compose BOM, Compose UI, Foundation and Material 3; `implementation` core-ktx and navigationevent-compose (the back handling behind `AMKeepsPlace`); `testImplementation` JUnit. The library exposes no Navigation 3 types.
+- Dependencies: `api` the Compose BOM, Compose UI, Foundation and Material 3; `implementation` core-ktx, navigationevent-compose (the back handling behind `AMKeepsPlace`) and lifecycle-runtime-compose (the panel back button's lifecycle gate); `testImplementation` JUnit; `androidTestImplementation` the Compose BOM, Compose UI test and its manifest, the `androidx.test` runner, espresso-core and Navigation 3 UI, with `testInstrumentationRunner` `androidx.test.runner.AndroidJUnitRunner` (`Testing.md`). The library exposes no Navigation 3 types.
 
 **`:demo`**, the catalog app:
 - Android app, applicationId and namespace `com.ideamtrls.androidmtrls.demo`, Compose on, `BuildConfig` on (the debug launch extras and the registry's debug checks read `BuildConfig.DEBUG`).

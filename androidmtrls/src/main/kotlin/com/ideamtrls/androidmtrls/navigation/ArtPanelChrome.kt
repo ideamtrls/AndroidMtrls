@@ -49,7 +49,9 @@ import androidx.compose.ui.text.style.TextOverflow
  * - **The back button is always solid**, the solid form of [AMToolbarButton] (the floating
  *   surface with its shadow), so it stays the clearest thing over any picture, inside an
  *   [AMBackdrop] or not. It's Material's `arrow_back`, mirrored in right-to-left layouts, read as
- *   "Back", with a long-press tooltip naming it.
+ *   "Back", with a long-press tooltip naming it. It acts only while the panel is on the back
+ *   stack, as [AMPanelChrome]'s arrow does: tapped again while its panel animates away, it does
+ *   nothing.
  *
  * Place it inside the [AMBackdrop] whose art it sits on, so the frosted fill finds that art. The
  * fade uses Material's motion scheme. The panel itself is a Navigation 3 entry like any other
@@ -58,7 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
  * held, so a push from one art panel to another, or a pop to a view over art, keeps them light
  * throughout.
  *
- * @param onBack pops the panel: the back button calls it.
+ * @param onBack pops the panel: the back button calls it while the panel is on the back stack.
  * @param modifier the bar's placement.
  * @param title the bar's title, one line, read as a heading. Null shows the back button alone.
  * @param subtitle a line under the title, such as the artist and length. Null shows none.
@@ -91,7 +93,7 @@ public fun AMArtPanelChrome(
     }
     // Solid wherever the bar sits: a crucial control over any picture.
     val backButton: @Composable () -> Unit = {
-        ToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, onBack, solid = true)
+        ToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack), solid = true)
     }
 
     FrostedBar(fill = { fill }, modifier) {
