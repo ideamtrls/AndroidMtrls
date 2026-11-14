@@ -223,13 +223,45 @@ public object AMTheme {
             @Composable @ReadOnlyComposable get() = if (isDark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight
     }
 
-    /** The remote's grid of tiles. */
+    /**
+     * The remote's grid of tiles ([AMActionGrid]), and where it puts its rows, so content can line
+     * up with them (a controls card resting where the remote shows it, just above its bottom row)
+     * without deriving the layout from the tokens.
+     *
+     * ```kotlin
+     * Modifier
+     *     .navigationBarsPadding()
+     *     .padding(horizontal = AMTheme.ActionGrid.sidePadding, bottom = AMTheme.ActionGrid.rowBottom(1))
+     * ```
+     */
     public object ActionGrid {
         /**
          * Every tile's height, so grid rows stay even whatever their labels. Fixed: it doesn't
          * grow with the font scale.
          */
         public val tileHeight: Dp = Style.ActionGrid.TileHeight
+
+        /** How far the grid stands in from the window's sides: `spacing.lg`. */
+        public val sidePadding: Dp
+            @Composable @ReadOnlyComposable get() = tokens.spacing.lg
+
+        /**
+         * How far above the navigation bar the grid puts the bottom of row [index], counting rows
+         * from the bottom: 0 is the bottom row, at the grid's bottom padding (`spacing.xxl`); each
+         * row above sits a [tileHeight] and the row gap (`spacing.md`) higher. Content whose
+         * bottom rests at `rowBottom(1)` sits just above the bottom row, where a second row would.
+         */
+        @Composable
+        @ReadOnlyComposable
+        public fun rowBottom(index: Int): Dp {
+            val spacing = tokens.spacing
+            return actionGridRowBottom(index, tileHeight, bottomPadding = spacing.xxl, rowGap = spacing.md)
+        }
+
+        /** How far above the navigation bar the grid puts the top of row [index], counted from the bottom. */
+        @Composable
+        @ReadOnlyComposable
+        public fun rowTop(index: Int): Dp = rowBottom(index) + tileHeight
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 
 /**
  * The remote's grid: rows of tiles stacked at the bottom of the space it's given, where a thumb
@@ -35,7 +36,9 @@ import androidx.compose.ui.Modifier
  *
  * The recipe is fixed: rows `spacing.md` apart, `spacing.lg` from the sides, and the last row
  * `spacing.xxl` above the navigation bar. The grid fills the space it's given and pushes its rows
- * to the bottom; with no height bound (in a scrolling column) it's as tall as its rows.
+ * to the bottom; with no height bound (in a scrolling column) it's as tall as its rows. Where its
+ * rows land is public ([AMTheme.ActionGrid.rowBottom], [AMTheme.ActionGrid.rowTop],
+ * [AMTheme.ActionGrid.sidePadding]), so content can line up with them.
  *
  * @param modifier the grid's placement.
  * @param windowInsets the system bars the grid keeps clear of: the navigation bar by default. Pass
@@ -128,4 +131,14 @@ internal fun ActionTileRow(modifier: Modifier, tiles: List<@Composable () -> Uni
             Box(Modifier.weight(1f), propagateMinConstraints = true) { tile() }
         }
     }
+}
+
+/**
+ * How far above the grid's bottom edge (the navigation bar) the bottom of row [index] sits,
+ * counting from the bottom row (0): the grid's [bottomPadding], then [index] rows of [tileHeight],
+ * each followed by the [rowGap].
+ */
+internal fun actionGridRowBottom(index: Int, tileHeight: Dp, bottomPadding: Dp, rowGap: Dp): Dp {
+    require(index >= 0) { "Rows count from 0, the bottom row: $index" }
+    return bottomPadding + (tileHeight + rowGap) * index
 }
