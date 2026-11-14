@@ -14,6 +14,14 @@ surfaces on a tuned page, two-layer shadows and hairlines, cards, the remote, th
 dimming behind sheets, frosted surfaces over art, folding and quiet defaults. Stateless surfaces wear
 the style; stateful controls keep Material's look. When in doubt, lean Android.
 
+**Latest Android only.** minSdk 36 (Android 16) is the floor and is never lowered. No
+`Build.VERSION.SDK_INT` checks, `@RequiresApi`, compat shims or fallbacks for older releases;
+use the newest platform and Jetpack APIs the floor allows.
+
+**Standalone.** AndroidMtrls is complete in itself and knows of no other library. Its code,
+docs, digests, tests and commit messages never name, compare with or follow another
+implementation; every decision is argued from Android and this library's own patterns.
+
 <!-- digestmtrls:start -->
 
 ## Digest
