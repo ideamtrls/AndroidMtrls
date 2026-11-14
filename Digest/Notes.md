@@ -2,7 +2,7 @@
 scope: Where plans, specs, scratch notes and the published screenshots' sources go
 globs: []
 keywords: [plan, spec, design, scratch, notes, writeup, briefs, spikes, artifacts, screenshots, Collection, Scenes, capture, walk, publish]
-updated: 2026-11-10
+updated: 2026-11-14
 ---
 
 # Notes
@@ -18,4 +18,4 @@ Where plans, specs, and scratch notes go.
 - Published screenshots → `.notes/artifacts/` — the sources of the two published pages, the Collection (`collection/`: `index.html` and one picture per catalog page, light above dark) and the Scenes (`scenes/`: `index.html` and every scene screen, light and dark), with the scripts that re-capture them on the emulator (`capture/collection.sh` and `capture/build` for the Collection, `walk/<scene>.sh light|dark` for the Scenes); its `README.md` has the steps, from capture to review and publish.
 - Other → `.notes/scratch/`.
 
-Temporary files from a build or a check (screenshots, logs) go in `.tmp/`, also gitignored, and are deleted when done.
+Screenshots and logs from a build or a check go in `.notes/shots/`; other throwaway files in `.notes/scratch/`. Both are under the gitignored `.notes/` and are cleared when done.

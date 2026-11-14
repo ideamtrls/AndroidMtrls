@@ -58,8 +58,8 @@ No golden or screenshot tests, no benchmarks, no instrumented tests in the demo,
 3. **Screenshots in light and dark**, and look at them:
    ```bash
    adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry <id> --es appearance light
-   adb exec-out screencap -p > .tmp/<id>-light.png
+   adb exec-out screencap -p > .notes/shots/<id>-light.png
    adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry <id> --es appearance dark --es artwork night
-   adb exec-out screencap -p > .tmp/<id>-dark.png
+   adb exec-out screencap -p > .notes/shots/<id>-dark.png
    ```
    Add `--es scrollTo loaded` for the Loaded composition, `--es fontScale 2` for a large font scale, and `--es rtl true` for right to left when the change could affect them.

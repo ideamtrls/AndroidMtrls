@@ -2,7 +2,7 @@
 scope: Sequence-driven primitives that own the gesture and animation of moving through items — the carousel on Android's pager and the swipeable card stack — plus the shared collection contract, the shared index clamp and the deck's release, window and identity rules
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/collections/**, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/internal/IndexClamp.kt, androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/collections/**, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/collections/**, demo/src/main/res/drawable/ic_auto_awesome_motion.xml, demo/src/main/res/drawable/ic_view_carousel.xml]
 keywords: [AMCarousel, pager, HorizontalPager, PagerState, rememberPagerState, currentPage, contentPadding, pageSpacing, PagerDefaults.flingBehavior, PagerSnapDistance, animateScrollToPage, no imposed surface, scrollableArea, clip, shadow, SnapPosition, stateDescription, Page x of y, sideInset, spacing, currentIndex, onCurrentIndexChange, CarouselIndexSync, AMPageIndicator, AMCardStack, AMCardStackSwipeDirection, StartToEnd, EndToStart, deck, peek, event mode, bound mode, onSwipe, wraps, visibleDepth, key, CardStackCommit, commit rule, splineBasedDecay, CardStackWindow, CardStackStep, CardStackPass, CardStackCard, laps, CardStackBook, CardStackRead, departures, fly off, fade, entry pose, tilt, graphicsLayer, zIndex, awaitHorizontalTouchSlopOrCancellation, VelocityTracker, custom actions, TalkBack, clampIndex, index clamp, collection contract, CollectionsPages, CardStackPage, CarouselPage]
-updated: 2026-11-10
+updated: 2026-11-14
 ---
 
 # Collections
@@ -107,7 +107,7 @@ Depth styling per step back `d` (animated as a float, so a card moving up rides 
 | Card stack | none | a bound deck of five album cards, 280 dp tall, four deep, opening on the second album so it steps both ways: each card an `amCard()` with the album's photo filling it (`catalogPhoto`) and its title (`titleLarge`) and count (`bodyMedium`) in `amArtText` on a scrim fade at the bottom. The deck alone: no buttons, no dots |
 | Carousel | `Wide`: a carousel of four story cards, each wearing `amCard()` itself (a 120 dp photo across the top, the kicker in `bodySmall` / `onSurfaceVariant` over the title in `titleMedium`), with `sideInset = StageLayout.PageGutter + spacing.lg` at the default spacing, so the first card lands a gutter plus `spacing.lg` in and the next peeks in from the screen's edge; the page dots under it on the page | `Wide`: the same stories with `sideInset = PageGutter + spacing.xl` and `spacing = spacing.lg`, over their dots |
 
-- The stories follow the appearance: snowy mountains and forests by day, New York and its jazz clubs by night (`commonsPhoto`), the same count both ways so the page holds across a switch. A story card's height is its photo plus its padding plus the two text lines' line heights, so it grows with the text size.
+- The stories follow the appearance: a lake, a forest, a valley and sunflowers by day, then peaks and vineyards at dusk and New York's jazz clubs by night (`commonsPhoto`), the same count both ways so the page holds across a switch. A story card's height is its photo plus its padding plus the two text lines' line heights, so it grows with the text size.
 - Demo glyphs: `ic_auto_awesome_motion` (Card stack), `ic_view_carousel` (Carousel).
 
 ## Tests

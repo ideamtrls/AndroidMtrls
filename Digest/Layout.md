@@ -159,7 +159,7 @@ Folding: a card (`amCard(fill = fill)`) whose header opens it in place. String f
 
 | Page | Preview | Loaded |
 |---|---|---|
-| Card (`CardPage.kt`) | a two-line row ("Project Atlas") in a card | a frosted card ("Project Atlas") over a photo in a 200 dp `AMBackdrop` (`CatalogArt.Valley`: a snowy landscape, a city at night in dark mode; clipped to `shapes.large`), a prose card padded `spacing.lg`, and a card of a two-line row over a switch row |
+| Card (`CardPage.kt`) | a two-line row ("Project Atlas") in a card | a frosted card ("Project Atlas") over a photo in a 200 dp `AMBackdrop` (`CatalogArt.Valley`: an alpine valley by day, vineyards at dusk in dark mode; clipped to `shapes.large`), a prose card padded `spacing.lg`, and a card of a two-line row over a switch row |
 | Section (`SectionPage.kt`) | `FullBleed`: a flat "Account" section (label over value, footer) on a surface strip | `Wide`: Notifications (`Rows`, two switch rows, footer), Team (`Rows`, two members), About (`Card` at `AMElevation.None`), then Episodes, a 560 dp `LazyColumn` holding one `amSection` of a podcast's 240 episodes (`AMListRow`s, newest first, footer), all `spacing.xl` apart |
 | Disclosure group (`DisclosureGroupPage.kt`) | a closed "Advanced" card holding a strict-mode switch row | three cards `spacing.md` apart: "Order summary" open, "Billing" with a credit-card glyph, "Shipping details" |
 | Divider (`DividerPage.kt`) | `FullBleed`: "Inbox" and "Archive" rows on a surface strip with a full-width divider | a card: an order total title row, a full-width divider, then subtotal, shipping and total rows (`ListItem` with the amount trailing) with inset dividers |

@@ -42,7 +42,7 @@ private fun BackdropBlurPage() {
 /** The picture, then the same picture blurred, side by side. */
 @Composable
 private fun CrispAndBlurred() {
-    val art = CatalogArt.Winter.url(AMTheme.isDark)
+    val art = CatalogArt.Garden.url(AMTheme.isDark)
     val shape = MaterialTheme.shapes.small
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
         AMRemoteImage(art, contentDescription = null, modifier = Modifier.size(FrameSize).clip(shape))
@@ -58,7 +58,7 @@ private fun CrispAndBlurred() {
 /** A track's cover and title over the same art, blurred. */
 @Composable
 private fun NowPlaying() {
-    val art = CatalogArt.Winter.url(AMTheme.isDark)
+    val art = CatalogArt.Garden.url(AMTheme.isDark)
     val spacing = AMTheme.tokens.spacing
     AMBackdrop(
         art = { AMRemoteImage(art, contentDescription = null) },

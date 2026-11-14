@@ -52,18 +52,25 @@ private fun CarouselPage() {
 
 private class CollectionsStory(val title: String, val kicker: String, val photo: String)
 
-/** Snowy mountains and forests by day. */
+/** A lake, a forest, a valley and sunflowers by day. */
 private val DayStories = listOf(
-    CollectionsStory("Above the treeline", "Photo essay", "Cheops Mountain seen the Sir Donald Trail.jpg"),
+    CollectionsStory("Still water at Braies", "Photo essay", "Lago di Braies South Tyrol 9.jpg"),
     CollectionsStory("Evening in the forest", "Field notes", "Evening sunlight through the trees, Epping Forest - geograph.org.uk - 7865603.jpg"),
-    CollectionsStory("Snow over the valley", "Travel", "Snowy Landscape - Ftan, Scuol.jpg"),
-    CollectionsStory("First snow", "Field notes", "Sunlight in the snowy forest 1.jpg"),
+    CollectionsStory(
+        "Down the Val Venezia",
+        "Travel",
+        "Bergtocht van parkeerplaats bij centrale Malga Mare naar Lago Lungo. Uitzicht over Val Venezia vanaf Posto di Avvistamento Pian Venezia 04.jpg",
+    ),
+    CollectionsStory("Sunflower season", "Field notes", "Dülmen, Weddern, Sonnenblumen -- 2026 -- 1996.jpg"),
 )
 
-/** New York and its jazz clubs by night. As many stories as by day, so the page holds across a switch. */
+/**
+ * Peaks and vineyards at dusk, then New York's jazz clubs by night. As many stories as by day, so the
+ * page holds across a switch.
+ */
 private val NightStories = listOf(
-    CollectionsStory("Midtown after dark", "Photo essay", "New-York-City-night-skyline-September-2014.jpg"),
-    CollectionsStory("Across the Hudson", "City walks", "Manhattan from Weehawken, NJ.jpg"),
+    CollectionsStory("Peaks at dusk", "Photo essay", "Mount Everest Peak Rising High Above Dusk Clouds.jpg"),
+    CollectionsStory("Vineyards after sunset", "Travel", "Neckarsulm - Scheuerberg - Blick vom SW-Hang kurz nach Sonnenuntergang.jpg"),
     CollectionsStory("Late set at the Blue Note", "Live music", "Vladimir Cetkar prforming at Blue Note Jazz Club, NYC.jpg"),
     CollectionsStory("Coltrane at the Blue Note", "Live music", "Ravi Coltrane at the Blue Note, March 7, 2023-L1002389.jpg"),
 )
