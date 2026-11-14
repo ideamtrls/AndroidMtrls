@@ -13,7 +13,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
@@ -145,6 +150,91 @@ public fun <T : Any> AMSpotlight(
     ) {
         if (shown != null) content(shown)
     }
+}
+
+/**
+ * A spotlight for held items and the actions each one offers, shared by the holds that open it
+ * ([Modifier.amHoldable][amHoldable] with this state) and the spotlight that shows them
+ * ([AMSpotlight] with this state): the hold opens it on its item, the spotlight shows that item
+ * over its tiles, and TalkBack users get the same tiles as actions on each item, from one
+ * definition.
+ *
+ * ```kotlin
+ * val share = painterResource(R.drawable.ic_share)
+ * val spotlight = rememberAMSpotlightState<Article> { article -> listOf(AMHoldAction("Share", share) { share(article) }) }
+ * articles.forEach { ArticleRow(it, Modifier.amHoldable(spotlight, it)) }
+ * AMSpotlight(spotlight) { article -> ArticleRow(article) }
+ * ```
+ *
+ * Create it with [rememberAMSpotlightState]. The held item is kept in memory, not saved: like a
+ * press and hold, it doesn't outlive the screen.
+ */
+@Stable
+public class AMSpotlightState<T : Any> internal constructor(actions: (item: T) -> List<AMHoldAction>) {
+    /** The item up in the spotlight, or null when nothing is held. */
+    public var item: T? by mutableStateOf(null)
+        private set
+
+    /** What each item offers, in tile order. */
+    internal var actions: (item: T) -> List<AMHoldAction> by mutableStateOf(actions)
+
+    /** Brings [item] up in the spotlight. */
+    public fun show(item: T) {
+        this.item = item
+    }
+
+    /** Puts the spotlight away. */
+    public fun dismiss() {
+        item = null
+    }
+
+    /** What [item] offers: its spotlight's tiles, its TalkBack actions. */
+    public fun actionsFor(item: T): List<AMHoldAction> = actions(item)
+}
+
+/**
+ * Remembers an [AMSpotlightState] whose items offer [actions]: each item's spotlight tiles, in
+ * order, and the same actions for TalkBack on the item. An empty list for an item shows no tiles.
+ * The latest [actions] is used each time, so it can read the screen's current state.
+ *
+ * @param actions what an item offers, at most four [AMHoldAction]s. Build it from painters read
+ *   while composing.
+ */
+@Composable
+public fun <T : Any> rememberAMSpotlightState(actions: (item: T) -> List<AMHoldAction> = { emptyList() }): AMSpotlightState<T> {
+    val state = remember { AMSpotlightState(actions) }
+    SideEffect { state.actions = actions }
+    return state
+}
+
+/**
+ * The spotlight for [state]'s held item: up while one is held, that item over the tiles it offers,
+ * as the item form shows them. A tile, back and a tap outside put it away.
+ *
+ * @param state the held item and what each item offers.
+ * @param modifier the layout's placement: the whole window.
+ * @param title a heading above the card for the item, or null for none (the default).
+ * @param elevation the card's shadow: [AMElevation.Low] by default, [AMElevation.None] for a flat
+ *   card that keeps its fill and corners.
+ * @param content the item up close.
+ */
+@Composable
+public fun <T : Any> AMSpotlight(
+    state: AMSpotlightState<T>,
+    modifier: Modifier = Modifier,
+    title: (T) -> String? = { null },
+    elevation: AMElevation = AMElevation.Low,
+    content: @Composable (item: T) -> Unit,
+) {
+    AMSpotlight(
+        item = state.item,
+        onDismissRequest = state::dismiss,
+        modifier = modifier,
+        title = title,
+        actions = state::actionsFor,
+        elevation = elevation,
+        content = content,
+    )
 }
 
 /** The item a spotlight last showed, kept so it leaves intact once its item is gone. */

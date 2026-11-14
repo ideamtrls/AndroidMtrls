@@ -232,7 +232,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
         Modifier
             .fillMaxWidth()
             .then(if (isCurrent) Modifier.background(AMTheme.Frosted.highlight) else Modifier)
-            .musicQueueMenu(MusicQueueTarget.Track(track, album), model)
+            .musicQueueMenu(MusicQueueTarget.Track(track, album), model, rememberMusicQueueIcons())
             .clickable(role = Role.Button) { model.play(album, index) }
             .clearAndSetSemantics {
                 contentDescription = description

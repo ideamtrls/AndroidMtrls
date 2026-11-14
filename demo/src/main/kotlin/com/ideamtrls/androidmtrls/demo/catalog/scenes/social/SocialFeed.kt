@@ -99,13 +99,13 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
 private fun SocialPostCard(post: SocialPost, model: SocialModel, postActions: SocialPostActions) {
     val spacing = AMTheme.tokens.spacing
     val author = model.user(post.authorId)
-    val menuActions = postActions.accessibilityActions(post)
+    val menuActions = socialPostActions(post, model, postActions, rememberSocialPostIcons())
     Column(
         Modifier
             .fillMaxWidth()
             .socialCard()
             .clickable(onClickLabel = "Open post") { model.openPost(post.id) }
-            .amHoldable(onHold = { model.showPostMenu(post.id) }, customActions = menuActions),
+            .amHoldable(onHold = { model.showPostMenu(post.id) }, actions = menuActions),
     ) {
         Row(
             Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),

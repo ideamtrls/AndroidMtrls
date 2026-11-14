@@ -127,7 +127,7 @@ The remote for one specific thing. Holding an item blurs the screen and raises a
 - **The library owns it**: `Modifier.amHoldable` is the hold (the system's long-press timeout) and its haptic; `AMSpotlight` is the presentation. The held item always comes up solid, whatever it was on the screen (a frosted card on a backdrop, a translucent row over art), so the thing in focus is the clearest thing on the screen.
 - **It's a window** with the platform's blur-behind, so it sits above sheets. A blur of 34 dp (Android's radius for a Gaussian sigma of 20), under the mode's wash (white 0.6 in light mode, black 0.65 in dark mode), so the paused screen follows the mode and the spotlight's title holds over any screen, sharp art included. Where the system has cross-window blur off (battery saver, some devices), the wash alone stills the screen.
 - A tap still does the item's main thing, and a vertical drag that starts on it still scrolls.
-- The hold gives the long-press haptic. TalkBack users get the same actions directly on the item, as custom actions.
+- The hold gives the long-press haptic. TalkBack users get the spotlight's tiles directly on the item, as custom actions, from the same definition (`AMSpotlightState`, or the hold's `actions`), with no second list to keep in step. On a row that also swipes or reorders, all of it is one list: the hold's tiles, then the moves, then the swipes.
 - Nothing underneath changes unless you pick a tile.
 - A visible button opens it only where people wouldn't otherwise find it.
 

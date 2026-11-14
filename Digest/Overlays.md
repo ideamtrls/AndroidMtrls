@@ -1,7 +1,7 @@
 ---
 scope: Presented overlays and their shared rules — sheets and the discard guard, alerts, the actions overlay, the spotlight and holds, backdrop blur and the paused backdrop; overlay windows, blur-behind and its wash, back order, and the overlay-up registry — the library's overlays/ folder and the Overlays catalog pages
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/overlays/**, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/internal/OverlayRegistry.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/overlays/**]
-keywords: [AMHoldAction, HoldActionTiles, actions per item, Overlay.wash, WashLight, WashDark, AMSheet, AMSheetHeight, AMSheetSurface, Full, Content, Primary, Page, Frosted, ModalBottomSheet, rememberBottomSheetState, confirmValueChange, ModalBottomSheetProperties, shouldDismissOnBackPress, transparent scrim, no dimming, drag handle, ExpandedShape, sheetChrome, requireOffset, sheet shadow, sheet hairline, GlassNode, frosted sheet, screenToLocal, Modifier.amDiscardGuard, AMDiscardGuardState, LocalAMDiscardGuard, DiscardBackHandler, OnBackInvokedCallback, keyboard back, Discard changes, Keep editing, AMAlert, AMAlertItem, AMAlertAction, AlertDialog, destructive, cancel, AMActionsOverlay, AMOverlayWindow, Dialog window, DialogWindowProvider, FLAG_BLUR_BEHIND, blurBehindRadius, FLAG_DIM_BEHIND, setDimAmount, isCrossWindowBlurEnabled, addCrossWindowBlurEnabledListener, wash, ProvideOverlayWindowLocals, DismissCatcher, Close, AMSpotlight, item form, SpotlightLayout, spotlight elevation, flat spotlight card, Modifier.amHoldable, long press, longPressTimeoutMillis, touch slop, HapticFeedbackType.LongPress, CustomAccessibilityAction, onLongClick, AMBackdropBlur, FrostedSlice, Modifier.amPausedBackdrop, AMPausedScrim, Modal, page wash, Modifier.blur, BlurredEdgeTreatment, back order, predictive back, ReportOverlayUp, AMOverlayRegistry, LocalAMOverlayRegistry, AMScene, sheet toast host, AMToastHost, LocalAMOnPrimarySurface, controlOutline, 34 dp, sigma, FallbackDimLight, FallbackDimDark, PageWashAlpha, OverlaysPages]
+keywords: [AMSpotlightState, rememberAMSpotlightState, amHoldable state form, hold actions, LocalAMRowHold, AMHoldAction, HoldActionTiles, actions per item, Overlay.wash, WashLight, WashDark, AMSheet, AMSheetHeight, AMSheetSurface, Full, Content, Primary, Page, Frosted, ModalBottomSheet, rememberBottomSheetState, confirmValueChange, ModalBottomSheetProperties, shouldDismissOnBackPress, transparent scrim, no dimming, drag handle, ExpandedShape, sheetChrome, requireOffset, sheet shadow, sheet hairline, GlassNode, frosted sheet, screenToLocal, Modifier.amDiscardGuard, AMDiscardGuardState, LocalAMDiscardGuard, DiscardBackHandler, OnBackInvokedCallback, keyboard back, Discard changes, Keep editing, AMAlert, AMAlertItem, AMAlertAction, AlertDialog, destructive, cancel, AMActionsOverlay, AMOverlayWindow, Dialog window, DialogWindowProvider, FLAG_BLUR_BEHIND, blurBehindRadius, FLAG_DIM_BEHIND, setDimAmount, isCrossWindowBlurEnabled, addCrossWindowBlurEnabledListener, wash, ProvideOverlayWindowLocals, DismissCatcher, Close, AMSpotlight, item form, SpotlightLayout, spotlight elevation, flat spotlight card, Modifier.amHoldable, long press, longPressTimeoutMillis, touch slop, HapticFeedbackType.LongPress, CustomAccessibilityAction, onLongClick, AMBackdropBlur, FrostedSlice, Modifier.amPausedBackdrop, AMPausedScrim, Modal, page wash, Modifier.blur, BlurredEdgeTreatment, back order, predictive back, ReportOverlayUp, AMOverlayRegistry, LocalAMOverlayRegistry, AMScene, sheet toast host, AMToastHost, LocalAMOnPrimarySurface, controlOutline, 34 dp, sigma, FallbackDimLight, FallbackDimDark, PageWashAlpha, OverlaysPages]
 updated: 2026-11-14
 ---
 
@@ -17,9 +17,9 @@ Library sources under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/`
 |---|---|
 | `overlays/OverlayWindow.kt` | internal `AMOverlayWindow` (the blurred window), `ProvideOverlayWindowLocals`, `OverlayCloseLabel`; private `BlurBehind`, `rememberCrossWindowBlurEnabled`, `DismissCatcher`, `InputBlocker` |
 | `overlays/ActionsOverlay.kt` | `AMActionsOverlay` |
-| `overlays/Spotlight.kt` | `AMSpotlight` (visible and item forms); private `SpotlightLayout`, `LastItem` |
+| `overlays/Spotlight.kt` | `AMSpotlight` (visible, item and state forms), `AMSpotlightState`, `rememberAMSpotlightState`; private `SpotlightLayout`, `LastItem` |
 | `overlays/HoldAction.kt` | `AMHoldAction`; internal `spokenName`, `HoldActionTiles` (a held item's tiles from its actions) |
-| `overlays/Holdable.kt` | `Modifier.amHoldable`; private `HoldableElement`, `HoldableNode`, `awaitLetGo` |
+| `overlays/Holdable.kt` | `Modifier.amHoldable` (action and spotlight-state forms); private `HoldableElement`, `HoldableNode`, `awaitLetGo` |
 | `overlays/Sheet.kt` | `AMSheetHeight`, `AMSheetSurface`, `AMSheet`; private `SheetTitle` |
 | `overlays/SheetChrome.kt` | internal `Modifier.sheetChrome`; private `sheetOffset`, `GlassElement`, `GlassNode` |
 | `overlays/DiscardGuard.kt` | `Modifier.amDiscardGuard`; internal `AMDiscardGuardState`, `LocalAMDiscardGuard`, `DiscardBackHandler`, the prompt's words; private `DiscardGuardNode` |
@@ -82,12 +82,24 @@ AMSpotlight(held, onDismissRequest = { held = null }, actions = { article -> lis
 
 ## `Modifier.amHoldable` (`Holdable.kt`)
 
-`Modifier.amHoldable(onHold, enabled = true, customActions: List<CustomAccessibilityAction> = emptyList())`: press and hold, the spotlight's trigger.
+`Modifier.amHoldable(onHold, actions: List<AMHoldAction> = emptyList(), enabled = true)`: press and hold, the spotlight's trigger; `actions` are the held item's spotlight tiles. **The state form** `Modifier.amHoldable(state: AMSpotlightState<T>, item: T, enabled = true)` is it with `onHold = { state.show(item) }` and `actions = state.actionsFor(item)`.
+
+```kotlin
+val spotlight = rememberAMSpotlightState<Article> { article -> listOf(AMHoldAction("Share", share) { share(article) }) }
+ArticleRow(article, Modifier.amHoldable(spotlight, article))   // the hold opens it; TalkBack gets Share on the row
+AMSpotlight(spotlight) { article -> ArticleRow(article) }
+```
 
 - **The gesture** (`HoldableNode`, a `DelegatingNode` over a `SuspendingPointerInputModifierNode`): it watches each touch in the **Initial** pass, so it sees the touch before the item's own click and a scrolling parent's drag, whatever the modifier order, without consuming anything until the hold. After the first down it waits `viewConfiguration.longPressTimeoutMillis` (`withTimeoutOrNull`) for the touch to let go (`awaitLetGo`: lifted, moved past `touchSlop`, or consumed by someone else). If it outlasts the timeout, it performs `HapticFeedbackType.LongPress` (from `LocalHapticFeedback`), calls `onHold` while the finger is still down, then consumes the rest of that touch, so the item's click never fires (its ripple shows while held, then cancels).
 - So a tap still does the item's main thing, and a vertical drag that starts on the item still scrolls.
-- **TalkBack** (`SemanticsModifierNode`): an `onLongClick` action that calls `onHold` (double-tap and hold), and `customActions` set on the item, so the spotlight's actions are there directly.
+- **TalkBack** (`SemanticsModifierNode`): an `onLongClick` action that calls `onHold` (double-tap and hold), and the hold's `actions` as custom actions in tile order, each named by its `spokenName` and running its `onClick`, so the spotlight's tiles are on the item directly. The node rebuilds its `CustomAccessibilityAction`s only when the names change (each one calls the current action at its index), so recomposition with fresh lambdas costs nothing.
+- **One list on a row.** On attach the node reads internal `LocalAMRowHold` (`Lists.md`): inside a row container (`AMSwipeableRow`, a reorderable list's cell) it puts its actions in the container's `RowActions.held` instead of on its own node, and the row carries them all in one list, **the hold's first (tile order), then the moves, then the swipes**; detaching clears them. Outside a container they go on its own node. Nothing is lost when a row swipes, holds and reorders at once.
 - `enabled = false` ignores touches and drops both semantics.
+
+### `AMSpotlightState<T>` (`Spotlight.kt`)
+
+- `@Stable`: `item: T?` (read-only from outside), `show(item)`, `dismiss()`, `actionsFor(item): List<AMHoldAction>`; internal `actions`, the latest function (snapshot state). `rememberAMSpotlightState(actions = { emptyList() })` remembers one and updates `actions` in a `SideEffect`, so the function can read the screen's current state. In memory only, like a hold.
+- `AMSpotlight(state, modifier, title, elevation, content)`: the item form with `item = state.item`, `onDismissRequest = state::dismiss`, `actions = state::actionsFor`. One definition of the actions feeds the tiles and every held item's TalkBack actions.
 
 ## `AMSheet` (`Sheet.kt`, `SheetChrome.kt`)
 
@@ -155,7 +167,7 @@ AMAlert(alert, onDismissRequest = { alert = null })
 | Sheet | "Show sheet" (full width): a full-height "Edit profile" sheet, a "Display name" `AMTextField` in a padded card at the top and Save at the bottom; the form carries `amDiscardGuard` while the draft differs from the saved name; Save with no name keeps the sheet up and posts a Warning banner ("Add a display name") from the page, which comes down over the sheet | "Notification settings": a full-height, page-colored "Notifications" sheet with two cards at `AMElevation.None`, switch rows (Mentions, Replies, New followers) and value rows (Quiet hours, Sound, Badge) |
 | Alert | "Show alert" (full width): "Publish draft?" with Not now and Publish | a "Harbor survey" card over a destructive "Delete project" button: "Delete project?", Keep and Delete (destructive), which marks the project "Deleted" |
 | Actions overlay | "Show actions" (full width): Message, Mail, Copy link / Cast, Save, Print | a 320 dp photo over "Photo actions": Favorite (active), Add to album / Crop, Adjust, Delete (destructive) |
-| Spotlight | a card of three articles; holding one brings it up with Share and Delete tiles (and as custom actions on the row) | a card of three days; holding one brings up its plans under the day's name, with Add plan and Open day |
+| Spotlight | a card of three articles; holding one brings it up with Share and Delete tiles; one `AMSpotlightState` gives the holds and the spotlight the same actions, so they're TalkBack actions on each row too | a card of three days; holding one brings up its plans under the day's name, with Add plan and Open day |
 | Backdrop blur | a 140 dp photo beside the same art blurred in an `AMBackdrop` | a 280 dp `AMBackdrop` blurred by `AMBackdropBlur`, a 140 dp cover and art-text title and artist over it |
 | Paused backdrop | a 180 dp photo with `amPausedBackdrop()` and "Paused" in art text | a 280 dp photo with the `Page` scrim, the photo itself at 160 dp and its title and date over it |
 

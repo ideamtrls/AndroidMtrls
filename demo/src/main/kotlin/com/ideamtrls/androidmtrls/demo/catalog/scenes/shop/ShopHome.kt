@@ -15,12 +15,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -146,29 +144,13 @@ private fun ShopThisWeek(model: ShopModel, loading: Boolean) {
 /**
  * A grid card's tap and hold: a tap pushes the product; a press and hold brings it up in the
  * quick-add spotlight, with its light haptic, and a vertical drag that starts on the card still
- * scrolls. TalkBack gets the spotlight's adds as the card's own actions: each size for coffee,
- * "Add to bag" for gear.
+ * scrolls. TalkBack gets the spotlight's tiles ([shopQuickAddActions]) as the card's own actions:
+ * each size for coffee, Add to bag and Details for gear.
  */
 @Composable
 private fun rememberShopCardInput(product: ShopProduct, model: ShopModel): Modifier {
-    val actions = remember(product, model) {
-        if (product.isCoffee) {
-            ShopSize.entries.map { size ->
-                CustomAccessibilityAction("Add ${size.title}") {
-                    model.quickAdd(product.id, size)
-                    true
-                }
-            }
-        } else {
-            listOf(
-                CustomAccessibilityAction("Add to bag") {
-                    model.quickAdd(product.id, null)
-                    true
-                },
-            )
-        }
-    }
+    val actions = shopQuickAddActions(product, model, rememberShopQuickAddIcons())
     return Modifier
         .clickable(role = Role.Button) { model.openProduct(product.id) }
-        .amHoldable(onHold = { model.showQuickAdd(product.id) }, customActions = actions)
+        .amHoldable(onHold = { model.showQuickAdd(product.id) }, actions = actions)
 }

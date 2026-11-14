@@ -124,7 +124,7 @@ internal fun MusicArtEntry(
     Column(
         modifier
             .fillMaxWidth()
-            .musicQueueMenu(target, model)
+            .musicQueueMenu(target, model, rememberMusicQueueIcons())
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
             .semantics { if (isPlaying) stateDescription = "Now playing" },
         verticalArrangement = Arrangement.spacedBy(spacing.sm),

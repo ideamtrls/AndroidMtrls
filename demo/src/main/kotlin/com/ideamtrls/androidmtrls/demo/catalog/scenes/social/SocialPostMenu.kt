@@ -11,7 +11,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.ideamtrls.androidmtrls.AMAvatar
 import com.ideamtrls.androidmtrls.AMHoldAction
@@ -28,16 +27,6 @@ internal class SocialPostActions(
     private val model: SocialModel,
     val copy: (SocialPost) -> Unit,
 ) {
-    /** The menu's actions as custom actions on the card. */
-    fun accessibilityActions(post: SocialPost): List<CustomAccessibilityAction> {
-        val author = model.user(post.authorId)
-        val second = if (author.isSelf) {
-            CustomAccessibilityAction("Delete") { model.confirmDelete(post.id); true }
-        } else {
-            CustomAccessibilityAction("Mute") { model.mute(author.id); true }
-        }
-        return listOf(CustomAccessibilityAction("Copy") { copy(post); true }, second)
-    }
 }
 
 /**

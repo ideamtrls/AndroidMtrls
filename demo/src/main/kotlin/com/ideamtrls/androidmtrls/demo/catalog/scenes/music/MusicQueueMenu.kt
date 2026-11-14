@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.text.style.TextOverflow
 import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMHoldAction
@@ -22,19 +21,10 @@ import com.ideamtrls.androidmtrls.amHoldable
 /**
  * Press and hold (the library's hold, with its haptic) opens the queue menu on [target] and
  * cancels the tap underneath; a vertical drag that starts on the item still scrolls. TalkBack gets
- * the menu's actions on the item itself: Play, Shuffle and Add to queue for artists and albums, Add
- * to queue for songs (a song's tap already plays it).
+ * the menu's tiles ([musicQueueActions]) as actions on the item itself.
  */
-internal fun Modifier.musicQueueMenu(target: MusicQueueTarget, model: MusicModel): Modifier {
-    val actions = buildList {
-        if (target !is MusicQueueTarget.Track) {
-            add(CustomAccessibilityAction("Play") { model.play(target); true })
-            add(CustomAccessibilityAction("Shuffle") { model.play(target, shuffled = true); true })
-        }
-        add(CustomAccessibilityAction("Add to queue") { model.addToQueue(target); true })
-    }
-    return amHoldable(onHold = { model.queueMenuTarget = target }, customActions = actions)
-}
+internal fun Modifier.musicQueueMenu(target: MusicQueueTarget, model: MusicModel, icons: MusicQueueIcons): Modifier =
+    amHoldable(onHold = { model.queueMenuTarget = target }, actions = musicQueueActions(target, model, icons))
 
 /**
  * The held target up close: its art a size up from the rows' thumbnails, then its name over one
