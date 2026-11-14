@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -46,6 +47,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 // The art recipe: a picture blurred until it reads as its colors, saturated so the averaged colors
@@ -205,8 +207,9 @@ public fun Modifier.amArtBackdrop(
  * color runs edge to edge and moves with the rows; nothing behind the page swaps as it scrolls.
  * The first and last colors run well past the content, for overscroll and short pages, so the
  * scrolling container's clip bounds them. Rows report in page order. Where no row's picture has
- * arrived yet, and for a null one, the page color shows; a row whose picture changes keeps its
- * last one until the new one is ready. A page with no rows is the page color by itself. A row's
+ * arrived yet, where it fails, and for a null one, the band is the page color, blending into its
+ * neighbors as any band does; a row whose picture changes keeps its last one until the new one is
+ * ready. A page with no rows is the page color by itself. A row's
  * picture is a URL or a bitmap the app holds, and one page can mix them.
  *
  * On its own, the colors are this content's background. For frosted surfaces over the rows (a
@@ -523,6 +526,22 @@ private fun DrawScope.drawArt(image: ImageBitmap, topLeft: Offset, size: Size, a
     )
 }
 
+/**
+ * A band with no picture: the page [color] across [width], fading in over the band's top as a
+ * picture's baked fade does, so the band above blends into it.
+ */
+private fun DrawScope.drawPageBand(band: ArtBand, width: Float, color: Color) {
+    val opaqueTop = band.top + band.fade
+    if (band.fade > 0f) {
+        drawRect(
+            Brush.verticalGradient(listOf(color.copy(alpha = 0f), color), startY = band.top, endY = opaqueTop),
+            Offset(0f, band.top),
+            Size(width, band.fade),
+        )
+    }
+    drawRect(color, Offset(0f, opaqueTop), Size(width, band.bottom - opaqueTop))
+}
+
 // The art rows
 
 /** What an art row looks for among its ancestors: the nearest [amArtRows]. */
@@ -626,8 +645,11 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
 
     /**
      * Draws each row's band, in this container's frame, for content of [contentSize]: the colors
-     * alone, with nothing under them. A band whose picture for its frame and the mode isn't ready
-     * draws its row's last picture stretched to the band, until the new one is.
+     * alone, over the page color the caller drew. A band whose picture for its frame and the mode
+     * isn't ready draws its row's last picture stretched to the band, until the new one is; a band
+     * with no picture at all is the page color, faded in like a picture, so the band above blends
+     * into it instead of ending in a line. Over nothing but the page color it has nothing to cover,
+     * so a page whose bands have no pictures stays exactly the page color.
      */
     fun DrawScope.drawBands(contentSize: Size) {
         val container = coordinates?.takeIf { it.isAttached } ?: return
@@ -644,17 +666,31 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
             ArtRowBleed.toPx(),
         )
         val blurRadius = AMArtDefaults.BlurRadius.toPx()
+        val page = pageColor(dark)
+        // How far down the pictures drawn so far reach: a band with no picture above it lies on
+        // the page color alone.
+        var artBottom = Float.NEGATIVE_INFINITY
         placed.forEachIndexed { index, (row, _) ->
-            val source = row.source ?: return@forEachIndexed
             val band = bands[index]
-            val frame = IntSize(ceil(contentSize.width).toInt(), ceil(band.bottom - band.top).toInt())
+            val bandSize = Size(contentSize.width, band.bottom - band.top)
+            val frame = IntSize(ceil(bandSize.width).toInt(), ceil(bandSize.height).toInt())
             if (frame.width <= 0 || frame.height <= 0) return@forEachIndexed
-            val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, band.fade)
-            val image = ArtImages.cached(key)
-            if (image == null) request(source, key) else row.lastPicture = image
-            // Until its picture for this band is ready, a band keeps the one it showed last.
-            val picture = image ?: row.lastPicture ?: return@forEachIndexed
-            drawArt(picture, Offset(0f, band.top), Size(contentSize.width, band.bottom - band.top), 1f)
+            val source = row.source
+            val picture = if (source == null) {
+                null
+            } else {
+                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, band.fade)
+                val image = ArtImages.cached(key)
+                if (image == null) request(source, key) else row.lastPicture = image
+                // Until its picture for this band is ready, a band keeps the one it showed last.
+                image ?: row.lastPicture
+            }
+            if (picture != null) {
+                drawArt(picture, Offset(0f, band.top), bandSize, 1f)
+                artBottom = max(artBottom, band.bottom)
+            } else if (band.top < artBottom) {
+                drawPageBand(band, contentSize.width, page)
+            }
         }
     }
 
