@@ -56,10 +56,11 @@ public sealed interface AMProgressViewStyle {
     /**
      * Material's circular progress indicator at a glyph's size, with no caption: for work on one
      * item in a list (a download, a refresh), in the place a row's trailing glyph or icon button
-     * takes. It's 24 dp, centered in a 48 dp square like an [AMIconButton]'s touch target, so
-     * swapping it for a button doesn't move the row. Material's proportions at a glyph's size: a
-     * 20 dp ring 2 dp thick (Material's own is 40 dp and 4 dp) in the 24 dp a glyph takes, its
-     * live area and padding. The label isn't shown; it's what a screen reader says.
+     * takes. It's a 24 dp glyph's box and no more: it takes no input, so it needs no touch
+     * target, and at a row's end it lines up with the other rows' trailing content, as a trailing
+     * icon does. Material's proportions at a glyph's size: a 20 dp ring 2 dp thick (Material's own
+     * is 40 dp and 4 dp) in the 24 dp a glyph takes, its live area and padding. The label isn't
+     * shown; it's what a screen reader says.
      */
     @Immutable
     public data object Glyph : AMProgressViewStyle
@@ -97,7 +98,7 @@ public sealed interface AMProgressViewStyle {
  * @param label what's in progress ("Uploading", "Checking for new mail"): the spinner's caption,
  *   the bar's title, what a screen reader says for the glyph.
  * @param modifier the view's placement. The carded spinner and the bar fill the width they're
- *   given; the glyph is 48 dp square.
+ *   given; the glyph is 24 dp square.
  * @param progress how far along the work is, 0 to 1, read while drawing so a changing value
  *   doesn't recompose. Null runs the indicator indeterminate.
  * @param valueLabel a readout at the end of the bar's title row ("60%", "Done", "Waiting"). The
@@ -147,21 +148,13 @@ private fun SpinnerProgress(label: String, modifier: Modifier, progress: (() -> 
     }
 }
 
-/**
- * The circular indicator at a glyph's size, centered in a touch target's square, with [label] as
- * its spoken name.
- */
+/** The circular indicator in a glyph's 24 dp box, with [label] as its spoken name. */
 @Composable
 private fun GlyphProgress(label: String, modifier: Modifier, progress: (() -> Float)?) {
     val ring = Modifier
         .padding(GlyphRingInset)
         .size(GlyphRingSize)
-    Box(
-        modifier
-            .size(GlyphTargetSize)
-            .semantics(mergeDescendants = true) { contentDescription = label },
-        contentAlignment = Alignment.Center,
-    ) {
+    Box(modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
         if (progress != null) {
             CircularProgressIndicator(progress = progress, modifier = ring, strokeWidth = GlyphRingStroke)
         } else {
@@ -217,9 +210,6 @@ private fun BarProgress(label: String, modifier: Modifier, progress: (() -> Floa
         }
     }
 }
-
-/** The glyph's square: a touch target's, as an icon button's. */
-private val GlyphTargetSize = 48.dp
 
 /** The glyph's ring: a glyph's 20 dp live area. */
 private val GlyphRingSize = 20.dp
