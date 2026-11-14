@@ -28,7 +28,8 @@ import androidx.compose.ui.unit.dp
  *
  * The title is the page-title role, `headlineMedium` expanded, written as given in sentence case.
  * With a [scrollBehavior] it collapses as the content scrolls, Material's way; without one it
- * stays expanded.
+ * stays expanded. Over pull to refresh, hand the scroll behavior to the [AMPullToRefreshBox] in
+ * place of the `Scaffold`, so a collapsed header reopens before the pull.
  *
  * **Over a picture** (inside an [AMBackdrop], on a transparent screen) the bar lies on the art at
  * rest, and as it collapses it fades in the frosted fill instead of the page color, at the rate
