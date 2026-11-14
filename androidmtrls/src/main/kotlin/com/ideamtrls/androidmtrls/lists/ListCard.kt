@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.dp
  *
  * The card spans its container's width, in `shapes.large` with the card's shadow; its text sits
  * at the same inset and height as any other row's (28 dp above and below, 16 dp at the sides).
- * With [onClick] the whole card is a button, its ripple inside the card's corners. Stack cards
+ * With [onClick] the whole card is a button, its ripple inside the card's corners, and
+ * [onClickLabel] names what a tap does for TalkBack. Stack cards
  * `spacing.md` apart, or hand them to [AMReorderableCardList], which keeps their text clear of
  * its drag handle and lifts a dragged card higher.
  *
@@ -31,6 +32,8 @@ import androidx.compose.ui.unit.dp
  * @param leadingContent a glyph, avatar or picture before the text. Null shows none.
  * @param trailingContent an accessory after the text. Null shows none.
  * @param fill the card's fill, solid or frosted over art.
+ * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to" ("Open task").
+ *   Null leaves TalkBack's generic "activate". Only a card with [onClick] uses it.
  * @param onClick makes the card a button. Null leaves it a plain card.
  * @param enabled whether the card takes taps. A disabled card keeps its place and dims.
  */
@@ -42,6 +45,7 @@ public fun AMListCard(
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     fill: AMSurfaceFill = AMSurfaceFill.Solid,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
@@ -51,6 +55,7 @@ public fun AMListCard(
         supportingContent = if (subtitle.isNullOrEmpty()) null else ({ Text(subtitle) }),
         trailingContent = trailingContent,
         fill = fill,
+        onClickLabel = onClickLabel,
         onClick = onClick,
         enabled = enabled,
     ) {
@@ -68,6 +73,8 @@ public fun AMListCard(
  * @param supportingContent what sits under the headline. Null shows none.
  * @param trailingContent an accessory after the text. Null shows none.
  * @param fill the card's fill, solid or frosted over art.
+ * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to" ("Open task").
+ *   Null leaves TalkBack's generic "activate". Only a card with [onClick] uses it.
  * @param onClick makes the card a button. Null leaves it a plain card.
  * @param enabled whether the card takes taps. A disabled card keeps its place and dims.
  * @param content the card's headline.
@@ -79,6 +86,7 @@ public fun AMListCard(
     supportingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     fill: AMSurfaceFill = AMSurfaceFill.Solid,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     content: @Composable () -> Unit,
@@ -93,6 +101,7 @@ public fun AMListCard(
         .fillMaxWidth()
         .amCard(fill = fill, elevation = elevation)
         .then(claimRowActions())
+        .rowClickLabel(onClickLabel, onClick, isEnabled)
     CompositionLocalProvider(
         LocalAMRowActions provides null,
         LocalAMReorderHandleInset provides 0.dp,

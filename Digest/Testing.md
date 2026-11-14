@@ -34,7 +34,7 @@ Testing is minimal on purpose. A change is checked by building it and looking at
 - Each test hosts the composable in `createAndroidComposeRule<ComponentActivity>()` (the `v2` rule), drives time with `mainClock` where timing matters, and taps by screen position (`onRoot().performTouchInput { click(spot) }`) when what's under the finger is the point.
 - The tests that exist, in `androidmtrls/src/androidTest/kotlin/com/ideamtrls/androidmtrls/`:
   - `SystemBarsAppearanceTest`: the window's bar icons under `AMTheme` — the outermost theme sets both light-icon bits for its appearance and again when it changes, a nested theme leaves them alone, and an `AMLightStatusBarIcons` claim keeps the status bar's icons light across a change (`Foundations.md`, `Navigation.md`).
-  - `RowSemanticsTest`: what TalkBack finds on rows — a bar `AMProgressView` in an `AMSwipeableRow` is the one stop carrying the swipe actions, reading its label (`Feedback.md`, `Lists.md`).
+  - `RowSemanticsTest`: what TalkBack finds on rows — an `AMListRow`'s and an `AMListCard`'s tap carries its `onClickLabel` (TalkBack's action and a touch each tap once; without a label Material's tap stays), and a bar `AMProgressView` in an `AMSwipeableRow` is the one stop carrying the swipe actions, reading its label (`Feedback.md`, `Lists.md`).
   - `PanelBackTest`: a panel's back button under a real `NavDisplay` — tapped twice at the same spot while its panel pops, `AMPanel`'s arrow and `AMArtPanelChrome`'s button pop once (one panel deep, a second pop would empty the back stack); tapped while the panel slides in, it pops (`Navigation.md`).
 - Run them with an emulator or device attached: `./gradlew :androidmtrls:connectedDebugAndroidTest --console=plain` (environment in `Build.md`).
 

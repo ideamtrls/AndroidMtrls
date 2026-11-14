@@ -109,6 +109,7 @@ private fun AccountSettings() {
                     option.title,
                     subtitle = option.detail,
                     selected = option == plan,
+                    onClickLabel = "Choose",
                     onClick = { plan = option },
                 )
                 if (option != ListsPlan.entries.last()) AMDivider(inset = spacing.lg)
