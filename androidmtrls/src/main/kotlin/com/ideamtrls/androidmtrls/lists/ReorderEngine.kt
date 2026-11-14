@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
@@ -147,6 +148,35 @@ private fun Modifier.reorderPlacement(state: ReorderState, key: Any): Modifier? 
     state.liftedKey -> zIndex(2f).graphicsLayer { translationY = state.liftedOffset() }
     state.settlingKey -> zIndex(1f).graphicsLayer { translationY = state.settleOffset }
     else -> null
+}
+
+/**
+ * The list in the form the height it's measured with calls for, each item built by [cell]: given a
+ * bounded height (a screen's, a weight, `heightIn(max = …)`), the lazy [ReorderableColumn] on
+ * [listState], scrolling itself, with [contentPadding]; measured without a height limit (inside
+ * `Modifier.verticalScroll`, or as a lazy list's item), the [ReorderablePageColumn], as tall as its
+ * items and scrolling with the page. [modifier] places and sizes it in either form.
+ */
+@Composable
+internal fun <T> ReorderableList(
+    items: List<T>,
+    key: (T) -> Any,
+    onMove: (from: Int, to: Int) -> Unit,
+    modifier: Modifier,
+    listState: LazyListState,
+    enabled: Boolean,
+    contentPadding: PaddingValues,
+    handleZone: Dp,
+    holdToLift: Boolean,
+    cell: ReorderCell<T>,
+) {
+    BoxWithConstraints(modifier, propagateMinConstraints = true) {
+        if (constraints.hasBoundedHeight) {
+            ReorderableColumn(items, key, onMove, Modifier, listState, enabled, contentPadding, handleZone, holdToLift, cell)
+        } else {
+            ReorderablePageColumn(items, key, onMove, Modifier, enabled, handleZone, holdToLift, cell)
+        }
+    }
 }
 
 /**

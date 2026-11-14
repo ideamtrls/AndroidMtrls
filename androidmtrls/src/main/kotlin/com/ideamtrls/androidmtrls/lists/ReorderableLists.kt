@@ -1,7 +1,6 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,9 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 
 /**
- * A list of rows the user puts in order: a `LazyColumn` of [items], each row built by [content]
- * with the list's drag handle at its trailing edge. Pair it with [AMListRow]; cards go in
- * [AMReorderableCardList].
+ * A list of rows the user puts in order: [items], each row built by [content] with the list's drag
+ * handle at its trailing edge. Pair it with [AMListRow]; cards go in [AMReorderableCardList].
  *
  * ```kotlin
  * val queue = remember { mutableStateListOf(*tracks) }
@@ -36,8 +34,9 @@ import androidx.compose.ui.draw.clip
  *   lifts it too, with the long-press haptic, unless [holdToLift] is false. The lifted row comes
  *   up as a floating surface, in `shapes.large` with a higher shadow, and follows the finger; its
  *   neighbors slide out of its way with Material's motion, a light tick marking each place it
- *   passes. Each step shows at once and [onMove] reports it. Near the list's top or bottom edge
- *   the list scrolls under it. On release it settles into its slot. The order is never hidden
+ *   passes. Each step shows at once and [onMove] reports it. Near the top or bottom edge of what's
+ *   visible of the list, the list (or the page holding it) scrolls under it. On release it
+ *   settles into its slot. The order is never hidden
  *   behind an edit mode: the handle is always there.
  * - **The order is the caller's.** [onMove] asks to move the item at `from` to `to`, one place at
  *   a time, each step from the order the step before left; make the same moves in [items], in
@@ -48,22 +47,38 @@ import androidx.compose.ui.draw.clip
  * - **Swipes.** [startAction] and [endAction] give a row an action per swipe direction, as
  *   [AMSwipeableRow] does; the handle moves with the swiping row. An action that removes its item
  *   from [items] fades the row out as the rows below close up.
- * - **Surface.** Rows lie flat on what holds the list: a card (`Modifier.amCard()`) or a strip of
- *   the surface color. The list scrolls, so give it a bounded height: a screen's, or
- *   `Modifier.heightIn(max = …)` inside a scrolling page, where it takes its rows' height up to
- *   that.
+ * - **Surface.** Rows lie flat on what holds the list: a card (`Modifier.amCard()`, frosted over
+ *   art too, its rows carrying `Modifier.amArtRow`) or a strip of the surface color.
+ * - **Scrolling on its own.** Given a bounded height (a screen's, a weight, `heightIn(max = …)`),
+ *   it's a `LazyColumn` on [state] that takes its rows' height up to that and scrolls inside it.
+ * - **In a scrolling page.** Measured without a height limit (inside `Modifier.verticalScroll`, or
+ *   as an item of a lazy list), it's a plain column as tall as its rows that scrolls with the
+ *   page, so the card holding it is as long as its rows. Everything else stays: the lift, the
+ *   neighbors sliding aside, the settle, the swipes. A lifted row scrolls the page near the edges
+ *   of what's visible of the list, through nested scrolling, so a collapsing top app bar follows
+ *   along. Every row is composed, so keep this for lists of a page's length; [state] isn't used.
  * - **Holding a row.** A hold that lifts a row and a hold on the row itself (`Modifier.amHoldable`
  *   opening its spotlight) answer the same long-press timeout. With [holdToLift] false only the
  *   handle lifts a row, and a hold on the rest of it is the row's own.
  * - **TalkBack** gets "Move up" and "Move down" on each row, and the swipe actions, as custom
  *   actions on the row itself; the handle is skipped.
  *
+ * ```kotlin
+ * // In an AMArtRowsBackdrop, so the frosted card blurs the rows' colors.
+ * Column(Modifier.verticalScroll(rememberScrollState()).amArtRows()) {
+ *     AMSectionHeader("Up next", Modifier.padding(horizontal = 16.dp))
+ *     AMReorderableRowList(queue, key = { it.id }, onMove = ::moveTrack, Modifier.padding(horizontal = 16.dp).amCard(AMSurfaceFill.Frosted)) { track ->
+ *         AMListRow(track.title, Modifier.amArtRow(track.coverUrl), subtitle = track.album)
+ *     }
+ * }
+ * ```
+ *
  * @param items the rows' items, in order.
  * @param key a stable, unique key per item.
  * @param onMove called as the user moves the item at `from` to `to`, a place in the order the last
  *   step left.
  * @param modifier the list's placement and size.
- * @param state the list's scroll state.
+ * @param state the list's scroll state while it scrolls on its own.
  * @param startAction the action a swipe toward the end performs on an item's row, or null for
  *   none (the default).
  * @param endAction the action a swipe toward the start performs on an item's row, or null for none
@@ -90,7 +105,7 @@ public fun <T> AMReorderableRowList(
     val isEnabled = resolveEnabled(enabled)
     val side = AMTheme.tokens.spacing.lg
     val liftShape = MaterialTheme.shapes.large
-    ReorderableColumn(
+    ReorderableList(
         items = items,
         key = key,
         onMove = onMove,
@@ -195,31 +210,16 @@ public fun <T> AMReorderableCardList(
             }
         }
     }
-    BoxWithConstraints(modifier, propagateMinConstraints = true) {
-        if (constraints.hasBoundedHeight) {
-            ReorderableColumn(
-                items = items,
-                key = key,
-                onMove = onMove,
-                modifier = Modifier,
-                listState = state,
-                enabled = isEnabled,
-                contentPadding = PaddingValues(vertical = spacing.md),
-                handleZone = handleZone,
-                holdToLift = holdToLift,
-                cell = cell,
-            )
-        } else {
-            ReorderablePageColumn(
-                items = items,
-                key = key,
-                onMove = onMove,
-                modifier = Modifier,
-                enabled = isEnabled,
-                handleZone = handleZone,
-                holdToLift = holdToLift,
-                cell = cell,
-            )
-        }
-    }
+    ReorderableList(
+        items = items,
+        key = key,
+        onMove = onMove,
+        modifier = modifier,
+        listState = state,
+        enabled = isEnabled,
+        contentPadding = PaddingValues(vertical = spacing.md),
+        handleZone = handleZone,
+        holdToLift = holdToLift,
+        cell = cell,
+    )
 }
