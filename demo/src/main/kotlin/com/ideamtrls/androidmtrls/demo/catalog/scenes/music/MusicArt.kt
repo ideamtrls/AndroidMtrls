@@ -40,12 +40,27 @@ import com.ideamtrls.androidmtrls.amElevation
  * An art backdrop from an album's art: its embedded [cover] once it's read, else the picture at
  * [url] (the project photo). The cover arriving fades in over the photo.
  */
-internal fun Modifier.musicArtBackdrop(cover: ImageBitmap?, url: String?): Modifier =
-    if (cover != null) amArtBackdrop(cover) else amArtBackdrop(url)
+internal fun Modifier.musicArtBackdrop(cover: ImageBitmap?, url: String?): Modifier {
+    val art = MusicCoverOverride ?: cover
+    return if (art != null) amArtBackdrop(art) else amArtBackdrop(url)
+}
 
 /** An art row's color from an album's art: its embedded [cover] once it's read, else the picture at [url]. */
-internal fun Modifier.musicArtRow(cover: ImageBitmap?, url: String?): Modifier =
-    if (cover != null) amArtRow(cover) else amArtRow(url)
+internal fun Modifier.musicArtRow(cover: ImageBitmap?, url: String?): Modifier {
+    val art = MusicCoverOverride ?: cover
+    return if (art != null) amArtRow(art) else amArtRow(url)
+}
+
+/**
+ * The solid picture the debug `cover` launch extra puts in place of every cover and photo in the
+ * scene, art and cards alike (`--es cover white|black`), or null.
+ */
+private val MusicCoverOverride: ImageBitmap?
+    get() = when (LaunchOptions.cover) {
+        "white" -> SolidArt.White
+        "black" -> SolidArt.Black
+        else -> null
+    }
 
 /**
  * An album's art in [modifier]'s frame: [cover], the art embedded in its MP3s, once the model has
@@ -59,8 +74,9 @@ internal fun MusicCoverImage(
     modifier: Modifier = Modifier,
     fallback: @Composable () -> Unit,
 ) {
-    if (cover != null) {
-        Image(cover, contentDescription = null, modifier = modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+    val art = MusicCoverOverride ?: cover
+    if (art != null) {
+        Image(art, contentDescription = null, modifier = modifier.fillMaxSize(), contentScale = ContentScale.Crop)
     } else {
         AMRemoteImage(url, contentDescription = null, modifier = modifier, fallback = fallback)
     }

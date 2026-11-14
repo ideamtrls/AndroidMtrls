@@ -43,12 +43,10 @@ import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMElevation
-import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
-import com.ideamtrls.androidmtrls.amArtRow
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
@@ -92,7 +90,7 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                     .padding(top = spacing.md, bottom = MusicFabClearance),
                 verticalArrangement = Arrangement.spacedBy(spacing.xl),
             ) {
-                MusicArtistHero(artist, catalog, Modifier.amArtRow(artist.imageUrl))
+                MusicArtistHero(artist, catalog, Modifier.musicArtRow(null, artist.imageUrl))
                 MusicPlayShuffleButtons(MusicQueueTarget.Artist(artist), model, Modifier.padding(horizontal = spacing.lg))
                 Column(Modifier.padding(horizontal = spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
                     AMSectionHeader("Albums")
@@ -134,9 +132,9 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        AMRemoteImage(
-            artist.imageUrl,
-            contentDescription = null,
+        MusicCoverImage(
+            cover = null,
+            url = artist.imageUrl,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(artist.imageAspectRatio)

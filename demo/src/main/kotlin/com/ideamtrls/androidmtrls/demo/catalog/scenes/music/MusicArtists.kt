@@ -32,7 +32,6 @@ import com.ideamtrls.androidmtrls.AMArtRowsBackdrop
 import com.ideamtrls.androidmtrls.AMEmptyState
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.amArtRow
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 
@@ -90,7 +89,7 @@ internal fun MusicArtistsView(model: MusicModel) {
                             target = MusicQueueTarget.Artist(artist),
                             model = model,
                             onClick = { model.openArtist(artist.id) },
-                            modifier = Modifier.amArtRow(artist.imageUrl),
+                            modifier = Modifier.musicArtRow(null, artist.imageUrl),
                         )
                     }
                 }
