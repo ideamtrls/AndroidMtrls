@@ -33,12 +33,12 @@ import androidx.compose.ui.draw.clip
  * ```
  *
  * - **Dragging.** A drag on a row's handle lifts it at once; a press and hold anywhere on the row
- *   lifts it too, with the long-press haptic. The lifted row comes up as a floating surface, in
- *   `shapes.large` with a higher shadow, and follows the finger; its neighbors slide out of its
- *   way with Material's motion, a light tick marking each place it passes. Each step shows at
- *   once and [onMove] reports it. Near the list's top or bottom edge the list scrolls under it. On
- *   release it settles into its slot. The order is never hidden behind an edit mode: the handle is
- *   always there.
+ *   lifts it too, with the long-press haptic, unless [holdToLift] is false. The lifted row comes
+ *   up as a floating surface, in `shapes.large` with a higher shadow, and follows the finger; its
+ *   neighbors slide out of its way with Material's motion, a light tick marking each place it
+ *   passes. Each step shows at once and [onMove] reports it. Near the list's top or bottom edge
+ *   the list scrolls under it. On release it settles into its slot. The order is never hidden
+ *   behind an edit mode: the handle is always there.
  * - **The order is the caller's.** [onMove] asks to move the item at `from` to `to`, one place at
  *   a time, each step from the order the step before left; make the same moves in [items], in
  *   order, at once or later. The list keeps its own order until [items] has taken the last step
@@ -52,6 +52,9 @@ import androidx.compose.ui.draw.clip
  *   the surface color. The list scrolls, so give it a bounded height: a screen's, or
  *   `Modifier.heightIn(max = …)` inside a scrolling page, where it takes its rows' height up to
  *   that.
+ * - **Holding a row.** A hold that lifts a row and a hold on the row itself (`Modifier.amHoldable`
+ *   opening its spotlight) answer the same long-press timeout. With [holdToLift] false only the
+ *   handle lifts a row, and a hold on the rest of it is the row's own.
  * - **TalkBack** gets "Move up" and "Move down" on each row, and the swipe actions, as custom
  *   actions on the row itself; the handle is skipped.
  *
@@ -65,6 +68,8 @@ import androidx.compose.ui.draw.clip
  *   none (the default).
  * @param endAction the action a swipe toward the start performs on an item's row, or null for none
  *   (the default).
+ * @param holdToLift whether a press and hold anywhere on a row lifts it (the default). False lifts
+ *   a row from its handle only, leaving holds to the row.
  * @param enabled whether rows can be moved and swiped. A disabled list keeps its rows and dims its
  *   handles.
  * @param content builds an item's row.
@@ -78,6 +83,7 @@ public fun <T> AMReorderableRowList(
     state: LazyListState = rememberLazyListState(),
     startAction: (T) -> AMSwipeAction? = { null },
     endAction: (T) -> AMSwipeAction? = { null },
+    holdToLift: Boolean = true,
     enabled: Boolean = true,
     content: @Composable (T) -> Unit,
 ) {
@@ -93,6 +99,7 @@ public fun <T> AMReorderableRowList(
         enabled = isEnabled,
         contentPadding = PaddingValues(),
         handleZone = side + ReorderHandleSize + side,
+        holdToLift = holdToLift,
     ) { item, lifted, moveActions ->
         val start = startAction(item)
         val end = endAction(item)
@@ -123,7 +130,8 @@ public fun <T> AMReorderableRowList(
  * ```
  *
  * - **Dragging** works as in [AMReorderableRowList]: the handle lifts a card at once, a press
- *   and hold anywhere on it lifts it too, each step shows at once and [onMove] reports it (the
+ *   and hold anywhere on it lifts it too (unless [holdToLift] is false, leaving holds to the
+ *   card, `Modifier.amHoldable` among them), each step shows at once and [onMove] reports it (the
  *   order is the caller's, taken in order, at once or later), the list scrolls near its edges, and
  *   the card settles into its slot on release. A lifted [AMListCard] casts a higher
  *   shadow; any card follows the finger above its neighbors.
@@ -155,6 +163,8 @@ public fun <T> AMReorderableRowList(
  *   step left.
  * @param modifier the list's placement and size.
  * @param state the list's scroll state while it scrolls on its own.
+ * @param holdToLift whether a press and hold anywhere on a card lifts it (the default). False lifts
+ *   a card from its handle only, leaving holds to the card.
  * @param enabled whether cards can be moved. A disabled list keeps its cards and dims its handles.
  * @param content builds an item's card.
  */
@@ -165,6 +175,7 @@ public fun <T> AMReorderableCardList(
     onMove: (from: Int, to: Int) -> Unit,
     modifier: Modifier = Modifier,
     state: LazyListState = rememberLazyListState(),
+    holdToLift: Boolean = true,
     enabled: Boolean = true,
     content: @Composable (T) -> Unit,
 ) {
@@ -195,6 +206,7 @@ public fun <T> AMReorderableCardList(
                 enabled = isEnabled,
                 contentPadding = PaddingValues(vertical = spacing.md),
                 handleZone = handleZone,
+                holdToLift = holdToLift,
                 cell = cell,
             )
         } else {
@@ -205,6 +217,7 @@ public fun <T> AMReorderableCardList(
                 modifier = Modifier,
                 enabled = isEnabled,
                 handleZone = handleZone,
+                holdToLift = holdToLift,
                 cell = cell,
             )
         }

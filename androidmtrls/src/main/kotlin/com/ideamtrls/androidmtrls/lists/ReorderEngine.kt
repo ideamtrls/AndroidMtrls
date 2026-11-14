@@ -64,8 +64,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-// The one engine behind both reorderable lists: items that lift on a press and hold (or at once
-// from their drag handle), follow the finger, trade places with their neighbors as they pass
+// The one engine behind both reorderable lists: items that lift at once from their drag handle
+// (and on a press and hold anywhere, unless the list leaves holds to its items), follow the finger, trade places with their neighbors as they pass
 // them, scroll the list near its edges, and settle into their slot on release. TalkBack gets
 // "Move up" and "Move down" on every item instead. The items lie in a LazyColumn that scrolls
 // itself, or (the card list in a scrolling page) in a plain column that scrolls with the page.
@@ -91,7 +91,7 @@ internal val LocalAMReorderHandleInset = compositionLocalOf { 0.dp }
 /**
  * The drag handle every item in a reorderable list carries: Material's `drag_handle` glyph in
  * `onSurfaceVariant`. It shows where a drag starts at once; a press and hold anywhere on the item
- * lifts it too. TalkBack skips it: the item carries the move actions itself.
+ * lifts it too, unless the list leaves holds to its items. TalkBack skips it: the item carries the move actions itself.
  */
 @Composable
 internal fun ReorderHandle(enabled: Boolean, modifier: Modifier = Modifier) {
@@ -109,7 +109,8 @@ internal typealias ReorderCell<T> = @Composable (item: T, lifted: Boolean, moveA
 
 /**
  * The engine's state for a list on [layout], with its settings written after every composition:
- * the trailing [handleZone] of each item starts a drag as soon as the finger moves.
+ * the trailing [handleZone] of each item starts a drag as soon as the finger moves, and with
+ * [holdToLift] a press and hold anywhere else does.
  */
 @Composable
 private fun rememberReorderState(
@@ -117,6 +118,7 @@ private fun rememberReorderState(
     onMove: (from: Int, to: Int) -> Unit,
     enabled: Boolean,
     handleZone: Dp,
+    holdToLift: Boolean,
 ): ReorderState {
     val scope = rememberCoroutineScope()
     val state = remember(layout, scope) { ReorderState(layout, scope) }
@@ -127,6 +129,7 @@ private fun rememberReorderState(
     SideEffect {
         state.onMove = onMove
         state.enabled = enabled
+        state.holdToLift = holdToLift
         state.rtl = rtl
         state.haptics = haptics
         state.settleSpec = settleSpec
@@ -149,7 +152,7 @@ private fun Modifier.reorderPlacement(state: ReorderState, key: Any): Modifier? 
 /**
  * The shared list: [items] in a `LazyColumn` on [listState], each built by [cell]. The trailing
  * [handleZone] of each item, where the cell draws its handle, starts a drag as soon as the finger
- * moves; anywhere else a press and hold does.
+ * moves; with [holdToLift], a press and hold anywhere else does.
  */
 @Composable
 internal fun <T> ReorderableColumn(
@@ -161,10 +164,11 @@ internal fun <T> ReorderableColumn(
     enabled: Boolean,
     contentPadding: PaddingValues,
     handleZone: Dp,
+    holdToLift: Boolean,
     cell: ReorderCell<T>,
 ) {
     val layout = remember(listState) { LazyReorderLayout(listState) }
-    val state = rememberReorderState(layout, onMove, enabled, handleZone)
+    val state = rememberReorderState(layout, onMove, enabled, handleZone, holdToLift)
     val keys = items.map(key)
     val shownKeys = state.shown(keys)
     val shown = shownItems(items, keys, shownKeys)
@@ -206,12 +210,13 @@ internal fun <T> ReorderablePageColumn(
     modifier: Modifier,
     enabled: Boolean,
     handleZone: Dp,
+    holdToLift: Boolean,
     cell: ReorderCell<T>,
 ) {
     val dispatcher = remember { NestedScrollDispatcher() }
     val scope = rememberCoroutineScope()
     val pageLayout = remember(dispatcher, scope) { PageReorderLayout(dispatcher, scope) }
-    val state = rememberReorderState(pageLayout, onMove, enabled, handleZone)
+    val state = rememberReorderState(pageLayout, onMove, enabled, handleZone, holdToLift)
     val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val keys = items.map(key)
     val shownKeys = state.shown(keys)
@@ -517,6 +522,7 @@ internal class ReorderState(
     // Set by the list after every composition.
     var onMove: (from: Int, to: Int) -> Unit = { _, _ -> }
     var enabled: Boolean = true
+    var holdToLift: Boolean = true
     var rtl: Boolean = false
     var haptics: HapticFeedback? = null
     var settleSpec: FiniteAnimationSpec<Float> = spring()
@@ -705,8 +711,8 @@ internal class ReorderState(
  * The list's drag gestures, on the list itself so positions stay in its frame while items move.
  * It watches each touch in the initial pass, ahead of the items' own clicks and swipes and the
  * scroll (the list's or the page's), and takes nothing until a drag starts: from the handle's zone
- * once the touch moves past the touch slop, anywhere else once it's held still for the long-press
- * timeout. From then on it takes the whole touch.
+ * once the touch moves past the touch slop, anywhere else (unless holds are left to the items) once
+ * it's held still for the long-press timeout. From then on it takes the whole touch.
  */
 private fun Modifier.reorderGestures(state: ReorderState): Modifier = pointerInput(state) {
     awaitEachGesture {
@@ -714,6 +720,8 @@ private fun Modifier.reorderGestures(state: ReorderState): Modifier = pointerInp
         if (!state.enabled) return@awaitEachGesture
         val item = state.itemAt(down.position.y) ?: return@awaitEachGesture
         val viaHandle = state.isOnHandle(down.position.x, size.width.toFloat())
+        // Holds off the handle are the item's own.
+        if (!viaHandle && !state.holdToLift) return@awaitEachGesture
         val lifts = if (viaHandle) {
             awaitSlop(down, viewConfiguration.touchSlop)
         } else {
