@@ -86,7 +86,7 @@ private fun TripAlbums() {
             "Coast",
             subtitle = "24 photos",
             leadingContent = {
-                AMRemoteImage(catalogPhoto("salt", 200, 200), contentDescription = null, Modifier.size(40.dp).clip(MaterialTheme.shapes.small))
+                AMRemoteImage(catalogPhoto("coast", 200, 200), contentDescription = null, Modifier.size(40.dp).clip(MaterialTheme.shapes.small))
             },
         )
         AMDivider(inset = spacing.lg)

@@ -50,7 +50,7 @@ private fun UpNext() {
         AMListRow(
             "Harbor Lights",
             subtitle = "The Lanterns",
-            leadingContent = { AMArtThumbnail(catalogPhoto("salt", 200), contentDescription = null) },
+            leadingContent = { AMArtThumbnail(catalogPhoto("coast", 200), contentDescription = null) },
         )
         AMDivider(inset = inset)
         AMListRow(

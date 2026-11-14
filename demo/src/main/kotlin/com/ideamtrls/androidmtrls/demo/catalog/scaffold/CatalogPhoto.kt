@@ -11,7 +11,8 @@ import androidx.compose.ui.graphics.asImageBitmap
  * wide enough to cover a [width] × [height] frame (square when [height] is null). Every catalog
  * page asks for its photos here, so the `artwork night` debug extra, passed for dark-mode
  * screenshots, swaps the whole catalog to its second set, night scenes, and a component's light
- * and dark pictures show different artwork. The scenes keep their own art.
+ * and dark pictures show different artwork. The selection pages' photo grids are the exception:
+ * like a photo library, they show the same photos in either set. The scenes keep their own art.
  *
  * Commons serves a file at its own shape and the frame crops it, so the width asked for is
  * enough for a 3:2 landscape to cover the frame's height too.
@@ -23,29 +24,35 @@ internal fun catalogPhoto(seed: String, width: Int, height: Int? = null): String
 }
 
 /** A catalog seed's two Commons files: one for the default set, one for `artwork night`. */
-private class CatalogPick(val day: String, val night: String)
+private class CatalogPick(val day: String, val night: String) {
+    /** One file for both sets: a photo grid's photo, the same in either set. */
+    constructor(file: String) : this(file, file)
+}
 
-/** Every catalog seed, each a different photo in each set. */
+/**
+ * Every catalog seed, no file repeated within a set. The selection grids' seeds show photos from
+ * the Photos scene's library, the same file in both sets.
+ */
 private val CatalogPhotos: Map<String, CatalogPick> = mapOf(
     "orchard" to CatalogPick(
-        day = "Schenna (IT), Apfelplantage, Apfelernte -- 2026 -- 4097.jpg",
-        night = "Sternenhimmel blühender Kirschbaum P4214798PS.jpg",
+        day = "Schenna (IT), Apfelplantage -- 2026 -- 4066.jpg",
+        night = "Hydrangea macrophylla in front of Seongsan Ilchulbong volcano at blue hour in Jeju Island South Korea.jpg",
     ),
     "cobalt" to CatalogPick(
-        day = "2018 01 (Blue) - Chaouen.jpg",
+        day = "Mountain lake, Mylgval mountain cirque, Western Caucasus.jpg",
         night = "Basilica Sancti Petri blue hour.jpg",
     ),
     "brooklyn" to CatalogPick(
-        day = "Brooklyn Heights Promenade NY1.jpg",
-        night = "Manhattan Bridge at Night.JPG",
+        day = "Autumn in Prospect Park (14035p).jpg",
+        night = "Brooklyn Bridge - 03.jpg",
     ),
-    "salt" to CatalogPick(
-        day = "Wendover (UT, USA), Bonneville Salt Flats -- 2022 -- 2702.jpg",
-        night = "Joshua Tree Milky Way.jpg",
+    "coast" to CatalogPick(
+        day = "Tidepools in Santa Cruz at low tide.jpg",
+        night = "Latarnia morska w Kolobrzegu.jpg",
     ),
     "mountain" to CatalogPick(
-        day = "Matterhorn, March 2019 (01).jpg",
-        night = "008 Milky way aligned with the Matterhorn reflecting in Stellisee Photo by Giles Laurent.jpg",
+        day = "Val de Funes cun la Odles d'auton Südtirol.jpg",
+        night = "036 Milky Way during Perseids seen from Oeschinensee with water reflections Photo by Giles Laurent.jpg",
     ),
     "ada" to CatalogPick(
         day = "Ada_Lovelace_daguerreotype_by_Antoine_Claudet_1843_-_cropped.png",
@@ -55,73 +62,37 @@ private val CatalogPhotos: Map<String, CatalogPick> = mapOf(
         day = "Ada Lovelace portrait.jpg",
         night = "Margaret_Hamilton_1995.jpg",
     ),
-    "selection-tile-1" to CatalogPick(
-        day = "Amiens France Field-of-tulips-01.jpg",
-        night = "Illuminated facade of a 3-storey restaurant with Japanese signs and red paper lanterns, Chiyoda, Tokyo.jpg",
-    ),
-    "selection-tile-2" to CatalogPick(
-        day = "Dülmen, Weddern, Sonnenblumen -- 2026 -- 2005.jpg",
-        night = "Colorful neon street signs in Kabukichō, Shinjuku, Tokyo.jpg",
-    ),
-    "selection-tile-3" to CatalogPick(
-        day = "Snowshil-Lavender.jpg",
-        night = "1 singapore national day parade 2011 fireworks.jpg",
-    ),
-    "selection-picker-0" to CatalogPick(
-        day = "Great Sand Dunes NP 1.jpg",
-        night = "Aurora in Abisko near Torneträsk.jpg",
-    ),
-    "selection-picker-1" to CatalogPick(
-        day = "Point Reyes Lighthouse in December 2019.jpg",
-        night = "042 Full Moon rising behind Chasseral during sunset Photo by Giles Laurent.jpg",
-    ),
-    "selection-picker-2" to CatalogPick(
-        day = "Rice terraces, Bali.jpg",
-        night = "Night Market Chiang Mai.jpg",
-    ),
-    "selection-picker-3" to CatalogPick(
-        day = "Sofia Massif and Sofia Glacier, Karachay-Cherkessia, Caucasus Mountains.jpg",
-        night = "Kabukicho red gate and colorful neon street signs at night, Shinjuku, Tokyo, Japan.jpg",
-    ),
-    "selection-picker-4" to CatalogPick(
-        day = "Bryce Canyon Hoodoos.jpg",
-        night = "Lightning Pritzerbe 01 (MK).jpg",
-    ),
-    "selection-picker-5" to CatalogPick(
-        day = "Alpine barn near Obernberger See 01.jpg",
-        night = "San Diego Skyline Night JD081107.jpg",
-    ),
-    "selection-picker-6" to CatalogPick(
-        day = "Reflection Lake, Lassen Volcanic National Park, in June 2022-6049.jpg",
-        night = "Campfire and sparks in Anttoora 3.jpg",
-    ),
-    "selection-picker-7" to CatalogPick(
-        day = "Autumn forest near Avenue du Bourg-Royal, Quebec City.jpg",
-        night = "Candle light projected through a glass orb.jpg",
-    ),
-    "selection-picker-8" to CatalogPick(
-        day = "Havelock Island, Mangrove tree on the beach, Andaman Islands.jpg",
-        night = "Paris Night.jpg",
-    ),
+    "selection-tile-1" to CatalogPick("Torii path with lantern at Fushimi Inari Taisha Shrine, Kyoto, Japan.jpg"),
+    "selection-tile-2" to CatalogPick("Azulejos Parque Eduardo VII-1.jpg"),
+    "selection-tile-3" to CatalogPick("Lupinus nootkatensis - Iceland 20070706a.jpg"),
+    "selection-picker-0" to CatalogPick("Eikan-do Zenrin-ji, November 2016 -03.jpg"),
+    "selection-picker-1" to CatalogPick("Skógafoss Waterfall 2019.jpeg"),
+    "selection-picker-2" to CatalogPick("Bushwick Collective 036.jpg"),
+    "selection-picker-3" to CatalogPick("Eldfell, Heimaey, Islas Vestman, Suðurland, Islandia, 2014-08-17, DD 069.jpg"),
+    "selection-picker-4" to CatalogPick("Clouds at sunset, Alameda Dom Afonso Henriques, Lisbon, Portugal (approx.. GPS location) julesvernex2.jpg"),
+    "selection-picker-5" to CatalogPick("Fratercula arctica, Borgarfjörður eystri, Iceland, 20240717 1152 1838.jpg"),
+    "selection-picker-6" to CatalogPick("Water reflection of Kinkaku-ji Temple a sunny day, Kyoto, Japan.jpg"),
+    "selection-picker-7" to CatalogPick("View from Castelo de S. Jorge - Lisbon - Portugal.jpg"),
+    "selection-picker-8" to CatalogPick("Wonder Wheel Coney Island 013.jpg"),
     "morning-walk" to CatalogPick(
-        day = "Path Mist Daribokgre Nokrek West Garo Oct24 A7CR 03594.jpg",
-        night = "Shin Kobe Station across Ikuta River at night Kobe 2026 dllu.jpg",
+        day = "Tübingen - Neckarinsel - Blick entlang Neckar im Herbst.jpg",
+        night = "Münster, Prinzipalmarkt, Arkaden -- 2021 -- 8931-3.jpg",
     ),
     "long-weekend" to CatalogPick(
-        day = "Åmotdalshytta tourist cabin under Snøhetta.jpg",
-        night = "Bontecou Lake Milky Way panorama.jpg",
+        day = "Canoes on Seyhan Dam, Adana 05.jpg",
+        night = "Stuttgart - West - Johanneskirche im Feuersee zur blauen Stunde.jpg",
     ),
     "field-trip" to CatalogPick(
-        day = "Hikers overlooking confluence of Firth River and Joe Creek, Ivvavik National Park, YT.jpg",
-        night = "Assy-Turgen Observatory against the backdrop of the center of the Milky Way and the star-forming region around Antares.jpg",
+        day = "Hortus Haren (Groningen) 13-12-2025. (actm.) 02.jpg",
+        night = "Kimono Forest at night, Arashiyama Station, Arashiyama, Kyoto, Japan.jpg",
     ),
     "low-tide" to CatalogPick(
-        day = "Tidepools in Santa Cruz at low tide.jpg",
-        night = "Baltimore Inner Harbor Skyline Night Panorama.jpg",
+        day = "Chapel Rock July 2026 04.jpg",
+        night = "Illuminated Woljeonggyo Bridge at blue hour in Gyeongju South Korea.jpg",
     ),
     "night-out" to CatalogPick(
-        day = "Chateau Frontenac illuminated at night in Quebec City.jpg",
-        night = "Taichung 2013 nightmarket 2 amk.jpg",
+        day = "Illuminated facade of a 3-storey restaurant with Japanese signs and red paper lanterns, Chiyoda, Tokyo.jpg",
+        night = "Buildings with colorful neon street signs at blue hour, Shinjuku, Tokyo.jpg",
     ),
 )
 
@@ -134,9 +105,10 @@ internal fun commonsPhoto(file: String, width: Int = 1000): String =
     "https://commons.wikimedia.org/wiki/Special:FilePath/${Uri.encode(file)}?width=$width"
 
 /**
- * A wide photo for a catalog page, picked per appearance: snowy mountains and forests in light
- * mode, New York at night in dark mode, all vetted Wikimedia Commons files. A view reads which
- * appearance is showing and asks [url], so the art follows the appearance itself.
+ * A wide photo for a catalog page, picked per appearance: lakes, valleys, peaks, a forest and a
+ * garden in daylight color in light mode, deep-blue dusk and blue-hour scenes in dark mode, all
+ * vetted Wikimedia Commons files. A view reads which appearance is showing and asks [url], so the
+ * art follows the appearance itself.
  */
 @Immutable
 internal class CatalogArt private constructor(val day: String, val night: String) {
@@ -145,24 +117,24 @@ internal class CatalogArt private constructor(val day: String, val night: String
 
     companion object {
         val Mountain = CatalogArt(
-            day = "Cheops Mountain seen the Sir Donald Trail.jpg",
-            night = "New-York-City-night-skyline-September-2014.jpg",
+            day = "Lago di Braies South Tyrol 9.jpg",
+            night = "Mount Everest Peak Rising High Above Dusk Clouds.jpg",
         )
         val Valley = CatalogArt(
-            day = "Snowy Landscape - Ftan, Scuol.jpg",
-            night = "Manhattan from Weehawken, NJ.jpg",
+            day = "Bergtocht van parkeerplaats bij centrale Malga Mare naar Lago Lungo. Uitzicht over Val Venezia vanaf Posto di Avvistamento Pian Venezia 04.jpg",
+            night = "Neckarsulm - Scheuerberg - Blick vom SW-Hang kurz nach Sonnenuntergang.jpg",
         )
         val Forest = CatalogArt(
             day = "Evening sunlight through the trees, Epping Forest - geograph.org.uk - 7865603.jpg",
-            night = "New York City Skyline from Brooklyn.jpg",
+            night = "Loblolly Pine during blue hour LR, Virginia Beach VA.jpg",
         )
         val Peaks = CatalogArt(
-            day = "Vihren & Kutelo Pirin Mountains Bulgaria 2025.jpg",
+            day = "Mastle cun Odles Gherdëina.jpg",
             night = "Lower Manhattan from Jersey City November 2014 panorama 3.jpg",
         )
-        val Winter = CatalogArt(
-            day = "Winter in Tatry Mountains - Poland.jpg",
-            night = "Manhattan from Weehawken, NJ.jpg",
+        val Garden = CatalogArt(
+            day = "2020 Japanese Garden in Moscow - Autumn Colors 02.jpg",
+            night = "Water reflection of Donggung Palace in Wolji Pond at blue hour in Gyeongju South Korea.jpg",
         )
     }
 }

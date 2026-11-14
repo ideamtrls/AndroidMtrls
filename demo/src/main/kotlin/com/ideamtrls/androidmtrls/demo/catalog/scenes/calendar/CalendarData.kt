@@ -341,18 +341,18 @@ internal fun rememberCalendarNow(): LocalDateTime {
  * there credits its author and license).
  */
 private val CalendarMonthPictures = listOf(
-    "Beech forest Mátra in winter.jpg",
-    "Hoar frost on bare trees in winter in Tuntorp.jpg",
-    "Sancy Early Spring.jpg",
+    "Dülmen, Hausdülmen, Sonnenaufgang -- 2015 -- 4952.jpg",
+    "Boerenkrokus (Crocus tommasinianus) 27-02-2021 (actm.) 03.jpg",
+    "Bloem van een narcis tete a tete (Narcissus). 01-03-2023 (d.j.b.) 01.jpg",
     "Ready To Blossom (206649103).jpeg",
     "Dandelion (249521023).jpeg",
     "Passo Pordoi-bops 01.jpg",
-    "Sunny Beach - panoramio (13).jpg",
-    "Landscape with stormy clouds and a pirogue on the Mekong at golden hour in Si Phan Don.jpg",
+    "Playa Paraíso, Villajoyosa, España, 2014-07-03, DD 01-02 PAN.JPG",
+    "Dülmen, Weddern, Sonnenblumen -- 2026 -- 2011.jpg",
     "Beilstein - Burg Hohenbeilstein und Unteres Schloss - Ansicht vom Birkenweg mit Abendsonne.jpg",
     "Forest Heritage National Scenic Byway - Colorful Autumn Leaves at Looking Glass Falls - NARA - 7718474.jpg",
-    "Morning Fog (253075957).jpeg",
-    "Karlštejn in winter.jpg",
+    "Beilstein - Maad - Schmidbachtal mit altem Feldweg am Nonnenwald im November.jpg",
+    "Bonn, Weihnachtsmarkt am Bottlerplatz -- 2018 -- 2573.jpg",
 )
 
 /** The picture of [month]'s weather, by the month alone, so every year repeats them. */
