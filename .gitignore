@@ -4,7 +4,6 @@ build/
 .kotlin/
 local.properties
 .idea/
-.tmp/
 .notes/
 .DS_Store
 .claude/settings.local.json

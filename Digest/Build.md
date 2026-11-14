@@ -17,7 +17,7 @@ How to build and run the library and its demo catalog app.
 - `gradle.properties`: Gradle's JVM heap, AndroidX on, and Kotlin compiling in-process.
 - `androidmtrls/build.gradle.kts` and `demo/build.gradle.kts`: the modules.
 - `gradle/wrapper/`: the Gradle 9.6.1 wrapper. Use it as it is; don't replace it.
-- `.gitignore`: `build/`, `.gradle/`, `.gradle-home/`, `.kotlin/` (the Kotlin plugin's session state), `local.properties`, `.idea/`, `.tmp/`, `.notes/`.
+- `.gitignore`: `build/`, `.gradle/`, `.gradle-home/`, `.kotlin/` (the Kotlin plugin's session state), `local.properties`, `.idea/`, `.notes/`.
 
 ## Environment
 
@@ -33,7 +33,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 - The SDK comes from `ANDROID_HOME`; the project has no `local.properties`.
 - `GRADLE_USER_HOME` keeps Gradle's caches, the wrapper's distribution and the daemon inside the project, in the gitignored `.gradle-home/`.
 - The build needs the Android 37 SDK platform. If a platform or tool is missing, the build fails: report it, rather than changing the SDK levels or turning on automatic SDK downloads.
-- Scratch files (screenshots, logs) go in the gitignored `.tmp/`.
+- Screenshots and logs go in `.notes/shots/`, under the gitignored `.notes/`.
 
 ## Commands
 
@@ -93,7 +93,7 @@ Outputs: `androidmtrls/build/outputs/aar/androidmtrls-debug.aar` and `demo/build
 ./gradlew :demo:installDebug --console=plain
 adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity
 adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry card --es appearance dark
-adb exec-out screencap -p > .tmp/shot.png
+adb exec-out screencap -p > .notes/shots/shot.png
 ```
 
 `-S` stops the app first, so each launch starts fresh and reads its extras. Debug builds read these string extras (`--es <name> <value>`); release builds ignore them:
