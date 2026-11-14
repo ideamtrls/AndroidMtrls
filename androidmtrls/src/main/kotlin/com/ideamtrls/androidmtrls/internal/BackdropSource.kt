@@ -32,6 +32,27 @@ internal class AMBackdropSource(val layer: GraphicsLayer) {
      * the status bar lies on the fill, not on the art. Snapshot state.
      */
     var topCovers: Int by mutableIntStateOf(0)
+
+    /**
+     * What to tell each time the art records itself anew. A surface in another window (a frosted
+     * sheet) draws the art's layer into its own and isn't redrawn when the art changes, so it
+     * listens here to sample it again. Main thread only.
+     */
+    private val recordListeners = mutableListOf<() -> Unit>()
+
+    fun addRecordListener(listener: () -> Unit) {
+        recordListeners += listener
+    }
+
+    fun removeRecordListener(listener: () -> Unit) {
+        recordListeners -= listener
+    }
+
+    /** The art just recorded itself: tells every listener. */
+    fun recorded() {
+        if (recordListeners.isEmpty()) return
+        recordListeners.toList().forEach { it() }
+    }
 }
 
 /**
@@ -67,7 +88,7 @@ internal val LocalAMBackdrop = compositionLocalOf<AMBackdropSource?> { null }
 
 /**
  * Records what this draws into [source]'s layer, then draws the layer, so the art shows as usual
- * and frosted surfaces can sample it.
+ * and frosted surfaces can sample it; then tells the source's listeners the art changed.
  */
 internal fun Modifier.backdropSource(source: AMBackdropSource): Modifier =
     this
@@ -75,4 +96,5 @@ internal fun Modifier.backdropSource(source: AMBackdropSource): Modifier =
         .drawWithContent {
             source.layer.record { this@drawWithContent.drawContent() }
             drawLayer(source.layer)
+            source.recorded()
         }
