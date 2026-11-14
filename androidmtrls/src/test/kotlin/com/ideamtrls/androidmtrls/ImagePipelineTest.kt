@@ -27,6 +27,58 @@ import kotlin.math.min
 
 class ImagePipelineTest {
 
+    // The User-Agent
+
+    @Test
+    fun theDefaultUserAgentNamesTheAppAndroidAndTheLibrary() {
+        assertEquals(
+            "com.example.harbor/1.4 (Android 16) AndroidMtrls",
+            defaultImageUserAgent("com.example.harbor", "1.4", "16"),
+        )
+    }
+
+    @Test
+    fun aVersionAProductTokenCantHoldIsMadeOne() {
+        assertEquals(
+            "com.example.harbor/1.4-beta-2 (Android 16) AndroidMtrls",
+            defaultImageUserAgent("com.example.harbor", "1.4 beta/2", "16"),
+        )
+    }
+
+    @Test
+    fun withNoVersionThePackageStandsAlone() {
+        assertEquals("com.example.harbor (Android 16) AndroidMtrls", defaultImageUserAgent("com.example.harbor", null, "16"))
+        assertEquals("com.example.harbor (Android 16) AndroidMtrls", defaultImageUserAgent("com.example.harbor", " ", "16"))
+    }
+
+    @Test
+    fun theReleaseKeepsOnlyWhatACommentHolds() {
+        assertEquals("a/1 (Android 16 QPR1) AndroidMtrls", defaultImageUserAgent("a", "1", "16 (QPR1)\n"))
+    }
+
+    @Test
+    fun anAppsUserAgentIsPrintableAsciiAndNotBlank() {
+        assertTrue(isUserAgentValue("Harbor/1.4 (https://example.com/harbor; harbor@example.com)"))
+        assertFalse(isUserAgentValue(""))
+        assertFalse(isUserAgentValue("   "))
+        assertFalse(isUserAgentValue("Harbor/1.4\r\nX-Injected: 1"))
+        assertFalse(isUserAgentValue("Harbor 🐱"))
+    }
+
+    @Test
+    fun settingAUserAgentAHeaderCantCarryFails() {
+        try {
+            AMImagePipeline.userAgent = "Harbor/1.4"
+            assertEquals("Harbor/1.4", AMImagePipeline.userAgent)
+            val refused = runCatching { AMImagePipeline.userAgent = "Harbor\n" }.exceptionOrNull()
+            assertTrue(refused is IllegalArgumentException)
+            assertEquals("a refused value leaves the last one", "Harbor/1.4", AMImagePipeline.userAgent)
+        } finally {
+            AMImagePipeline.userAgent = null
+        }
+        assertNull(AMImagePipeline.userAgent)
+    }
+
     // decodeSize
 
     @Test

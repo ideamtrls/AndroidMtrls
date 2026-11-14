@@ -2,6 +2,7 @@ package com.ideamtrls.androidmtrls
 
 import android.content.Context
 import android.graphics.ImageDecoder
+import android.os.Build
 import androidx.collection.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -36,7 +37,8 @@ import kotlin.math.sqrt
  * backdrops' photos. Not public API.
  *
  * - **Bytes** come from `HttpURLConnection` on the IO dispatcher, following redirects (https to
- *   https, and http up to https, never down). A body is at most 32 MB: a longer announced length
+ *   https, and http up to https, never down), with the app's [AMImagePipeline.userAgent], or one
+ *   naming the app ([defaultImageUserAgent]) when it sets none. A body is at most 32 MB: a longer announced length
  *   is refused before reading, and the read stops as soon as more arrives ([readBounded]), since
  *   a server can omit the length or lie about it. Each fetch has 60 s to finish on top of its
  *   per-read timeouts; past that, or when every view waiting on it leaves, it's cut off at once,
@@ -66,6 +68,9 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
 
     /** The disk cache, opened on the IO dispatcher as the pipeline starts; null when it can't be. */
     private val disk: Deferred<ImageDiskCache?> = scope.async { openDisk(context) }
+
+    /** The `User-Agent` sent when the app sets none, naming the app. Built on the first fetch. */
+    private val appUserAgent: String by lazy { userAgentOf(context) }
 
     /** The decode stored for [key], if any. Safe to call during composition. */
     fun cached(key: ImageKey): DecodedImage? = memory[key]
@@ -106,7 +111,8 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
 
     /** [key]'s picture from the network; its body goes to the disk cache once it decodes. */
     private suspend fun fromNetwork(key: ImageKey): DecodedImage {
-        val bytes = runAbortable(FetchDeadlineMillis) { signal -> fetch(key.url, signal) }
+        val userAgent = AMImagePipeline.userAgent ?: appUserAgent
+        val bytes = runAbortable(FetchDeadlineMillis) { signal -> fetch(key.url, userAgent, signal) }
         val image = withContext(Dispatchers.Default) { decode(bytes, key) }
         // In the pipeline's own scope, so a view leaving doesn't stop the write. It never throws.
         scope.launch { disk.await()?.write(key.url, bytes) }
@@ -129,9 +135,6 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
         /** How long a fetch has in all, redirects included, on top of the per-read timeouts. */
         private const val FetchDeadlineMillis = 60_000L
 
-        /** Identifies the library to image hosts, some of which refuse requests without one. */
-        private const val UserAgent = "AndroidMtrls/0.1 (Android demo)"
-
         private const val MaxRedirects = 5
         private const val ConnectTimeoutMillis = 15_000
         private const val ReadTimeoutMillis = 30_000
@@ -145,6 +148,16 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
                 instance ?: ImagePipeline(context.applicationContext, MemoryBytes).also { instance = it }
             }
 
+        /** The default `User-Agent` for [context]'s app: its package, its version and Android's release. */
+        private fun userAgentOf(context: Context): String {
+            val version = try {
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            } catch (_: Exception) {
+                null
+            }
+            return defaultImageUserAgent(context.packageName, version, Build.VERSION.RELEASE)
+        }
+
         /** Opens the disk cache in [context]'s cache directory. Blocking; null when there's no cache directory to use. */
         private fun openDisk(context: Context): ImageDiskCache? = try {
             ImageDiskCache.open(File(context.cacheDir, DiskDirectory), DiskBytes, MaxBodyBytes)
@@ -153,10 +166,11 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
         }
 
         /**
-         * The response body of [url], following redirects. Throws on anything but a 2xx, on a body
-         * over [MaxBodyBytes], and once [signal] has cut it off. Blocking.
+         * The response body of [url], asked for as [userAgent], following redirects. Throws on
+         * anything but a 2xx, on a body over [MaxBodyBytes], and once [signal] has cut it off.
+         * Blocking.
          */
-        private fun fetch(url: String, signal: AbortSignal): ByteArray {
+        private fun fetch(url: String, userAgent: String, signal: AbortSignal): ByteArray {
             var current = URL(url)
             repeat(MaxRedirects + 1) {
                 val connection = current.openConnection() as HttpURLConnection
@@ -165,7 +179,7 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
                     connection.readTimeout = ReadTimeoutMillis
                     connection.instanceFollowRedirects = true
                     connection.useCaches = false
-                    connection.setRequestProperty("User-Agent", UserAgent)
+                    connection.setRequestProperty("User-Agent", userAgent)
                     signal.onAbort { connection.disconnect() }
                     connection.connect()
                     // Disconnecting does nothing until the connection is under way, so an abort
