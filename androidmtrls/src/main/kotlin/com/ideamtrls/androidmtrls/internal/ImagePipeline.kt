@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import androidx.collection.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -21,6 +23,7 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
@@ -41,8 +44,9 @@ import kotlin.math.sqrt
  *
  * - **Sources** ([resolveImageSource]): the app's [AMImagePipeline.loader] first, for any URL;
  *   when it has nothing, the URL's scheme picks: `http` and `https` from the disk cache, else the
- *   network; `file` and `content` read on the device, with no disk cache copy. The app's bytes
- *   aren't copied to disk either, since its own store keeps them.
+ *   network; `file` (a regular file, by its canonical path) and `content` read on the device, only
+ *   while [AMImagePipeline.allowsLocalSources] is on, under a fetch's body limit and deadline, with
+ *   no disk cache copy. The app's bytes aren't copied to disk either, since its own store keeps them.
  * - **Bytes** from the network come from `HttpURLConnection` on the IO dispatcher, following redirects (https to
  *   https, and http up to https, never down), with the app's [AMImagePipeline.userAgent], or one
  *   naming the app ([defaultImageUserAgent]) when it sets none. A body is at most 32 MB: a longer announced length
@@ -92,8 +96,9 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
     /**
      * The picture for [key], from memory when it's there, otherwise joining or starting the one
      * load for it, from the first source [resolveImageSource] finds. Throws when the app's loader
-     * throws, the URL's scheme isn't one the pipeline reads, the read or request fails or misses
-     * its deadline, or the bytes don't decode.
+     * throws, the URL's scheme isn't one the pipeline reads (`file` and `content` included while
+     * [AMImagePipeline.allowsLocalSources] is off), the read or request fails, is over the body
+     * limit or misses its deadline, or the bytes don't decode.
      */
     suspend fun load(key: ImageKey): DecodedImage {
         memory[key]?.let { return it }
@@ -107,15 +112,25 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
     /** [key]'s picture from its source. Only a network picture goes through the disk cache. */
     private suspend fun fromSource(key: ImageKey): DecodedImage {
         // The app's loader runs here, on the IO dispatcher, interrupted if every view leaves.
-        val source = runInterruptible(Dispatchers.IO) { resolveImageSource(key.url, AMImagePipeline.loader) }
+        val source = runInterruptible(Dispatchers.IO) {
+            resolveImageSource(key.url, AMImagePipeline.allowsLocalSources, AMImagePipeline.loader)
+        }
         return when (source) {
             is ImageSource.App -> withContext(Dispatchers.Default) { decode(source.bytes, key) }
             is ImageSource.Network -> fromDisk(key) ?: fromNetwork(key)
-            // The decoder reads these as it decodes, so they decode on the IO dispatcher.
-            is ImageSource.LocalFile -> withContext(Dispatchers.IO) { decode(ImageDecoder.createSource(source.file), key) }
-            is ImageSource.Content ->
-                withContext(Dispatchers.IO) { decode(ImageDecoder.createSource(resolver, Uri.parse(source.uri)), key) }
+            is ImageSource.LocalFile -> fromDevice(key) { signal -> readFile(source.file, signal) }
+            is ImageSource.Content -> fromDevice(key) { signal -> readContent(resolver, source.uri, signal) }
         }
+    }
+
+    /**
+     * [key]'s picture from a source on the device, its bytes from [read] under a fetch's limits: at
+     * most [MaxBodyBytes], within [FetchDeadlineMillis], cut off when every view leaves. Not copied
+     * to the disk cache.
+     */
+    private suspend fun fromDevice(key: ImageKey, read: (AbortSignal) -> ByteArray): DecodedImage {
+        val bytes = runAbortable(FetchDeadlineMillis, read)
+        return withContext(Dispatchers.Default) { decode(bytes, key) }
     }
 
     /** [key]'s picture from the disk cache, or null on a miss. A stored body that doesn't decode is dropped. */
@@ -152,10 +167,16 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
         /** The disk cache's directory, in the app's cache directory. */
         private const val DiskDirectory = "am_image_cache"
 
-        /** The largest response body a fetch reads, and the largest body the disk cache serves. */
+        /**
+         * The largest response body a fetch reads, the largest file or content a read on the
+         * device reads, and the largest body the disk cache serves.
+         */
         private const val MaxBodyBytes = 32 * 1024 * 1024
 
-        /** How long a fetch has in all, redirects included, on top of the per-read timeouts. */
+        /**
+         * How long a fetch has in all, redirects included, on top of the per-read timeouts; and how
+         * long a read on the device has.
+         */
         private const val FetchDeadlineMillis = 60_000L
 
         private const val MaxRedirects = 5
@@ -232,6 +253,43 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
             throw IOException("Too many redirects")
         }
 
+        /**
+         * The bytes of [file]. Throws on a file over [MaxBodyBytes], however its length reads, and
+         * once [signal] has cut it off, which closes it under a blocked read. Blocking.
+         */
+        private fun readFile(file: File, signal: AbortSignal): ByteArray {
+            val length = file.length()
+            if (length > MaxBodyBytes) throw IOException("File of $length bytes is over $MaxBodyBytes")
+            return FileInputStream(file).use { input ->
+                signal.onAbort { input.close() }
+                readBounded(input, MaxBodyBytes, length)
+            }
+        }
+
+        /**
+         * The bytes of the content at [uri], through [resolver]. Throws when the provider has none
+         * or refuses, on content over [MaxBodyBytes], however its length is declared, and once
+         * [signal] has cut it off: the provider's open is cancelled, and the stream closed under a
+         * blocked read. Blocking.
+         */
+        private fun readContent(resolver: ContentResolver, uri: String, signal: AbortSignal): ByteArray {
+            val cancel = CancellationSignal()
+            signal.onAbort { cancel.cancel() }
+            val descriptor = try {
+                resolver.openAssetFileDescriptor(Uri.parse(uri), "r", cancel)
+            } catch (e: OperationCanceledException) {
+                throw InterruptedIOException("Aborted").apply { initCause(e) }
+            } ?: throw IOException("No content at $uri")
+            return descriptor.use {
+                val length = it.length
+                if (length > MaxBodyBytes) throw IOException("Content of $length bytes is over $MaxBodyBytes")
+                it.createInputStream().use { input ->
+                    signal.onAbort { input.close() }
+                    readBounded(input, MaxBodyBytes, length)
+                }
+            }
+        }
+
         private fun decode(bytes: ByteArray, key: ImageKey): DecodedImage =
             decode(ImageDecoder.createSource(ByteBuffer.wrap(bytes)), key)
 
@@ -268,42 +326,63 @@ internal sealed interface ImageSource {
     /** An `http` or `https` URL, read from the disk cache, else fetched and stored there. */
     data class Network(val url: String) : ImageSource
 
-    /** A `file` URL's file, read in place. Not copied to disk. */
+    /**
+     * A `file` URL's regular file, by its canonical path ([localFileOf]), read under a fetch's
+     * limits. Not copied to disk.
+     */
     data class LocalFile(val file: File) : ImageSource
 
-    /** A `content` URI, read through the app's `ContentResolver`. Not copied to disk. */
+    /** A `content` URI, read through the app's `ContentResolver` under a fetch's limits. Not copied to disk. */
     data class Content(val uri: String) : ImageSource
 }
 
 /**
  * Where a picture at [url] comes from: the bytes [loader] returns for it, when it's set and returns
- * any, whatever the URL's scheme (an app's own scheme included); otherwise the URL's own source
- * ([imageSourceOf]). Blocking, since it runs [loader]; an exception [loader] throws propagates.
+ * any, whatever the URL's scheme (an app's own scheme included) and whatever [allowsLocalSources]
+ * says; otherwise the URL's own source ([imageSourceOf]). Blocking, since it runs [loader] and
+ * may look up a file; an exception [loader] throws propagates.
  */
-internal fun resolveImageSource(url: String, loader: ((url: String) -> ByteArray?)?): ImageSource =
-    loader?.invoke(url)?.let { ImageSource.App(it) } ?: imageSourceOf(url)
+internal fun resolveImageSource(
+    url: String,
+    allowsLocalSources: Boolean,
+    loader: ((url: String) -> ByteArray?)?,
+): ImageSource = loader?.invoke(url)?.let { ImageSource.App(it) } ?: imageSourceOf(url, allowsLocalSources)
 
 /**
- * The source [url]'s scheme names, matched without regard to case: `http` and `https` the network,
- * `file` a file on the device, `content` a content provider. Throws an [IOException] for any other
- * scheme, a URL with none, and a `file` URL that doesn't name a local path (one with a host, a
- * query or a fragment).
+ * The source [url]'s scheme names, matched without regard to case: `http` and `https` the network;
+ * and only when [allowsLocalSources] is true, `file` a regular file on the device ([localFileOf])
+ * and `content` a content provider. Throws an [IOException] for any other scheme, `file` and
+ * `content` included when [allowsLocalSources] is false, and for a URL with no scheme. Blocking
+ * for a `file` URL, which is looked up on the device.
  */
-internal fun imageSourceOf(url: String): ImageSource {
+internal fun imageSourceOf(url: String, allowsLocalSources: Boolean): ImageSource {
     val scheme = url.substringBefore(':', missingDelimiterValue = "")
     if (scheme.isEmpty() || !scheme[0].isAsciiLetter() || !scheme.all { it.isAsciiLetter() || it in '0'..'9' || it in "+-." }) {
         throw IOException("No scheme in $url")
     }
     return when (scheme.lowercase()) {
         "http", "https" -> ImageSource.Network(url)
-        "file" -> try {
-            ImageSource.LocalFile(File(URI(url)))
-        } catch (e: Exception) {
-            throw IOException("Not a local file: $url", e)
-        }
-        "content" -> ImageSource.Content(url)
+        "file" if allowsLocalSources -> localFileOf(url)
+        "content" if allowsLocalSources -> ImageSource.Content(url)
         else -> throw IOException("Unsupported scheme: $scheme")
     }
+}
+
+/**
+ * The regular file a `file` [url] names, by its canonical path, with its escapes decoded and its
+ * `..` and symbolic links resolved. Throws an [IOException] for a URL that doesn't name a local
+ * path (one with a host, a query or a fragment) and for a path that isn't a regular file: missing,
+ * a directory, or a special file such as a pipe or a device, which a read could block on forever.
+ * Blocking.
+ */
+private fun localFileOf(url: String): ImageSource.LocalFile {
+    val file = try {
+        File(URI(url)).canonicalFile
+    } catch (e: Exception) {
+        throw IOException("Not a local file: $url", e)
+    }
+    if (!file.isFile) throw IOException("Not a regular file: $url")
+    return ImageSource.LocalFile(file)
 }
 
 private fun Char.isAsciiLetter(): Boolean = this in 'a'..'z' || this in 'A'..'Z'

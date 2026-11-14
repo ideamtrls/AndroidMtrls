@@ -6,10 +6,11 @@ package com.ideamtrls.androidmtrls
  * these are set once, early, typically in `Application.onCreate`.
  *
  * The pipeline reads `http` and `https` URLs from the network, and `file` and `content` URIs on the
- * device; every picture is decoded at the size its view needs and kept in memory. Network pictures
- * also go to a bounded disk cache in the app's cache directory, which is trimmed as it fills and
- * which the system may clear: it isn't an offline store. Keeping pictures for offline use is the
- * app's job, in its own store, which it hands the pipeline through [loader].
+ * device only once [allowsLocalSources] is on; every picture is decoded at the size its view needs
+ * and kept in memory. Network pictures also go to a bounded disk cache in the app's cache directory,
+ * which is trimmed as it fills and which the system may clear: it isn't an offline store. Keeping
+ * pictures for offline use is the app's job, in its own store, which it hands the pipeline through
+ * [loader].
  *
  * ```kotlin
  * class HarborApp : Application() {
@@ -69,6 +70,27 @@ public object AMImagePipeline {
      */
     @Volatile
     public var loader: ((url: String) -> ByteArray?)? = null
+
+    /**
+     * Whether the pipeline reads `file` and `content` URLs on the device. False, the default, fails
+     * them like any scheme the pipeline doesn't read: the view shows its fallback.
+     *
+     * It's off because picture URLs often come from outside the app, such as a podcast feed's
+     * artwork, and a `file` or `content` URL from there could make the app decode and show its own
+     * private files, or content it has permission to read. To show the app's own pictures, use
+     * [loader], which is asked first for every URL whatever this says: the app serves its store
+     * under a scheme of its own and needs no local URLs at all. Turn this on only when every picture
+     * URL the app shows is one the app controls.
+     *
+     * When on, a `file` URL must name a regular file, by its canonical path (its `..` and symbolic
+     * links resolved): a directory, a pipe or a device fails. Both schemes are read under a network
+     * fetch's limits, at most 32 MB in 60 s, and neither is copied to the disk cache.
+     *
+     * Read for each load, so a change applies from the next one. Pictures already in memory still
+     * show.
+     */
+    @Volatile
+    public var allowsLocalSources: Boolean = false
 }
 
 /** Whether [value] can be sent as a `User-Agent` header: printable ASCII, not blank. */
