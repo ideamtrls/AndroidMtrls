@@ -31,8 +31,8 @@ import java.util.WeakHashMap
  *   brings the one below in and may take it out again, so claims overlap and end out of order;
  *   counting them keeps the screen on top in charge.
  * - **The app's appearance comes back** once nothing claims: dark icons in light mode, light ones
- *   in dark mode, as the app set them. A claim follows the theme's appearance, so an app re-tinting
- *   its bars when the appearance changes doesn't win over the art.
+ *   in dark mode, as the outermost [AMTheme] sets them. A claim follows the theme's appearance, so
+ *   the theme re-tinting the bars when the appearance changes doesn't win over the art.
  * - In dark mode the icons are already light, so a claim changes nothing you can see.
  *
  * Edge to edge, the status bar lies over the content, so the content draws the art behind it

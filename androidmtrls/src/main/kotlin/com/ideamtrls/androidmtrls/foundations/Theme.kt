@@ -1,5 +1,6 @@
 package com.ideamtrls.androidmtrls
 
+import android.view.WindowInsetsController
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -8,9 +9,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 
 /**
@@ -36,8 +40,16 @@ import androidx.compose.ui.unit.Dp
  * in that appearance, its color scheme. So a subtree that only changes [tokens] keeps the app's
  * colors and a forced light or dark mode.
  *
+ * **The system bars follow it.** The outermost `AMTheme` in a window sets that window's status and
+ * navigation bar icons for [darkTheme] (dark icons in light mode, light ones in dark mode) and
+ * sets them again whenever it changes, so an appearance the app pins reaches the bars too, not
+ * only the system's. A nested theme leaves the bars to the outer one. Edge to edge stays the
+ * activity's (`enableEdgeToEdge()` once in `onCreate`); a view over dark art still turns the
+ * status bar's icons light on top of this ([AMLightStatusBarIcons]).
+ *
  * @param darkTheme whether the dark appearance shows. Every style value that differs by mode
- *   follows this flag rather than the system's, so an app can force either appearance.
+ *   follows this flag rather than the system's, and so do the window's bar icons under the
+ *   outermost theme, so an app can force either appearance.
  * @param colorScheme the static Material color scheme. Defaults to Material's baseline scheme for
  *   [darkTheme]. Never pass a dynamic scheme: the style layer is tuned against static colors.
  * @param tokens the spacing scale and semantic tints.
@@ -50,6 +62,9 @@ public fun AMTheme(
     tokens: AMTokens = AMTheme.tokens,
     content: @Composable () -> Unit,
 ) {
+    // The outermost theme owns the window's bars. Composed ahead of the content, so on a change
+    // it sets the bars before the art's light-icon claims take them again.
+    if (LocalAMDarkTheme.current == null) SystemBarsAppearance(darkTheme)
     MaterialTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.standard(),
@@ -203,6 +218,25 @@ public object AMTheme {
  * read it while drawing redraw when the appearance changes.
  */
 internal val LocalAMDarkTheme = compositionLocalOf<Boolean?> { null }
+
+/**
+ * Sets the status and navigation bar icons of this composition's window for [dark]: dark icons on
+ * the light appearance, light ones on the dark, again whenever [dark] changes. Nothing in a
+ * preview, which has no window to tint.
+ */
+@Composable
+private fun SystemBarsAppearance(dark: Boolean) {
+    if (LocalInspectionMode.current) return
+    val view = LocalView.current
+    DisposableEffect(view, dark) {
+        view.windowInsetsController?.setSystemBarsAppearance(if (dark) 0 else LightSystemBars, LightSystemBars)
+        onDispose {}
+    }
+}
+
+/** The appearance bits for dark icons on both system bars. */
+private const val LightSystemBars =
+    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 
 /** The tokens the nearest [AMTheme] set. */
 internal val LocalAMTokens = compositionLocalOf { AMTokens.Default }

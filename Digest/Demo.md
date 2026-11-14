@@ -2,7 +2,7 @@
 scope: The demo catalog app — the activity and Navigation 3 root, the catalog list and its search, the CatalogCategory/ComponentEntry registry, the ComponentPage scaffold (preview, loaded — nothing else on a page), stage layouts, inspection controls, the library theme at the root, debug launch extras, sample photos, and the recipe for adding a component page.
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/MainActivity.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogRoot.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogList.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/Inspection.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogCategory.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentEntry.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentPage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/Stage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/LaunchOptions.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogPhoto.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ScreenHost.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/**, demo/src/main/res/drawable/**, demo/src/main/AndroidManifest.xml]
 keywords: [Demo, catalog, MainActivity, enableEdgeToEdge, SystemBarStyle, CatalogRoot, NavDisplay, Navigation 3, back stack, CatalogKey, CatalogKey.Panel, CatalogNavigator, openPanel, CatalogPanels, LocalCatalogNavigator, predictive back, listSaver, CatalogList, AMPageHeader, LargeTopAppBar, exitUntilCollapsedScrollBehavior, AMSectionHeader, search, SearchBarState, ExpandedFullScreenSearchBar, SearchBar, InputField, ListItem, subheader, CatalogCategory, componentEntries, ComponentEntry, CatalogRegistry, FoundationsPages, DataDisplayPages, CollectionsPages, ShowcasePages, entries, id convention, ComponentPage, NoPreview, Preview, Loaded, PageSection, Stage, StageLayout, Floating, FullBleed, Wide, Fill, PageGutter, bleed, LocalCatalogTarget, CatalogAutoPresent, CatalogScreenHost, AMBannerHost, AMToastHost, no launcher buttons, Inspection, Inspection.isDark, InspectionRoot, InspectionMenu, SceneAppearanceButton, InspectionAppearance, InspectionTextSize, InspectionLayoutDirection, LocalInspection, SharedPreferences, fontScale, LocalDensity, LocalLayoutDirection, AMTheme, darkTheme, AMTheme.isDark, AMTheme.Surface, LaunchOptions, entry, scrollTo, present, demoTime, LaunchOptions.clock, shopFillsCheckout, appearance, rtl, artwork, catalogPhoto, commonsPhoto, CatalogArt, picsum, Wikimedia Commons, ic_ glyphs, adding a component page]
-updated: 2026-11-10
+updated: 2026-11-13
 ---
 
 # Demo
@@ -15,7 +15,7 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 
 | Path | What lives there | Who edits it |
 |---|---|---|
-| `app/MainActivity.kt` | `MainActivity`: reads the launch extras, edge to edge, system bar icons following the applied appearance, `InspectionRoot { CatalogRoot() }` | shared |
+| `app/MainActivity.kt` | `MainActivity`: reads the launch extras, edge to edge, `InspectionRoot { CatalogRoot() }` | shared |
 | `app/CatalogRoot.kt` | `CatalogKey`, `CatalogNavigator`, `LocalCatalogNavigator`, `CatalogRoot` (the Navigation 3 back stack) | shared |
 | `app/CatalogList.kt` | `CatalogList` (the list screen and its search) and the private `CatalogSearchField`, `CatalogSections`, `CatalogSubheader`, `CatalogRow` | shared |
 | `app/Inspection.kt` | `InspectionAppearance`, `InspectionTextSize`, `InspectionLayoutDirection`, `Inspection` and its `isDark()`, `LocalInspection`, `InspectionRoot` (which installs `AMTheme`), `InspectionMenu`, `SceneAppearanceButton` | shared |
@@ -27,7 +27,7 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 ## The activity — `MainActivity`
 
 - `onCreate` reads the launch extras (`LaunchOptions.read(intent)`), calls `enableEdgeToEdge()`, and builds an `Inspection` over the `inspection` SharedPreferences.
-- Its content computes the applied dark flag (`inspection.isDark()`) and, whenever it changes, calls `enableEdgeToEdge` again with `SystemBarStyle.auto(TRANSPARENT, TRANSPARENT) { dark }` for both bars, so the status and navigation bar icons follow the inspection appearance, not only the system's.
+- The status and navigation bar icons follow the inspection appearance, not only the system's, because the root's `AMTheme(darkTheme = inspection.isDark())` (`InspectionRoot`) is the window's outermost theme, which sets them (`Foundations.md`); the activity does nothing more for them.
 - Then `InspectionRoot(inspection) { CatalogRoot() }`.
 
 ## Navigation — `CatalogRoot`
@@ -109,7 +109,7 @@ The widening is done in layout (a private `bleed` layout modifier measures the c
 
 **`SceneAppearanceButton()`** is the light/dark chip each Showcase scene carries in its landing view's header actions (`DemoScenes.md`): an `AMToolbarButton` that flips the appearance away from what is on screen (`inspection.isDark()`), from System too, writing Light or Dark to the stored setting the menu writes. Its glyph is the target appearance's (`ic_light_mode` / `ic_dark_mode`), read as "Switch to light mode" or "Switch to dark mode". A launch-pinned appearance keeps the screen as it is, as it does for the menu.
 
-Only the activity (for the bar icons), the root, the menu and the scene chip read the settings; pages don't.
+Only the root (its theme sets the bar icons too), the menu and the scene chip read the settings; pages don't.
 
 ## The theme — `AMTheme`
 
