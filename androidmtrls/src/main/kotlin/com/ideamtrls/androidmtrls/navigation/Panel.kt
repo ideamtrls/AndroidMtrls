@@ -133,6 +133,9 @@ public fun AMPanelChrome(
 ) {
     // Over art, content scrolling under the bar brings in the frosted fill, never a page band.
     val frosted = LocalAMBackdrop.current != null && scrollBehavior != null
+    // On art the title is the art tone's ink until content scrolls under the bar.
+    val scrolled by barScrolledState(scrollBehavior)
+    val titleColor = barLineColor(scrolled, MaterialTheme.colorScheme.onSurface)
     val bar = @Composable { barModifier: Modifier ->
         TopAppBar(
             title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -144,13 +147,14 @@ public fun AMPanelChrome(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = if (frosted) Color.Transparent else AMTheme.Surface.page,
+                titleContentColor = titleColor,
             ),
             scrollBehavior = scrollBehavior,
         )
     }
     if (frosted) {
         val fill by oneRowBarFill(scrollBehavior)
-        FrostedBar(fill = { fill }, modifier) { bar(Modifier) }
+        FrostedBar(fill = { fill }, covers = scrolled, modifier) { bar(Modifier) }
     } else {
         bar(modifier)
     }

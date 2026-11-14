@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.Dp
  * navigation bar icons for [darkTheme] (dark icons in light mode, light ones in dark mode) and
  * sets them again whenever it changes, so an appearance the app pins reaches the bars too, not
  * only the system's. A nested theme leaves the bars to the outer one. Edge to edge stays the
- * activity's (`enableEdgeToEdge()` once in `onCreate`); a view over dark art still turns the
- * status bar's icons light on top of this ([AMLightStatusBarIcons]).
+ * activity's (`enableEdgeToEdge()` once in `onCreate`); art of the other tone under the status bar
+ * still turns its icons over on top of this ([AMStatusBarIcons]).
  *
  * @param darkTheme whether the dark appearance shows. Every style value that differs by mode
  *   follows this flag rather than the system's, and so do the window's bar icons under the

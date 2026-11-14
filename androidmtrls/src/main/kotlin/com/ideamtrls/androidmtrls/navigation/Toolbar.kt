@@ -152,7 +152,7 @@ public fun AMToolbar(
     }
     if (frosted) {
         val fill by oneRowBarFill(scrollBehavior)
-        FrostedBar(fill = { fill }, modifier) { bar(Modifier) }
+        FrostedBar(fill = { fill }, covers = scrolled, modifier) { bar(Modifier) }
     } else {
         bar(modifier)
     }

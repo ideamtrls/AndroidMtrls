@@ -1,6 +1,5 @@
 package com.ideamtrls.androidmtrls.demo
 
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +17,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +30,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import com.ideamtrls.androidmtrls.AMArtRowsBackdrop
 import com.ideamtrls.androidmtrls.AMEmptyState
-import com.ideamtrls.androidmtrls.AMLightStatusBarIcons
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amArtRow
@@ -49,8 +45,8 @@ import com.ideamtrls.androidmtrls.amArtText
  * The Artists root, the scene's landing view: the "Artists" header with the light/dark chip at its
  * end, over one art entry per artist, each on its photo's art row. A tap opens the artist; press
  * and hold opens the queue menu. The header's title reads on the art at rest and on its frosted
- * fill as it collapses (the library's page header does both). While the header lies on the art
- * the status bar's icons are light; once its fill is in far enough, they turn to the appearance's.
+ * fill as it collapses, and the status bar's icons follow the appearance: the rows are washed
+ * toward the mode (the library's page header and art rows do all of it).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,10 +54,6 @@ internal fun MusicArtistsView(model: MusicModel) {
     val spacing = AMTheme.tokens.spacing
     val catalog = model.catalog
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val overArt by remember(scrollBehavior) {
-        derivedStateOf { FastOutLinearInEasing.transform(scrollBehavior.state.collapsedFraction) < MusicHeaderFrostedEnough }
-    }
-    AMLightStatusBarIcons(enabled = overArt)
     AMArtRowsBackdrop(Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -107,13 +99,6 @@ internal fun MusicArtistsView(model: MusicModel) {
         if (model.hostsQueue(MusicRoute.Artists)) MusicQueueSheet(model)
     }
 }
-
-/**
- * How far in the header's frosted fill comes (it follows the collapse as Material eases a large
- * bar's color, fast out and linear in) before the status bar's icons follow the appearance: from
- * 0.9 the fill, not the rows under it, is what lies under them.
- */
-private const val MusicHeaderFrostedEnough = 0.9f
 
 /**
  * One artist or album: the art card — an artist's photo at its own [aspectRatio], an album's square

@@ -257,9 +257,9 @@ public fun Modifier.amArtRows(
  * - It's decoration: it adds nothing for a screen reader and takes no input.
  *
  * @param modifier the region's size and placement: usually the whole screen.
- * @param tone how light the rows' art is, for what lies on it: null, the default, is the mode's,
- *   which the default washes guarantee. A page that lowers its rows' washes passes the tone its art
- *   then has.
+ * @param tone how light the rows' art is, for what lies on it and for the status bar's icons
+ *   while the region reaches the top of the window: null, the default, is the mode's, which the
+ *   default washes guarantee. A page that lowers its rows' washes passes the tone its art then has.
  * @param content the page, holding one [amArtRows] content.
  */
 @Composable
@@ -271,13 +271,14 @@ public fun AMArtRowsBackdrop(
     val layer = rememberGraphicsLayer()
     val source = remember(layer) { AMBackdropSource(layer) }
     val art = remember(source) { ArtRowsArt(source) }
-    Box(modifier) {
+    val artTone = tone ?: modeArtTone()
+    Box(modifier.then(artStatusBar(source, artTone))) {
         Box(Modifier.matchParentSize().backdropSource(source).then(ArtRowsArtElement(art)))
         val scope = this
         CompositionLocalProvider(
             LocalAMBackdrop provides source,
             LocalArtRowsArt provides art,
-            LocalAMArtTone provides (tone ?: modeArtTone()),
+            LocalAMArtTone provides artTone,
         ) { scope.content() }
     }
 }

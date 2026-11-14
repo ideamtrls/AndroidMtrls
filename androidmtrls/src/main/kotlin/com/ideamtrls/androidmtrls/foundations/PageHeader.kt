@@ -121,7 +121,7 @@ public fun AMPageHeader(
         )
     }
     if (frosted) {
-        FrostedBar(fill = { twoRowBarFill(scrollBehavior) }, modifier) { bar(Modifier) }
+        FrostedBar(fill = { twoRowBarFill(scrollBehavior) }, covers = filled, modifier) { bar(Modifier) }
     } else {
         bar(modifier)
     }

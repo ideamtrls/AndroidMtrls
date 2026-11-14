@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class LightStatusBarClaimsTest {
+class StatusBarClaimsTest {
 
     // The window's light-status-bar appearance bit: set means dark icons (a light appearance).
     private val darkIcons = 8
@@ -12,7 +12,7 @@ class LightStatusBarClaimsTest {
 
     @Test
     fun theOnlyClaimPutsBackWhatItFound() {
-        val claims = LightStatusBarClaims()
+        val claims = StatusBarClaims()
         claims.claim(darkIcons)
         assertEquals(darkIcons, claims.release())
         assertEquals(0, claims.held)
@@ -20,16 +20,16 @@ class LightStatusBarClaimsTest {
 
     @Test
     fun overlappingClaimsPutBackWhatTheFirstFoundWhenTheLastEnds() {
-        val claims = LightStatusBarClaims()
-        claims.claim(darkIcons)                  // a view over art
-        claims.claim(lightIcons)                 // an art panel pushed over it finds the icons light
+        val claims = StatusBarClaims()
+        claims.claim(darkIcons)                  // a view over dark art
+        claims.claim(lightIcons)                 // a view pushed over it finds the icons already over
         assertNull(claims.release())             // the covered view leaves first
         assertEquals(darkIcons, claims.release())
     }
 
     @Test
     fun claimsEndingOutOfOrderNeverUndoTheIconsEarly() {
-        val claims = LightStatusBarClaims()
+        val claims = StatusBarClaims()
         claims.claim(darkIcons)
         claims.claim(lightIcons)
         claims.claim(lightIcons)
@@ -41,7 +41,7 @@ class LightStatusBarClaimsTest {
 
     @Test
     fun aClaimAfterTheLastEndedFindsTheWindowAfresh() {
-        val claims = LightStatusBarClaims()
+        val claims = StatusBarClaims()
         claims.claim(darkIcons)
         assertEquals(darkIcons, claims.release())
         claims.claim(lightIcons)                 // the appearance turned dark in between
@@ -50,6 +50,6 @@ class LightStatusBarClaimsTest {
 
     @Test(expected = IllegalStateException::class)
     fun endingAClaimNobodyHoldsFails() {
-        LightStatusBarClaims().release()
+        StatusBarClaims().release()
     }
 }

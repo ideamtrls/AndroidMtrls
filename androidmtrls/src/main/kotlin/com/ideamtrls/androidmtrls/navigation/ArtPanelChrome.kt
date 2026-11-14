@@ -40,12 +40,12 @@ import androidx.compose.ui.text.style.TextOverflow
  *
  * - **At rest** the bar lies on the art: the title and subtitle take the ink of the art's tone
  *   ([AMTheme.artTone]), the subtitle the secondary one: on the library's art, washed toward the
- *   mode, `onSurface` and `onSurfaceVariant`. The status bar's icons turn light, edge to edge.
+ *   mode, `onSurface` and `onSurfaceVariant`. The status bar's icons are the art's to decide: the
+ *   mode's on the library's art, the other tone's on art its [AMBackdrop] says is the other tone.
  * - **Once content scrolls under it** the bar fades in the frosted fill: the art under the bar,
  *   blurred, under [AMTheme.Frosted.fill], with a frosted edge along its bottom, reaching up
  *   behind the status bar. The title and subtitle fade over to the on-surface text and
- *   [AMTheme.Frosted.secondaryText], and the status bar's icons follow the app's appearance
- *   again. Outside an [AMBackdrop], or before the art is placed, the fill is the solid surface,
+ *   [AMTheme.Frosted.secondaryText], and the status bar's icons follow the app's appearance. Outside an [AMBackdrop], or before the art is placed, the fill is the solid surface,
  *   never unblurred translucency.
  * - **The back button is always solid**, the solid form of [AMToolbarButton] (the floating
  *   surface with its shadow), so it stays the clearest thing over any picture, inside an
@@ -56,10 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
  *
  * Place it inside the [AMBackdrop] whose art it sits on, so the frosted fill finds that art. The
  * fade uses Material's motion scheme. The panel itself is a Navigation 3 entry like any other
- * ([AMPanel]). Its light icons are an [AMLightStatusBarIcons] claim, counted with every other in
- * the window: leaving it puts the icons back as the app had them only once no other claim is
- * held, so a push from one art panel to another, or a pop to a view over art, keeps them light
- * throughout.
+ * ([AMPanel]).
  *
  * @param onBack pops the panel: the back button calls it while the panel is on the back stack.
  * @param modifier the bar's placement.
@@ -81,9 +78,7 @@ public fun AMArtPanelChrome(
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
 ) {
     val scrolled by barScrolledState(scrollBehavior)
-    val overArt = !scrolled
     val fill by oneRowBarFill(scrollBehavior)
-    AMLightStatusBarIcons(enabled = overArt)
 
     val colors = TopAppBarDefaults.topAppBarColors(
         containerColor = Color.Transparent,
@@ -97,7 +92,7 @@ public fun AMArtPanelChrome(
         ToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack), solid = true)
     }
 
-    FrostedBar(fill = { fill }, modifier) {
+    FrostedBar(fill = { fill }, covers = scrolled, modifier) {
         if (subtitle == null) {
             TopAppBar(
                 title = titleContent,

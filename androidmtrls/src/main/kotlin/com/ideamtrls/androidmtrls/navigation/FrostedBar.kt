@@ -37,9 +37,12 @@ import kotlin.math.max
 /**
  * [bar] with the frosted fill behind it, faded in by [fill] (0 at rest, 1 once content is under
  * it). [fill] is read while drawing, so a moving fraction redraws the fill without recomposing.
+ * While [covers] (the fill is in), the bar tells its art the status bar lies on the fill, so the
+ * art's tone no longer decides the icons there.
  */
 @Composable
-internal fun FrostedBar(fill: () -> Float, modifier: Modifier = Modifier, bar: @Composable () -> Unit) {
+internal fun FrostedBar(fill: () -> Float, covers: Boolean, modifier: Modifier = Modifier, bar: @Composable () -> Unit) {
+    ReportTopCover(LocalAMBackdrop.current, covers)
     Box(modifier) {
         Box(Modifier.matchParentSize().graphicsLayer { alpha = fill() }.frostedBarFill())
         bar()

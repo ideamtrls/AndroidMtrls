@@ -23,8 +23,9 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
  * nearest backdrop wins: a row's own art beats the page's.
  *
  * **It's an art surface.** What lies on it takes its over-art look for its [tone]: section
- * headers and footers, empty states, ghost buttons, page headers, panel chrome, art text
- * ([amArtText]) and the status bar's icons ([AMTheme.artTone]). The tone is the mode's by default,
+ * headers and footers, empty states, ghost buttons, page headers, panel chrome and art text
+ * ([amArtText], [AMTheme.artTone]). While it reaches the top of the window, the status bar's icons
+ * follow its tone too, until a bar's frosted fill covers them ([AMStatusBarIcons]). The tone is the mode's by default,
  * which holds for the library's art ([amArtBackdrop], washed toward the mode). Art the app washes
  * less, or draws itself, gets the tone it has: `AMBackdrop(art = { Photo() }, tone = AMArtTone.Dark)`.
  *
@@ -42,12 +43,13 @@ public fun AMBackdrop(
 ) {
     val layer = rememberGraphicsLayer()
     val source = remember(layer) { AMBackdropSource(layer) }
-    Box(modifier) {
+    val artTone = tone ?: modeArtTone()
+    Box(modifier.then(artStatusBar(source, artTone))) {
         Box(Modifier.matchParentSize().backdropSource(source)) { art() }
         val scope = this
         CompositionLocalProvider(
             LocalAMBackdrop provides source,
-            LocalAMArtTone provides (tone ?: modeArtTone()),
+            LocalAMArtTone provides artTone,
         ) { scope.content() }
     }
 }

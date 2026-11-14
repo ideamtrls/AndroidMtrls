@@ -27,7 +27,7 @@ internal val MusicSceneEntry = ComponentEntry(
     keywords = listOf(
         "music", "player", "art backdrop", "frosted", "slider", "queue", "reorder", "album", "artist", "streaming",
         "AMScene", "AMKeepsPlace", "AMArtPanelChrome", "AMBackdrop", "amArtBackdrop", "amArtRows", "AMArtRowsBackdrop",
-        "AMLightStatusBarIcons", "AMSlider", "AMSpotlight", "amHoldable", "AMReorderableRowList", "AMSheet", "scene",
+        "AMArtTone", "AMSlider", "AMSpotlight", "amHoldable", "AMReorderableRowList", "AMSheet", "scene",
     ),
 ) { MusicScene() }
 
