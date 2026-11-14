@@ -185,11 +185,13 @@ private fun SectionLayout(
         when (style) {
             AMSectionStyle.Rows -> SectionCard(
                 Modifier.padding(horizontal = side).fillMaxWidth().amCard(fill, elevation),
+                fill,
                 content,
             )
             AMSectionStyle.Card -> SectionCard(
                 Modifier.padding(horizontal = side).fillMaxWidth()
                     .amCard(fill, elevation, padding = PaddingValues(spacing.lg)),
+                fill,
                 content,
             )
             AMSectionStyle.Flat -> Column(
@@ -214,11 +216,16 @@ private fun SectionLayout(
     }
 }
 
-/** The section's card: its content flat inside it, so a card in the content draws nothing of its own. */
+/**
+ * The section's card: its content flat inside it, so a card in the content draws nothing of its
+ * own, and lying on the card's [fill], so its secondary text resolves from it.
+ */
 @Composable
-private fun SectionCard(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
+private fun SectionCard(modifier: Modifier, fill: AMSurfaceFill, content: @Composable ColumnScope.() -> Unit) {
     Column(modifier) {
         val column = this
-        ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { column.content() }
+        ProvideAMSurfaceFill(fill) {
+            ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { column.content() }
+        }
     }
 }

@@ -31,7 +31,7 @@ public sealed interface AMProgressViewStyle {
 
     /**
      * Material's circular progress indicator, centered over the label as a caption (`bodySmall`
-     * in `onSurfaceVariant`), `spacing.md` apart: for work that holds up a view or a block.
+     * in the surface's secondary text color, [AMTheme.secondaryText]), `spacing.md` apart: for work that holds up a view or a block.
      *
      * @property card whether the spinner floats in its own full-width card (`spacing.xl` at the
      *   sides, `spacing.lg` above and below), the way a view that's loading shows it on the page.
@@ -50,7 +50,7 @@ public sealed interface AMProgressViewStyle {
     /**
      * Material's linear progress indicator, full width, under a row of the label (`bodyLarge` in
      * `onSurface`, up to two lines, ellipsized) and the value label at its end (`bodyMedium` in
-     * `onSurfaceVariant`, one line), `spacing.sm` apart, on the row recipe. Like a flat row, it
+     * [AMTheme.secondaryText], one line), `spacing.sm` apart, on the row recipe. Like a flat row, it
      * paints the floating surface when it stands on the page and nothing inside a card, so it
      * stacks with other rows in one, divided by [AMDivider]. In a row container (an
      * [AMSwipeableRow], a reorderable list) it's the row: TalkBack finds the container's actions
@@ -120,7 +120,7 @@ private fun SpinnerProgress(label: String, modifier: Modifier, progress: (() -> 
         if (progress != null) CircularProgressIndicator(progress = progress) else CircularProgressIndicator()
         Text(
             label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AMTheme.secondaryText,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall,
         )
@@ -159,7 +159,7 @@ private fun BarProgress(label: String, modifier: Modifier, progress: (() -> Floa
                         Modifier
                             .padding(start = spacing.md)
                             .alignByBaseline(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AMTheme.secondaryText,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                         style = MaterialTheme.typography.bodyMedium,

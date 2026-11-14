@@ -117,7 +117,7 @@ private fun ShopBagLineRow(line: ShopLine, model: ShopModel) {
         Column {
             Text(product.name, maxLines = 2, overflow = TextOverflow.Ellipsis)
             val caption = MaterialTheme.typography.bodySmall.shopFigures()
-            val secondary = AMTheme.Frosted.secondaryText
+            val secondary = AMTheme.secondaryText
             if (line.detail.isNotEmpty()) Text(line.detail, style = caption, color = secondary)
             Text("Qty ${line.quantity} · ${shopPrice(line.total)}", style = caption, color = secondary)
         }

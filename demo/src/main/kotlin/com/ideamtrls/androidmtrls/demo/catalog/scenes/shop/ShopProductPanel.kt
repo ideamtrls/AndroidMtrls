@@ -117,7 +117,7 @@ internal fun ShopProductPanel(model: ShopModel, id: String, onBack: () -> Unit) 
                         Text(
                             "${index + 1}. $step",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AMTheme.Frosted.secondaryText,
+                            color = AMTheme.secondaryText,
                         )
                     }
                 }
@@ -162,7 +162,7 @@ private fun ShopProductDetails(product: ShopProduct) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
                 product.details.forEach { detail ->
                     Row(horizontalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                        Text(detail.label, Modifier.width(labelWidth), style = style, color = AMTheme.Frosted.secondaryText)
+                        Text(detail.label, Modifier.width(labelWidth), style = style, color = AMTheme.secondaryText)
                         Text(detail.value, Modifier.weight(1f), style = style)
                     }
                 }

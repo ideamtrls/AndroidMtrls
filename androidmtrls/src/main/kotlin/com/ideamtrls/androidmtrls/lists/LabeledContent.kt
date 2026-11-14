@@ -21,7 +21,8 @@ import kotlin.math.min
 
 /**
  * A label and its value on one row: Material's `ListItem` at the row recipe's rhythm, [label] at
- * the start in `bodyLarge` and [value] at the end in `bodyLarge` and `onSurfaceVariant`, read as
+ * the start in `bodyLarge` and [value] at the end in `bodyLarge` and the surface's secondary
+ * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on glass), read as
  * a value rather than as a list item's small trailing note.
  *
  * ```kotlin
@@ -60,7 +61,7 @@ public fun AMLabeledContent(
 
 /**
  * A label and a custom value on one row, such as a status tag. The value gets `bodyLarge`, lines
- * aligned to the end and `onSurfaceVariant`, so text inside it reads as a value. Otherwise the
+ * aligned to the end and [AMTheme.secondaryText], so text inside it reads as a value. Otherwise the
  * same row as the string form: the label at its own width, the value in the rest at the end.
  *
  * @param label what the value is.
@@ -98,7 +99,7 @@ public fun AMLabeledContent(
 @Composable
 private fun LabeledContentLayout(label: String, value: @Composable () -> Unit) {
     val gap = AMTheme.tokens.spacing.lg
-    val valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val valueColor = AMTheme.secondaryText
     val valueStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End)
     Layout(
         contents = listOf(

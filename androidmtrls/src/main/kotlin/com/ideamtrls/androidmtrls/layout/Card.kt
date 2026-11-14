@@ -285,12 +285,13 @@ public object AMRowDefaults {
 
     /**
      * Material's list item colors on a transparent container in every state but dragging, so the
-     * row lies on its card or strip. A checked or selected row keeps its resting colors: its
+     * row lies on its card or strip, with its supporting line in the surface's secondary text color
+     * ([AMTheme.secondaryText]: the frosted secondary on glass). A checked or selected row keeps its resting colors: its
      * control (a switch, a radio button) shows the state, not a tinted row.
      */
     @Composable
     public fun colors(): ListItemColors {
-        val colors = ListItemDefaults.colors()
+        val colors = ListItemDefaults.colors(supportingContentColor = AMTheme.secondaryText)
         return colors.copy(
             containerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,

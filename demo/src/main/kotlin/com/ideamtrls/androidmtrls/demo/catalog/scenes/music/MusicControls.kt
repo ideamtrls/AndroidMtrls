@@ -22,6 +22,7 @@ import com.ideamtrls.androidmtrls.AMSlider
 import com.ideamtrls.androidmtrls.AMSliderDecoration
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
 import kotlin.math.max
 
@@ -45,9 +46,11 @@ internal fun MusicControlsCard(model: MusicModel, modifier: Modifier = Modifier)
             .fillMaxWidth()
             .amCard(fill = AMSurfaceFill.Frosted, padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
     ) {
-        MusicControlsHeading(track, model)
-        MusicScrubber(track, model)
-        MusicTransport(model)
+        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+            MusicControlsHeading(track, model)
+            MusicScrubber(track, model)
+            MusicTransport(model)
+        }
     }
 }
 
@@ -65,7 +68,7 @@ private fun MusicControlsHeading(track: MusicTrack, model: MusicModel) {
         Text(
             if (album != null) "${track.artist} · ${album.title}" else track.artist,
             style = MaterialTheme.typography.bodyMedium,
-            color = AMTheme.Frosted.secondaryText,
+            color = AMTheme.secondaryText,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

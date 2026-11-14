@@ -115,6 +115,7 @@ internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAMBackdrop provides null,
         LocalAMArtTone provides null,
+        LocalAMSurfaceFill provides AMSurfaceFill.Solid,
         LocalAMEnabled provides true,
         LocalAMOnPrimarySurface provides false,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,

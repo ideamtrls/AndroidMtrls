@@ -120,55 +120,58 @@ public fun AMDisclosureGroup(
         animationSpec = motion.defaultSpatialSpec(),
         label = "chevron",
     )
-    Column(modifier.fillMaxWidth().amCard(fill = fill)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable(enabled = headerEnabled, role = Role.Button) { onExpandedChange(!expanded) }
-                .semantics {
-                    if (!headerEnabled) return@semantics
-                    if (expanded) {
-                        collapse { onExpandedChange(false); true }
-                    } else {
-                        expand { onExpandedChange(true); true }
+    // The header and the body lie on the card's fill.
+    ProvideAMSurfaceFill(fill) {
+        Column(modifier.fillMaxWidth().amCard(fill = fill)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = headerEnabled, role = Role.Button) { onExpandedChange(!expanded) }
+                    .semantics {
+                        if (!headerEnabled) return@semantics
+                        if (expanded) {
+                            collapse { onExpandedChange(false); true }
+                        } else {
+                            expand { onExpandedChange(true); true }
+                        }
+                    }
+                    .amRowPadding(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val color = if (headerEnabled) scheme.onSurface else scheme.onSurface.copy(alpha = DisabledAlpha)
+                CompositionLocalProvider(LocalContentColor provides color) {
+                    ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
+                        Row(
+                            Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+                            verticalAlignment = Alignment.CenterVertically,
+                            content = label,
+                        )
                     }
                 }
-                .amRowPadding(),
-            horizontalArrangement = Arrangement.spacedBy(spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val color = if (headerEnabled) scheme.onSurface else scheme.onSurface.copy(alpha = DisabledAlpha)
-            CompositionLocalProvider(LocalContentColor provides color) {
-                ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
-                    Row(
-                        Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.md),
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = label,
-                    )
-                }
+                Icon(
+                    painterResource(R.drawable.am_ic_expand_more),
+                    contentDescription = null,
+                    modifier = Modifier.rotate(chevronTurn),
+                    tint = if (headerEnabled) scheme.onSurfaceVariant else scheme.onSurface.copy(alpha = DisabledAlpha),
+                )
             }
-            Icon(
-                painterResource(R.drawable.am_ic_expand_more),
-                contentDescription = null,
-                modifier = Modifier.rotate(chevronTurn),
-                tint = if (headerEnabled) scheme.onSurfaceVariant else scheme.onSurface.copy(alpha = DisabledAlpha),
-            )
-        }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
-            exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
-        ) {
-            // The divider and the body move as one.
-            Column(Modifier.fillMaxWidth()) {
-                AMDivider()
-                Column(
-                    Modifier.fillMaxWidth().padding(horizontal = spacing.lg, vertical = spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(spacing.md),
-                ) {
-                    val body = this
-                    ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { body.content() }
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+            ) {
+                // The divider and the body move as one.
+                Column(Modifier.fillMaxWidth()) {
+                    AMDivider()
+                    Column(
+                        Modifier.fillMaxWidth().padding(horizontal = spacing.lg, vertical = spacing.md),
+                        verticalArrangement = Arrangement.spacedBy(spacing.md),
+                    ) {
+                        val body = this
+                        ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { body.content() }
+                    }
                 }
             }
         }

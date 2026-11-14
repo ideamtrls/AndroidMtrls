@@ -31,6 +31,7 @@ import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amCrossfade
 import com.ideamtrls.androidmtrls.amPausedBackdrop
@@ -135,12 +136,14 @@ private fun PhotosCaption(photo: PhotosItem, onFavorite: () -> Unit) {
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            photo.captionDate,
-            Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = AMTheme.Frosted.secondaryText,
-        )
+        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+            Text(
+                photo.captionDate,
+                Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = AMTheme.secondaryText,
+            )
+        }
         AMIconButton(
             painterResource(if (photo.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
             contentDescription = if (photo.isFavorite) "Remove from Favorites" else "Add to Favorites",

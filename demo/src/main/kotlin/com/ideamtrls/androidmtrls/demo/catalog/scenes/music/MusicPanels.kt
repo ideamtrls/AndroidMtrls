@@ -47,6 +47,7 @@ import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amArtRow
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
@@ -202,9 +203,11 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 // Bare rows with inset dividers between them, in a frosted card that clips them,
                 // so the playing row's highlight rounds with it.
                 Column(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
-                    tracks.forEachIndexed { index, track ->
-                        if (index > 0) AMDivider(inset = spacing.lg)
-                        MusicAlbumTrackRow(track, index, tracks, model)
+                    ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                        tracks.forEachIndexed { index, track ->
+                            if (index > 0) AMDivider(inset = spacing.lg)
+                            MusicAlbumTrackRow(track, index, tracks, model)
+                        }
                     }
                 }
             }
@@ -248,7 +251,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
                 Text(
                     "${index + 1}",
                     style = typography.bodyLarge.copy(fontFeatureSettings = "tnum"),
-                    color = AMTheme.Frosted.secondaryText,
+                    color = AMTheme.secondaryText,
                 )
             }
         }
@@ -263,7 +266,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
         Text(
             duration,
             style = typography.bodySmall.copy(fontFeatureSettings = "tnum"),
-            color = AMTheme.Frosted.secondaryText,
+            color = AMTheme.secondaryText,
         )
     }
 }

@@ -114,7 +114,7 @@ internal fun PhotosAlbums(model: PhotosModel) {
 private fun PhotosAlbumCard(model: PhotosModel, album: PhotosAlbum) {
     AMListCard(
         leadingContent = { PhotosAlbumCover(model.cover(album), 56.dp, MaterialTheme.shapes.small) },
-        supportingContent = { Text(photosCountLabel(album.photoIds.size), color = AMTheme.Frosted.secondaryText) },
+        supportingContent = { Text(photosCountLabel(album.photoIds.size)) },
         fill = AMSurfaceFill.Frosted,
         onClick = { model.openAlbum(album.id) },
     ) {

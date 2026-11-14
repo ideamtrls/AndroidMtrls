@@ -110,6 +110,21 @@ public object AMTheme {
     public val artTone: AMArtTone?
         @Composable @ReadOnlyComposable get() = LocalAMArtTone.current
 
+    /**
+     * Secondary text (a supporting line, a value, a caption) for the surface this composition lies
+     * on, resolved from that surface: on art, the secondary ink of its tone (`onSurfaceVariant` on
+     * the library's art, which the wash holds at 4.5:1); on frosted glass over art,
+     * [Frosted.secondaryText], which holds over the tint; on the page or a solid card, Material's
+     * `onSurfaceVariant`. The library's containers say which surface their content lies on; a
+     * hand-built card says it with [ProvideAMSurfaceFill].
+     */
+    public val secondaryText: Color
+        @Composable @ReadOnlyComposable get() = when {
+            LocalAMArtTone.current != null -> artInk(secondary = true)
+            LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null -> Frosted.secondaryText
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
+
     /** The floating surface and the page it floats on. */
     public object Surface {
         /**

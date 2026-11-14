@@ -106,6 +106,9 @@ public fun AMListCard(
         LocalAMRowActions provides null,
         LocalAMReorderHandleInset provides 0.dp,
         LocalAMReorderLifted provides false,
+        // The text lies on the card's fill, not on any art around it.
+        LocalAMSurfaceFill provides fill,
+        LocalAMArtTone provides null,
     ) {
         if (onClick == null) {
             ListItem(

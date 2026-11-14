@@ -38,6 +38,7 @@ import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amArtBackdrop
 import java.util.Locale
@@ -236,7 +237,9 @@ internal fun ShopProductCard(
         } else {
             ShopLabelArt(product, ShopLabelStyle.Tile)
             Text(product.name, style = nameStyle, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(product.priceLabel, style = priceStyle, color = AMTheme.Frosted.secondaryText, maxLines = 1)
+            ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                Text(product.priceLabel, style = priceStyle, color = AMTheme.secondaryText, maxLines = 1)
+            }
         }
     }
 }
