@@ -1,11 +1,13 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -15,15 +17,19 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 
 /**
- * How an [AMProgressView] shows its progress. Sealed, so only these two exist:
+ * How an [AMProgressView] shows its progress. Sealed, so only these three exist:
  *
  * - [Spinner]: Material's circular indicator over a caption, centered, framed in a card by
  *   default.
+ * - [Glyph]: Material's circular indicator at a glyph's size, with no caption, in a row's
+ *   trailing place.
  * - [Bar]: Material's linear indicator under a title and a trailing value, on the row recipe.
  */
 @Immutable
@@ -48,6 +54,17 @@ public sealed interface AMProgressViewStyle {
     }
 
     /**
+     * Material's circular progress indicator at a glyph's size, with no caption: for work on one
+     * item in a list (a download, a refresh), in the place a row's trailing glyph or icon button
+     * takes. It's 24 dp, centered in a 48 dp square like an [AMIconButton]'s touch target, so
+     * swapping it for a button doesn't move the row. Material's proportions at a glyph's size: a
+     * 20 dp ring 2 dp thick (Material's own is 40 dp and 4 dp) in the 24 dp a glyph takes, its
+     * live area and padding. The label isn't shown; it's what a screen reader says.
+     */
+    @Immutable
+    public data object Glyph : AMProgressViewStyle
+
+    /**
      * Material's linear progress indicator, full width, under a row of the label (`bodyLarge` in
      * `onSurface`, up to two lines, ellipsized) and the value label at its end (`bodyMedium` in
      * [AMTheme.secondaryText], one line), `spacing.sm` apart, on the row recipe. Like a flat row, it
@@ -62,12 +79,14 @@ public sealed interface AMProgressViewStyle {
 
 /**
  * Progress on Android's own indicators, labeled: Material's circular indicator over a caption
- * ([AMProgressViewStyle.Spinner]), or Material's linear indicator under a title and its value
+ * ([AMProgressViewStyle.Spinner]) or at a glyph's size with the label spoken only
+ * ([AMProgressViewStyle.Glyph]), or Material's linear indicator under a title and its value
  * ([AMProgressViewStyle.Bar]).
  *
  * ```kotlin
  * AMProgressView("Checking for new mail")                                     // an indeterminate spinner, in a card
  * AMProgressView("Uploading", progress = { uploaded }, valueLabel = "60%", style = AMProgressViewStyle.Bar)
+ * AMListRow(episode.title, trailingContent = { AMProgressView("Downloading", progress = { done }, style = AMProgressViewStyle.Glyph) })
  * ```
  *
  * The indicators keep Material's look, colors and motion: a [progress] fills them, and with none
@@ -76,14 +95,14 @@ public sealed interface AMProgressViewStyle {
  * label and the indicator's progress.
  *
  * @param label what's in progress ("Uploading", "Checking for new mail"): the spinner's caption,
- *   the bar's title.
+ *   the bar's title, what a screen reader says for the glyph.
  * @param modifier the view's placement. The carded spinner and the bar fill the width they're
- *   given.
+ *   given; the glyph is 48 dp square.
  * @param progress how far along the work is, 0 to 1, read while drawing so a changing value
  *   doesn't recompose. Null runs the indicator indeterminate.
  * @param valueLabel a readout at the end of the bar's title row ("60%", "Done", "Waiting"). The
- *   bar shows it; the spinner has no place for it and leaves it out.
- * @param style the spinner (the default, in a card) or the bar.
+ *   bar shows it; the spinner and the glyph have no place for it and leave it out.
+ * @param style the spinner (the default, in a card), the glyph or the bar.
  */
 @Composable
 public fun AMProgressView(
@@ -95,6 +114,7 @@ public fun AMProgressView(
 ) {
     when (style) {
         is AMProgressViewStyle.Spinner -> SpinnerProgress(label, modifier, progress, style.card)
+        AMProgressViewStyle.Glyph -> GlyphProgress(label, modifier, progress)
         AMProgressViewStyle.Bar -> BarProgress(label, modifier, progress, valueLabel)
     }
 }
@@ -124,6 +144,29 @@ private fun SpinnerProgress(label: String, modifier: Modifier, progress: (() -> 
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall,
         )
+    }
+}
+
+/**
+ * The circular indicator at a glyph's size, centered in a touch target's square, with [label] as
+ * its spoken name.
+ */
+@Composable
+private fun GlyphProgress(label: String, modifier: Modifier, progress: (() -> Float)?) {
+    val ring = Modifier
+        .padding(GlyphRingInset)
+        .size(GlyphRingSize)
+    Box(
+        modifier
+            .size(GlyphTargetSize)
+            .semantics(mergeDescendants = true) { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (progress != null) {
+            CircularProgressIndicator(progress = progress, modifier = ring, strokeWidth = GlyphRingStroke)
+        } else {
+            CircularProgressIndicator(modifier = ring, strokeWidth = GlyphRingStroke)
+        }
     }
 }
 
@@ -174,6 +217,18 @@ private fun BarProgress(label: String, modifier: Modifier, progress: (() -> Floa
         }
     }
 }
+
+/** The glyph's square: a touch target's, as an icon button's. */
+private val GlyphTargetSize = 48.dp
+
+/** The glyph's ring: a glyph's 20 dp live area. */
+private val GlyphRingSize = 20.dp
+
+/** The padding around the ring that makes up a glyph's 24 dp. */
+private val GlyphRingInset = 2.dp
+
+/** The ring's thickness: Material's 4 dp on its 40 dp ring, at half the size. */
+private val GlyphRingStroke = 2.dp
 
 /** How many lines the bar's label takes before it ellipsizes, so a long title keeps rows even. */
 private const val BarLabelMaxLines = 2
