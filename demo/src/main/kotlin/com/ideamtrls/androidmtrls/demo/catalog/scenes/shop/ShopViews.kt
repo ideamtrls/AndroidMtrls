@@ -45,12 +45,6 @@ import java.util.Locale
 
 // Shared sizes
 
-/**
- * Room every Shop view leaves under its last control, so it scrolls clear of the floating action
- * button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val ShopFabClearance = 88.dp
-
 /** A label thumbnail's edge in a row: a list row's avatar size. */
 private val ShopThumbSize = 40.dp
 

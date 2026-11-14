@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,7 @@ import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amHoldable
 
 /**
@@ -75,7 +78,7 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
                     start = spacing.lg,
                     end = spacing.lg,
                     top = spacing.sm,
-                    bottom = padding.calculateBottomPadding() + SocialFabClearance,
+                    bottom = WindowInsets.amFloatingActions.asPaddingValues().calculateBottomPadding(),
                 ),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
                 userScrollEnabled = !model.isLoading,

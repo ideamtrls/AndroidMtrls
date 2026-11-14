@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,6 +38,7 @@ import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbar
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
  * The first screen and the signed-out landing view: the light/dark chip at the end of its top
@@ -52,7 +56,9 @@ internal fun AccountIntro(model: AccountModel) {
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(start = spacing.lg, end = spacing.lg, bottom = AccountFabClearance),
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.amFloatingActions)
+                .padding(start = spacing.lg, end = spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

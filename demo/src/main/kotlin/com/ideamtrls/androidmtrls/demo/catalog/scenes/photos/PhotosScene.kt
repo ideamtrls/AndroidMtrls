@@ -6,7 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.ideamtrls.androidmtrls.AMAlert
@@ -27,12 +26,6 @@ internal val PhotosSceneEntry = ComponentEntry(
         "library", "albums", "grid", "select", "favorites", "page backdrop", "frosted", "sheet", "scene",
     ),
 ) { PhotosScene() }
-
-/**
- * Room every Photos view leaves under its last row, so it scrolls clear of the floating action
- * button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val PhotosFabClearance = 88.dp
 
 /**
  * Photos: a photo library. One [PhotosModel] owns the photos, the albums, navigation, select mode

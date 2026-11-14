@@ -47,12 +47,6 @@ import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 
-/**
- * Room every Social view leaves under its last card, so it scrolls clear of the floating action
- * button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val SocialFabClearance = 88.dp
-
 // Surfaces
 
 /**

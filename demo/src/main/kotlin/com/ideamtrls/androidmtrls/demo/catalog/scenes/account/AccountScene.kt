@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -51,6 +52,7 @@ import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.AMToolbarButton
 import com.ideamtrls.androidmtrls.amCrossfade
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amInstantSwitch
 
 internal val AccountSceneEntry = ComponentEntry(
@@ -64,12 +66,6 @@ internal val AccountSceneEntry = ComponentEntry(
         "secure field", "buttons", "help", "profile", "settings", "scene",
     ),
 ) { AccountScene() }
-
-/**
- * Room every Account view leaves under its last control, so it scrolls clear of the floating
- * action button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val AccountFabClearance = 88.dp
 
 /**
  * Account: onboarding, sign-in and settings for Margin, a read-later app. One [AccountModel] owns
@@ -270,7 +266,9 @@ internal fun AccountStepPage(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = AccountFabClearance),
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.amFloatingActions)
+                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
             if (subtitle != null) {
@@ -310,7 +308,9 @@ internal fun AccountPage(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = AccountFabClearance),
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.amFloatingActions)
+                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
             content = content,
         )

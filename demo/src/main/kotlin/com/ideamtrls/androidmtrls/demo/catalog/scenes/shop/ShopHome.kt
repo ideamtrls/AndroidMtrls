@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,7 @@ import com.ideamtrls.androidmtrls.AMPageIndicator
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amHoldable
 
 /**
@@ -56,7 +59,7 @@ internal fun ShopHome(model: ShopModel) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = padding.calculateTopPadding() + spacing.sm,
-                bottom = padding.calculateBottomPadding() + ShopFabClearance,
+                bottom = WindowInsets.amFloatingActions.asPaddingValues().calculateBottomPadding(),
             ),
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
             verticalArrangement = Arrangement.spacedBy(spacing.md),

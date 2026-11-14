@@ -59,7 +59,7 @@ The rules every Showcase scene follows. A scene is a small, realistic app built 
 - The menu is an `AMActionGrid` of `AMActionGridRow`s, exactly 2, 3 or 4 tiles a row, with Exit folded into the last row (Music puts its controls card above its one row). Tiles carry no badges.
 - **Tile titles are short**: one or two words ("Profile", "Artists"); short verb phrases only in 2-up rows ("Add to album").
 - **View tiles**: the current view's tile is `active`; a tap closes the menu, then switches the root inside `amInstantSwitch`, so the new view appears at once, restored, while the menu fades over it. Action tiles close the menu, then act.
-- **Clearance**: every scrolling view ends with room for the button above the navigation bar, the scene's `<Name>FabClearance` (88 dp: the button's 56 dp with `spacing.lg` under and over it).
+- **Clearance**: every scrolling view ends clear of the button with the library's `WindowInsets.amFloatingActions`: a column in a scaffold consumes the scaffold's padding, then pads with it (`consumeWindowInsets(padding).windowInsetsPadding(WindowInsets.amFloatingActions)`); a lazy list takes its bottom content padding from it (`asPaddingValues()`) in place of the scaffold's.
 
 ## Motion
 

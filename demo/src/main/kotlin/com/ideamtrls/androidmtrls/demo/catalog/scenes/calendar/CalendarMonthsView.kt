@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +23,7 @@ import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amStatusBarEdge
 import java.time.LocalDate
 import java.time.YearMonth
@@ -43,7 +43,6 @@ internal fun CalendarMonthsView(model: CalendarModel) {
     val years = remember { CalendarDates.pickerYears(LocalDate.now()) }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = years.indexOf(model.displayedMonth.year).coerceAtLeast(0))
     val statusBar = WindowInsets.statusBars.asPaddingValues()
-    val navigationBar = WindowInsets.navigationBars.asPaddingValues()
     LazyColumn(
         Modifier.fillMaxSize().amStatusBarEdge(),
         state = listState,
@@ -51,7 +50,7 @@ internal fun CalendarMonthsView(model: CalendarModel) {
             start = spacing.lg,
             top = statusBar.calculateTopPadding(),
             end = spacing.lg,
-            bottom = navigationBar.calculateBottomPadding() + CalendarFabClearance,
+            bottom = WindowInsets.amFloatingActions.asPaddingValues().calculateBottomPadding(),
         ),
     ) {
         items(years, key = { it }) { year ->

@@ -4,9 +4,12 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +35,7 @@ import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMTimeline
 import com.ideamtrls.androidmtrls.AMTimelineDot
 import com.ideamtrls.androidmtrls.AMTimelineLabel
+import com.ideamtrls.androidmtrls.amFloatingActions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -52,7 +56,9 @@ internal fun ShopOrders(model: ShopModel) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = ShopFabClearance),
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.amFloatingActions)
+                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
             listOf("In progress" to inProgress, "Delivered" to delivered).forEach { (title, orders) ->
@@ -99,7 +105,9 @@ internal fun ShopOrderPanel(model: ShopModel, number: Int, onBack: () -> Unit) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = ShopFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.lg),
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

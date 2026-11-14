@@ -68,7 +68,7 @@ public fun AMScene(
     val registry = remember { AMOverlayRegistry() }
     // Toasts clear the button's resting place: its height and its gap above the navigation bar.
     val toastClearance = if (floatingActions != null) {
-        FloatingActionButtonDiameter + AMTheme.tokens.spacing.lg
+        floatingActionButtonTop()
     } else {
         0.dp
     }

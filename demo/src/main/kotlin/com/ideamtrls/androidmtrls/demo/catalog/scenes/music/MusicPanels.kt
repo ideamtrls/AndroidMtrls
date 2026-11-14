@@ -6,11 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +54,7 @@ import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amElevation
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amRowPadding
 
 // The two panels the Artists stack pushes: an artist and an album, each under the art panel bar,
@@ -87,7 +91,9 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                     .verticalScroll(rememberScrollState())
                     .amArtRows()
                     .padding(padding)
-                    .padding(top = spacing.md, bottom = MusicFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(top = spacing.md),
                 verticalArrangement = Arrangement.spacedBy(spacing.xl),
             ) {
                 MusicArtistHero(artist, catalog, Modifier.musicArtRow(null, artist.imageUrl))
@@ -193,7 +199,9 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.md, bottom = MusicFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.md),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 MusicArtCard(album.coverUrl, cover, Modifier.fillMaxWidth().aspectRatio(1f))

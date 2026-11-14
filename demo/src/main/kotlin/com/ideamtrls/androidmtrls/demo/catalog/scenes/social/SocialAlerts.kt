@@ -3,9 +3,12 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +40,7 @@ import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMSwipeableRow
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
  * The Alerts root view, which the remote's Alerts tile swaps in for the feed: its header over the
@@ -74,7 +78,9 @@ private fun SocialAlertsBody(model: SocialModel, padding: PaddingValues) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(padding)
-            .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = SocialFabClearance),
+            .consumeWindowInsets(padding)
+            .windowInsetsPadding(WindowInsets.amFloatingActions)
+            .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         AMSegmentedControl(

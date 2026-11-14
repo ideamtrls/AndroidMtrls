@@ -1,8 +1,8 @@
 ---
 scope: The demo's Account scene — Margin's onboarding, sign-in and two-factor flow, stand-in requests and their cancellation, profile and settings — its model, surfaces and copy
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/account/**]
-keywords: [Account, accountScene, AccountSceneEntry, AccountScene, AccountModel, AccountPhase, AccountView, AccountReaderFont, AccountInterest, AccountInterestsSaver, AccountStepPage, AccountPage, AccountFabClearance, AccountIntro, AccountLogo, AccountSignIn, AccountForgotPasswordSheet, AccountTwoFactor, CodeInput, InputTransformation, AccountSetup, AccountSetupForm, AccountProfile, AccountEditProfileSheet, AccountSettings, AccountHelpSheet, Margin, onboarding, intro, sign in, create account, credentials, forgot password, reset password, two-factor, code, banner, digits only, resend code, countdown, setup, profile, edit profile, settings, sign out, help, cancelPendingWork, title-less toolbar, AMToolbar, coroutine, rememberCoroutineScope, mapSaver, amCrossfade, AMKeepsPlace, NavigationBackHandler, sections]
-updated: 2026-11-10
+keywords: [Account, accountScene, AccountSceneEntry, AccountScene, AccountModel, AccountPhase, AccountView, AccountReaderFont, AccountInterest, AccountInterestsSaver, AccountStepPage, AccountPage, amFloatingActions, AccountIntro, AccountLogo, AccountSignIn, AccountForgotPasswordSheet, AccountTwoFactor, CodeInput, InputTransformation, AccountSetup, AccountSetupForm, AccountProfile, AccountEditProfileSheet, AccountSettings, AccountHelpSheet, Margin, onboarding, intro, sign in, create account, credentials, forgot password, reset password, two-factor, code, banner, digits only, resend code, countdown, setup, profile, edit profile, settings, sign out, help, cancelPendingWork, title-less toolbar, AMToolbar, coroutine, rememberCoroutineScope, mapSaver, amCrossfade, AMKeepsPlace, NavigationBackHandler, sections]
+updated: 2026-11-14
 ---
 
 # Account scene
@@ -15,7 +15,7 @@ The account side of **Margin**, a made-up read-later app: onboarding, sign-in an
 
 | File | What |
 |---|---|
-| `AccountScene.kt` | `AccountSceneEntry`, `AccountScene()` (the root), `AccountFabClearance`, `AccountStepPage`, `AccountPage`; private `AccountSignedOut`, `AccountSignedIn`, `AccountRemote`, `AccountOverlays` |
+| `AccountScene.kt` | `AccountSceneEntry`, `AccountScene()` (the root), `AccountStepPage`, `AccountPage`; private `AccountSignedOut`, `AccountSignedIn`, `AccountRemote`, `AccountOverlays` |
 | `AccountModel.kt` | `AccountPhase`, `AccountView`, `AccountReaderFont`, `AccountModel` and its `saver` |
 | `AccountIntro.kt` | `AccountIntro`; private `AccountLogo` |
 | `AccountSignIn.kt` | `AccountSignIn` (the credentials step), `AccountForgotPasswordSheet` |
@@ -37,9 +37,8 @@ Glyphs it adds to the demo's `res/drawable/`: `ic_settings`, `ic_help` (the remo
 
 ### Page frames
 
-- **`AccountStepPage(title, onBack, subtitle = null, content)`**, every phase after the intro: a `Scaffold` on the page color under one header, `AMPageHeader(title, navigationIcon = back, exitUntilCollapsedScrollBehavior)`: Material's large top app bar with the back button (`AMToolbarButton`, `ic_arrow_back`, "Back", calling `onBack`) in its top row and the step's title under it, collapsing as the page scrolls. The body is a scrolling column inset by the page gutter, `spacing.sm` at the top: the subtitle (`bodyMedium`, `onSurfaceVariant`) as its first line, then the content, `spacing.xl` apart. The scaffold's content insets include the keyboard (`contentWindowInsets ∪ WindowInsets.ime`), and the column ends `AccountFabClearance` above the navigation bar.
-- **`AccountPage(title, actions = null, content)`**, each signed-in view: a `Scaffold` under `AMPageHeader(title, actions, exitUntilCollapsedScrollBehavior)`, over a scrolling column inset by the page gutter, `spacing.sm` at the top, blocks `spacing.xl` apart, ending `AccountFabClearance` above the navigation bar.
-- **`AccountFabClearance`** = 88 dp: the button's 56 dp with `spacing.lg` under and over it.
+- **`AccountStepPage(title, onBack, subtitle = null, content)`**, every phase after the intro: a `Scaffold` on the page color under one header, `AMPageHeader(title, navigationIcon = back, exitUntilCollapsedScrollBehavior)`: Material's large top app bar with the back button (`AMToolbarButton`, `ic_arrow_back`, "Back", calling `onBack`) in its top row and the step's title under it, collapsing as the page scrolls. The body is a scrolling column inset by the page gutter, `spacing.sm` at the top: the subtitle (`bodyMedium`, `onSurfaceVariant`) as its first line, then the content, `spacing.xl` apart. The scaffold's content insets include the keyboard (`contentWindowInsets ∪ WindowInsets.ime`), and the column ends clear of the button (`WindowInsets.amFloatingActions`) or the keyboard, whichever reaches higher.
+- **`AccountPage(title, actions = null, content)`**, each signed-in view: a `Scaffold` under `AMPageHeader(title, actions, exitUntilCollapsedScrollBehavior)`, over a scrolling column inset by the page gutter, `spacing.sm` at the top, blocks `spacing.xl` apart, ending clear of the button (`WindowInsets.amFloatingActions`).
 
 ## The model — `AccountModel`
 
@@ -57,7 +56,7 @@ A plain `@Stable` class of Compose state, built on the scene's coroutine scope.
 
 ## The surfaces
 
-- **Intro** (`AccountIntro`, the signed-out landing view): a `Scaffold` whose top bar is the title-less `AMToolbar(actions = { SceneAppearanceButton() })`, the light/dark chip alone at its end; Margin's logo centered in the room (`AccountLogo`: a serif "M" in the surface color on an `onSurface` tile 96 sp square, its corners 22 % of the side, a red margin rule (`AMSemantic.Destructive.color`) down its start side, over "Margin" in serif semibold `headlineLarge`; one heading for TalkBack, "Margin"); then full-width "Sign in" (Primary) over "Create account" (Secondary), `spacing.md` apart, `AccountFabClearance` above the navigation bar.
+- **Intro** (`AccountIntro`, the signed-out landing view): a `Scaffold` whose top bar is the title-less `AMToolbar(actions = { SceneAppearanceButton() })`, the light/dark chip alone at its end; Margin's logo centered in the room (`AccountLogo`: a serif "M" in the surface color on an `onSurface` tile 96 sp square, its corners 22 % of the side, a red margin rule (`AMSemantic.Destructive.color`) down its start side, over "Margin" in serif semibold `headlineLarge`; one heading for TalkBack, "Margin"); then full-width "Sign in" (Primary) over "Create account" (Secondary), `spacing.md` apart, clear of the button (`WindowInsets.amFloatingActions`).
 - **Credentials** (`AccountSignIn`): "Sign in" / "Welcome back. Your reading list is waiting." or "Create account" / "Start free, with 5 GB for everything you save."; one card of fields padded `spacing.lg`, `AMTextField` "Email" (email keyboard, no capitals or autocorrection, Next) over `AMSecureField` "Password" or "Create a password" (Done submits), `spacing.md` apart with no divider, since each outlined field carries its own outline; the full-width main button ("Sign in" / "Continue", disabled until both fields hold text); then text buttons (`Ghost`): "Forgot password?" at the start and "Create account" at the end when signing in, a centered "I have an account" when creating.
 - **Reset password sheet** (`AccountForgotPasswordSheet`): a centered `bodyMedium` line ("Enter the email on your account and we'll send a link to choose a new password."), an "Email" field (a draft of the account's email; Send sends) in a card padded `spacing.lg`, and `AMFormActions { "Send link" }`, disabled while blank.
 - **Two-factor** (`AccountTwoFactor`): "Two-factor" / "We sent a six-digit code to your phone ending in 42."; the "Code" `AMTextField` in a card padded `spacing.lg`, with the number keyboard and `AMTextFieldAutofocus.CaretAtEnd` (Done verifies), kept to six digits by `inputTransformation = AccountModel.CodeInput`, so a dropped character never shows; full-width "Verify", disabled until six digits; a centered text button "Resend code (0:30)" counting down, disabled while it runs, then "Resend code".

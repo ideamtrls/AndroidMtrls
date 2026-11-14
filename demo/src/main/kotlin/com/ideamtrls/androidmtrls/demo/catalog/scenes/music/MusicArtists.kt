@@ -5,10 +5,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +37,7 @@ import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 // The Artists root, and the art entry it shares with the artist page: an art card over its name,
 // and an album's counts, in white art text. On both pages each entry carries its own color (an art
@@ -68,7 +72,9 @@ internal fun MusicArtistsView(model: MusicModel) {
                     .verticalScroll(rememberScrollState())
                     .amArtRows()
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = MusicFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.xl),
             ) {
                 if (catalog.tracks.isEmpty()) {

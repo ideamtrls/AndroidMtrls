@@ -3,9 +3,12 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +32,7 @@ import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMSwipeableRow
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amInstantSwitch
 
 /**
@@ -59,7 +63,9 @@ private fun ShopBagContent(model: ShopModel, padding: PaddingValues, onBrowse: (
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(padding)
-            .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = ShopFabClearance),
+            .consumeWindowInsets(padding)
+            .windowInsetsPadding(WindowInsets.amFloatingActions)
+            .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
         if (model.bag.isEmpty()) {
