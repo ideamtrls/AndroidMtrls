@@ -166,6 +166,18 @@ public object AMTheme {
             @Composable @ReadOnlyComposable get() =
                 if (isDark) Style.Frosted.SecondaryTextDark else Style.Frosted.SecondaryTextLight
 
+        /**
+         * The accent on the glass, for tinted text and glyphs on a frosted surface (a link, a
+         * now-playing title, a toggle that's on): the scheme's `primary`, moved along its own line
+         * just far enough to hold 4.5:1 on the frosted fill over the library's washed art, in each
+         * mode. Material's baseline `primary` already holds (4.95:1 light, 8.56:1 dark) and comes
+         * back unchanged; a lighter brand color comes back darker in light mode. Over art an app
+         * didn't wash, the glass is the app's to check. The library's own tinted text and glyphs on
+         * glass use it.
+         */
+        public val tint: Color
+            @Composable @ReadOnlyComposable get() = frostedTint(MaterialTheme.colorScheme.primary, isDark)
+
         /** The blur under the fill, as Android's blur radius. */
         public val blurRadius: Dp = Style.Frosted.BlurRadius
     }
@@ -306,3 +318,45 @@ private val BaselineLight = lightColorScheme()
 private val BaselineDark = darkColorScheme()
 
 private fun baselineColorScheme(dark: Boolean): ColorScheme = if (dark) BaselineDark else BaselineLight
+
+/**
+ * The relative luminance of the frosted fill over the library's art at its hardest for text: in
+ * light mode the fill over the light wash's darkest blend, in dark mode the fill over the dark
+ * wash's ceiling.
+ */
+internal fun frostedGround(dark: Boolean): Float {
+    val art = if (dark) artWashCeiling(AMArtDefaults.DarkWash) else Style.ArtInk.LightArtGround
+    val fill = if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight
+    // The fill lies over the art in sRGB, as the GPU blends it.
+    val gray = fill.red * fill.alpha + linearToSrgb(art) * (1f - fill.alpha)
+    return srgbToLinear(gray)
+}
+
+/**
+ * [color] moved, keeping its hue, just far enough to hold 4.5:1 on frosted glass over the
+ * library's art ([frostedGround]): darker in light mode, lighter in dark mode. A color that
+ * already holds stays.
+ */
+internal fun frostedTint(color: Color, dark: Boolean): Color {
+    val ground = frostedGround(dark)
+    val rgb = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
+    if (dark) {
+        washToLuminance(rgb, 4.5f * (ground + 0.05f) - 0.05f, raise = true)
+    } else {
+        washToLuminance(rgb, (ground + 0.05f) / 4.5f - 0.05f, raise = false)
+    }
+    return Color(linearToSrgb(rgb[0]), linearToSrgb(rgb[1]), linearToSrgb(rgb[2]), color.alpha)
+}
+
+/**
+ * The accent for tinted text and glyphs on the surface this composition lies on: [AMTheme.Frosted.tint]
+ * on frosted glass over art, else the scheme's `primary`.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun surfaceAccent(): Color =
+    if (LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null) {
+        AMTheme.Frosted.tint
+    } else {
+        MaterialTheme.colorScheme.primary
+    }

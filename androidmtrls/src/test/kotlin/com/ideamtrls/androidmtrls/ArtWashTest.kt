@@ -96,6 +96,22 @@ class ArtWashTest {
         assertEquals("a color that holds stays", pink, artInkHolding(pink, AMArtTone.Dark))
     }
 
+    @Test
+    fun theAccentOnGlassHoldsOverTheWashedArt() {
+        // Material's baseline primary already holds on the glass in both modes, and stays.
+        val lightPrimary = Color(0xFF6750A4)
+        val darkPrimary = Color(0xFFD0BCFF)
+        assertEquals(lightPrimary, frostedTint(lightPrimary, dark = false))
+        assertEquals(darkPrimary, frostedTint(darkPrimary, dark = true))
+        assertTrue(contrast(luminanceOf(linear(lightPrimary)), frostedGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(darkPrimary)), frostedGround(dark = true)) >= 4.5f)
+        // A lighter brand accent is moved just far enough, keeping its hue.
+        val brand = Color(0xFF7FA8FF)
+        val held = frostedTint(brand, dark = false)
+        assertEquals(4.5f, contrast(luminanceOf(linear(held)), frostedGround(dark = false)), 0.05f)
+        assertTrue(held.blue > held.green && held.green > held.red)
+    }
+
     private fun washed(color: Color, dark: Boolean): Color {
         val pixels = floatArrayOf(color.red, color.green, color.blue, 1f)
         washTowardMode(pixels, dark, if (dark) AMArtDefaults.DarkWash else AMArtDefaults.LightWash)

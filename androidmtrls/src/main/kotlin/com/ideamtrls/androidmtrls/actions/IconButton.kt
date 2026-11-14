@@ -7,6 +7,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
@@ -116,8 +117,8 @@ public fun AMIconButton(
  * )
  * ```
  *
- * The glyph keeps Material's look: the content color around it while off, the color scheme's
- * checked color (`primary`) while on. Swap the glyph too where Material Symbols has an `_on`
+ * The glyph keeps Material's look: the content color around it while off, the accent while on:
+ * `primary`, or on frosted glass [AMTheme.Frosted.tint], which holds over the glass. Swap the glyph too where Material Symbols has an `_on`
  * variant. A control with more than two states (repeat off, all, one) passes `checked` for any
  * state but off, steps its own state in [onCheckedChange], and names the state in
  * [contentDescription] ("Repeat one"). Disabled, the glyph greys to Material's disabled color and
@@ -151,6 +152,7 @@ public fun AMIconButton(
             onCheckedChange = onCheckedChange,
             modifier = size.sized(buttonModifier),
             enabled = isEnabled,
+            colors = IconButtonDefaults.iconToggleButtonColors(checkedContentColor = surfaceAccent()),
         ) {
             IconButtonGlyph(icon, contentDescription, size, badge)
         }

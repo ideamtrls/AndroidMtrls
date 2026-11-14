@@ -125,14 +125,14 @@ internal fun MusicThumb(url: String?, cover: ImageBitmap?, size: Dp = AMAvatarSi
 internal val MusicNowPlayingTint: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.primary
 
-/** The now-playing mark: the filled speaker at [size], in the now-playing tint. Decorative. */
+/** The now-playing mark: the filled speaker at [size], in [tint] (the now-playing tint). Decorative. */
 @Composable
-internal fun MusicSpeakerMark(size: Dp = 24.dp) {
+internal fun MusicSpeakerMark(size: Dp = 24.dp, tint: Color = MusicNowPlayingTint) {
     Icon(
         painterResource(R.drawable.ic_volume_up_filled),
         contentDescription = null,
         modifier = Modifier.size(size),
-        tint = MusicNowPlayingTint,
+        tint = tint,
     )
 }
 

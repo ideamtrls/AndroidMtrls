@@ -244,7 +244,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
     ) {
         Box(Modifier.width(MusicTrackNumberWidth), contentAlignment = Alignment.Center) {
             if (isCurrent) {
-                MusicSpeakerMark()
+                MusicSpeakerMark(tint = AMTheme.Frosted.tint)
             } else {
                 Text(
                     "${index + 1}",
@@ -257,7 +257,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
             track.title,
             Modifier.weight(1f),
             style = typography.bodyLarge,
-            color = if (isCurrent) MusicNowPlayingTint else Color.Unspecified,
+            color = if (isCurrent) AMTheme.Frosted.tint else Color.Unspecified,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
