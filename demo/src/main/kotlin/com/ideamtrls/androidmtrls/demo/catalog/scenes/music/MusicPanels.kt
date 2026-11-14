@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
@@ -45,7 +44,6 @@ import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
-import com.ideamtrls.androidmtrls.AMElevation
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
@@ -53,7 +51,6 @@ import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
-import com.ideamtrls.androidmtrls.amElevation
 import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amRowPadding
 
@@ -132,22 +129,12 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
 @Composable
 private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier: Modifier) {
     val spacing = AMTheme.tokens.spacing
-    val shape = MaterialTheme.shapes.large
     Column(
         modifier.fillMaxWidth().padding(horizontal = spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        MusicCoverImage(
-            cover = null,
-            url = artist.imageUrl,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(artist.imageAspectRatio)
-                .amElevation(AMElevation.Low, shape)
-                .clip(shape),
-            fallback = {},
-        )
+        MusicArtCard(artist.imageUrl, cover = null, Modifier.fillMaxWidth().aspectRatio(artist.imageAspectRatio))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 artist.name,

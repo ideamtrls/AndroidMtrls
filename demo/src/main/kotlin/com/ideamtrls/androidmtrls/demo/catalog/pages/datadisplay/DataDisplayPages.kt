@@ -10,6 +10,8 @@ internal object DataDisplayPages {
         TagEntry,
         BadgeEntry,
         RemoteImageEntry,
+        ArtThumbnailEntry,
+        ArtCardEntry,
         ArtBackdropEntry,
         TimelineEntry,
     ) + CollectionsPages.entries
