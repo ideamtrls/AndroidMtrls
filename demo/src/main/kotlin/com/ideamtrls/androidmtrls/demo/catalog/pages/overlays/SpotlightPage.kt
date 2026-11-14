@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import com.ideamtrls.androidmtrls.AMActionGridButton
 import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
@@ -92,23 +93,15 @@ private fun ReadingList() {
             )
         }
     }
+    val shareIcon = painterResource(R.drawable.ic_share)
+    val deleteIcon = painterResource(R.drawable.ic_delete)
     AMSpotlight(
         held,
         onDismissRequest = { held = null },
         actions = {
-            AMActionGridRow(
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_share), "Share", onClick = {
-                        share()
-                        held = null
-                    })
-                },
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_delete), "Delete", onClick = {
-                        delete()
-                        held = null
-                    }, destructive = true)
-                },
+            listOf(
+                AMHoldAction("Share", shareIcon, onClick = ::share),
+                AMHoldAction("Delete", deleteIcon, destructive = true, onClick = ::delete),
             )
         },
     ) { article ->
@@ -137,24 +130,16 @@ private fun ThisWeek() {
             )
         }
     }
+    val addIcon = painterResource(R.drawable.ic_add)
+    val dayIcon = painterResource(R.drawable.ic_calendar_today)
     AMSpotlight(
         held,
         onDismissRequest = { held = null },
         title = { it.name },
         actions = {
-            AMActionGridRow(
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_add), "Add plan", onClick = {
-                        addPlan()
-                        held = null
-                    })
-                },
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_calendar_today), "Open day", onClick = {
-                        openDay()
-                        held = null
-                    })
-                },
+            listOf(
+                AMHoldAction("Add plan", addIcon, onClick = ::addPlan),
+                AMHoldAction("Open day", dayIcon, onClick = ::openDay),
             )
         },
     ) { day ->

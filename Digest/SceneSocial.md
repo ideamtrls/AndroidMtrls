@@ -2,7 +2,7 @@
 scope: The demo's Social scene — computing's pioneers posting as if they had phones, with the feed, alerts, profiles, compose and search on one branded backdrop — its model, samples, surfaces and copy
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/social/**]
 keywords: [Social, socialScene, SocialSceneEntry, SocialScene, SocialModel, SocialView, SocialRoute, SocialComposeMode, SocialAlertFilter, SocialSamples, SocialTopic, SocialUser, SocialPost, SocialReply, SocialNotification, SocialNotificationKind, SocialPostActions, SocialBackdrop, socialFill, socialSheetSurface, socialCard, SocialFabClearance, SocialIdentityHeader, SocialAvatarButton, SocialPostBody, SocialPostRow, SocialPostCounts, SocialFeed, SocialPostCard, SocialPostMenu, SocialPostDetail, SocialProfile, SocialAlerts, SocialAlertsPanel, SocialAlertRow, SocialComposeSheet, SocialSearchSheet, feed, pull to refresh, PullToRefreshBox, loading placeholders, AMSkeleton, post card, post menu, spotlight, hold, amHoldable, copy, ClipEntry, LocalClipboard, mute, undo, banner, delete, alert, alerts, swipe, AMSwipeableRow, mark read, segmented control, profile, follow, tabs, compose, reply, search, topics, chip group, NavDisplay, AMKeepsPlace, AMPanel, AMPageHeader, AMSpotlight, AMBanner, AMToast, AMAlert, AMSheet, AMTabs, AMSegmentedControl, AMChipGroup, AMSearchField, AMTextEditor, AMCardActionRow, AMBadge, AMBadgedBox, AMTag, commonsPhoto, branded backdrop, gradient, frosted]
-updated: 2026-11-10
+updated: 2026-11-14
 ---
 
 # Social scene
@@ -20,7 +20,7 @@ Computing's pioneers posting as if they had phones: a feed of posts, alerts you 
 | `SocialData.kt` | `SocialTopic`, `SocialUser`, `SocialPost`, `SocialReply`, `SocialNotificationKind`, `SocialNotification`, `SocialSamples` |
 | `SocialPostViews.kt` | `SocialFabClearance`, `socialFill`, `socialSheetSurface`, `Modifier.socialCard`, `SocialBackdrop`, `SocialIdentityHeader`, `SocialAvatarButton`, `SocialPostBody`, `SocialPostRow` |
 | `SocialFeed.kt` | `SocialFeed` (the Feed root), `SocialPostCounts`; private `SocialPostCard`, `SocialPostPlaceholder` |
-| `SocialPostMenu.kt` | `SocialPostActions`, `SocialPostMenu`; private `SocialPostPreview`, `SocialPostTiles` |
+| `SocialPostMenu.kt` | `SocialPostActions`, `SocialPostMenu`, `SocialPostIcons`, `rememberSocialPostIcons`, `socialPostActions` (Copy, then Delete on your own post or Mute; a tile closes the menu first); private `SocialPostPreview` |
 | `SocialPostDetail.kt` | `SocialPostDetail` (the post panel); private `SocialPostDetailCard`, `SocialReplies` |
 | `SocialProfile.kt` | `SocialProfile` (the profile panel); private `SocialProfileTab`, `SocialProfileHeader`, `SocialStat`, `SocialProfilePosts`, `SocialProfileAbout` |
 | `SocialAlerts.kt` | `SocialAlerts` (the Alerts root), `SocialAlertsPanel`; private `SocialAlertsBody`, `SocialAlertRow`, `SocialAlertAvatar` |

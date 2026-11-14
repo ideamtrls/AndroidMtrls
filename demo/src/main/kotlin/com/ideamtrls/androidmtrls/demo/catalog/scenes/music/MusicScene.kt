@@ -110,10 +110,11 @@ private fun MusicArtistsStack(model: MusicModel) {
 /** The press-and-hold queue menu in the spotlight, and the scene's toasts. */
 @Composable
 private fun MusicOverlays(model: MusicModel) {
+    val icons = rememberMusicQueueIcons()
     AMSpotlight(
         item = model.queueMenuTarget,
         onDismissRequest = { model.queueMenuTarget = null },
-        actions = { target -> MusicQueueTiles(target, model) },
+        actions = { target -> musicQueueActions(target, model, icons) },
     ) { target ->
         MusicQueuePreview(target, model)
     }

@@ -82,35 +82,41 @@ public fun AMSpotlight(
 }
 
 /**
- * The spotlight for one item: up while [item] isn't null, showing that item, as for a press and
- * hold.
+ * The spotlight for one item: up while [item] isn't null, showing that item over its own tiles, as
+ * for a press and hold.
  *
  * ```kotlin
  * var held by remember { mutableStateOf<Article?>(null) }
+ * val share = painterResource(R.drawable.ic_share)
+ * val delete = painterResource(R.drawable.ic_delete)
  * ArticleRow(article, Modifier.amHoldable(onHold = { held = article }))
  * AMSpotlight(
  *     held,
  *     onDismissRequest = { held = null },
  *     actions = { article ->
- *         AMActionGridRow(
- *             { AMActionGridButton(painterResource(R.drawable.ic_share), "Share", onClick = { share(article); held = null }) },
- *             { AMActionGridButton(painterResource(R.drawable.ic_delete), "Delete", onClick = { delete(article); held = null }, destructive = true) },
+ *         listOf(
+ *             AMHoldAction("Share", share) { share(article) },
+ *             AMHoldAction("Delete", delete, destructive = true) { delete(article) },
  *         )
  *     },
  * ) { article -> ArticleRow(article) }
  * ```
  *
- * Everything else is the visible form's. While it fades out after [item] turns null, it keeps
- * showing the last item, so the card leaves intact.
+ * - **Tiles per item.** [actions] gives each item its own: two to four tiles in the remote's
+ *   columns, one tile at half the row, or none, an empty list showing no tiles at all, so one
+ *   spotlight serves held items with tiles and pickers without. A tile closes the spotlight
+ *   ([onDismissRequest]), then acts.
+ * - Everything else is the visible form's. While it fades out after [item] turns null, it keeps
+ *   showing the last item, so the card leaves intact.
  *
  * @param item the item in focus, or null when nothing is.
- * @param onDismissRequest called on back and on a tap outside the card and tiles; set [item] to
- *   null.
+ * @param onDismissRequest called on back, on a tap outside the card and tiles, and on a tile; set
+ *   [item] to null.
  * @param modifier the layout's placement: the whole window.
  * @param title a heading above the card for the item (a day's name), or null for none (the
  *   default).
- * @param actions what to do with the item: one [AMActionGridRow] of two to four tiles. Null shows
- *   none.
+ * @param actions what can be done with the item: at most four [AMHoldAction]s, in tile order. An
+ *   empty list, the default, shows no tiles.
  * @param elevation the card's shadow: [AMElevation.Low] by default, [AMElevation.None] for a flat
  *   card that keeps its fill and corners.
  * @param content the item up close.
@@ -121,19 +127,20 @@ public fun <T : Any> AMSpotlight(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     title: (T) -> String? = { null },
-    actions: (@Composable (item: T) -> Unit)? = null,
+    actions: (item: T) -> List<AMHoldAction> = { emptyList() },
     elevation: AMElevation = AMElevation.Low,
     content: @Composable (item: T) -> Unit,
 ) {
     val last = remember { LastItem<T>() }
     if (item != null) last.value = item
     val shown = item ?: last.value
+    val tiles = shown?.let(actions).orEmpty()
     AMSpotlight(
         visible = item != null,
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         title = shown?.let(title),
-        actions = if (actions != null && shown != null) { { actions(shown) } } else null,
+        actions = if (tiles.isNotEmpty()) { { HoldActionTiles(tiles, onPicked = onDismissRequest) } } else null,
         elevation = elevation,
     ) {
         if (shown != null) content(shown)

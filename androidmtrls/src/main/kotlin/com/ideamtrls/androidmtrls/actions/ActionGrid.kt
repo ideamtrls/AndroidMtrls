@@ -77,7 +77,7 @@ public fun AMActionGridRow(
     second: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TileRow(modifier, listOf(first, second))
+    ActionTileRow(modifier, listOf(first, second))
 }
 
 /**
@@ -96,7 +96,7 @@ public fun AMActionGridRow(
     third: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TileRow(modifier, listOf(first, second, third))
+    ActionTileRow(modifier, listOf(first, second, third))
 }
 
 /**
@@ -117,12 +117,12 @@ public fun AMActionGridRow(
     fourth: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TileRow(modifier, listOf(first, second, third, fourth))
+    ActionTileRow(modifier, listOf(first, second, third, fourth))
 }
 
-/** Every row's layout: equal columns, each slot stretched to its column. */
+/** Every row's layout: equal columns, each slot stretched to its column. A spotlight's tiles use it too. */
 @Composable
-private fun TileRow(modifier: Modifier, tiles: List<@Composable () -> Unit>) {
+internal fun ActionTileRow(modifier: Modifier, tiles: List<@Composable () -> Unit>) {
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
         tiles.forEach { tile ->
             Box(Modifier.weight(1f), propagateMinConstraints = true) { tile() }

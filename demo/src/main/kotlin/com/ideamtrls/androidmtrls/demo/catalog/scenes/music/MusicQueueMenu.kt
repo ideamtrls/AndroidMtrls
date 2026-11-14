@@ -2,14 +2,15 @@ package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.text.style.TextOverflow
-import com.ideamtrls.androidmtrls.AMActionGridButton
-import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMAvatarSize
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMListRow
 import com.ideamtrls.androidmtrls.amHoldable
 
@@ -51,33 +52,32 @@ internal fun MusicQueuePreview(target: MusicQueueTarget, model: MusicModel) {
     }
 }
 
-/** The held target's tiles; each closes the spotlight, then acts. */
+/** The queue menu's glyphs, read once for its tiles. */
+@Immutable
+internal class MusicQueueIcons(val play: Painter, val shuffle: Painter, val addToQueue: Painter)
+
+/** The queue menu's glyphs. */
 @Composable
-internal fun MusicQueueTiles(target: MusicQueueTarget, model: MusicModel) {
-    val play = painterResource(R.drawable.ic_play_arrow_filled)
-    val addToQueue = painterResource(R.drawable.ic_playlist_add)
-    when (target) {
-        is MusicQueueTarget.Track -> AMActionGridRow(
-            { AMActionGridButton(play, "Play", onClick = { model.play(target) }) },
-            { AMActionGridButton(addToQueue, "Add to queue", onClick = { model.addToQueue(target) }) },
-        )
-        else -> AMActionGridRow(
-            { AMActionGridButton(play, "Play", onClick = { model.play(target) }) },
-            {
-                AMActionGridButton(
-                    painterResource(R.drawable.ic_shuffle), "Shuffle",
-                    onClick = { model.play(target, shuffled = true) },
-                )
-            },
-            {
-                AMActionGridButton(
-                    addToQueue, "Queue",
-                    onClick = { model.addToQueue(target) },
-                    contentDescription = "Add to queue",
-                )
-            },
-        )
-    }
+internal fun rememberMusicQueueIcons(): MusicQueueIcons = MusicQueueIcons(
+    play = painterResource(R.drawable.ic_play_arrow_filled),
+    shuffle = painterResource(R.drawable.ic_shuffle),
+    addToQueue = painterResource(R.drawable.ic_playlist_add),
+)
+
+/**
+ * What the held target offers: Play and Add to queue for a song; Play, Shuffle and Queue (read as
+ * "Add to queue") for an artist or album. A tile closes the spotlight, then acts.
+ */
+internal fun musicQueueActions(target: MusicQueueTarget, model: MusicModel, icons: MusicQueueIcons): List<AMHoldAction> = when (target) {
+    is MusicQueueTarget.Track -> listOf(
+        AMHoldAction("Play", icons.play) { model.play(target) },
+        AMHoldAction("Add to queue", icons.addToQueue) { model.addToQueue(target) },
+    )
+    else -> listOf(
+        AMHoldAction("Play", icons.play) { model.play(target) },
+        AMHoldAction("Shuffle", icons.shuffle) { model.play(target, shuffled = true) },
+        AMHoldAction("Queue", icons.addToQueue, contentDescription = "Add to queue") { model.addToQueue(target) },
+    )
 }
 
 /** What the preview shows: its art (with a song's or album's embedded cover), its name and its line. */

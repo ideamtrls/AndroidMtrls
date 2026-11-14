@@ -86,7 +86,7 @@ AMIconButton(painterResource(if (shuffles) R.drawable.ic_shuffle_on else R.drawa
 ## The remote's grid — `AMActionGrid`, `AMActionGridRow` (`ActionGrid.kt`)
 
 - **`AMActionGrid(modifier, windowInsets = WindowInsets.navigationBars, content: ColumnScope)`**: a `Column` that fills its space (`fillMaxSize`; with no height bound it wraps its rows), applies `windowInsetsPadding(windowInsets)`, then `spacing.lg` at the sides and `spacing.xxl` at the bottom, and stacks its rows `spacing.md` apart at the bottom (`Arrangement.spacedBy(md, Alignment.Bottom)`). Inside an overlay that already consumed the insets, the grid's own inset is zero; on a page that doesn't reach the screen's bottom, pass `WindowInsets(0)`.
-- **`AMActionGridRow`** has exactly three overloads, `(first, second, modifier)`, `(first, second, third, modifier)`, `(first, second, third, fourth, modifier)`, each slot a `@Composable () -> Unit`, and no list form: a row of one or of five doesn't compile. Private `TileRow` lays them in a full-width `Row` `spacing.md` apart, each slot in a `Box(Modifier.weight(1f), propagateMinConstraints = true)`, so every tile is its column's width.
+- **`AMActionGridRow`** has exactly three overloads (a held item's tiles in the spotlight share their layout, internal `ActionTileRow`, `Overlays.md`), `(first, second, modifier)`, `(first, second, third, modifier)`, `(first, second, third, fourth, modifier)`, each slot a `@Composable () -> Unit`, and no list form: a row of one or of five doesn't compile. Private `TileRow` lays them in a full-width `Row` `spacing.md` apart, each slot in a `Box(Modifier.weight(1f), propagateMinConstraints = true)`, so every tile is its column's width.
 
 ## `AMActionGridButton` (`ActionGridButton.kt`)
 
