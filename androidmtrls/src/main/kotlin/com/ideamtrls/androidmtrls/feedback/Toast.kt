@@ -51,9 +51,9 @@ public class AMToastItem(
  * Shows [item] as a toast at the bottom of the window while it's non-null: Material's snackbar,
  * with its own look and motion and no action, above the navigation bar and the keyboard.
  *
- * It draws nothing where it's called: the nearest [AMToastHost] shows it. Each window has its own
- * host (a screen, a sheet), so a toast posted from inside a sheet shows in the sheet, over it.
- * Without a host above it, it fails at once.
+ * It draws nothing where it's called: the nearest [AMToastHost] shows it. While a sheet is up, it
+ * shows at the bottom of the sheet, over it, whether it was posted from the sheet or from the
+ * screen under it. Without a host above it, it fails at once.
  *
  * ```kotlin
  * var toast by remember { mutableStateOf<AMToastItem?>(null) }
@@ -75,7 +75,7 @@ public fun AMToast(
     item: AMToastItem?,
     onDismissRequest: () -> Unit,
 ) {
-    PostTransient(LocalAMToastHost.current, item, onDismissRequest)
+    PostTransient(LocalAMToastHost.current ?: error(NoToastHost), item, onDismissRequest)
 }
 
 /**
@@ -84,8 +84,11 @@ public fun AMToast(
  *
  * Put one at the root of each window that shows toasts (a screen, a sheet), filling it, so its
  * toasts show at the bottom of that window. The content is laid out as the host itself is; the
- * toast takes no space from it and lets touches outside it through. [AMScene] and [AMSheet] carry
- * one already.
+ * toast takes no space from it and lets touches outside it through. [AMScene] carries one already.
+ *
+ * Every [AMSheet] carries one too, which takes over while the sheet is up: a toast posted to the
+ * screen's host, or from inside the sheet, shows at the sheet's bottom, over it, and goes back to
+ * the screen's host if it's still up when the sheet goes.
  *
  * ```kotlin
  * AMToastHost(Modifier.fillMaxSize()) { Screen() }
@@ -99,21 +102,25 @@ public fun AMToastHost(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    ToastHost(modifier, bottomClearance = 0.dp, content)
+    ToastHost(modifier, bottomClearance = 0.dp, content = content)
 }
 
 /**
  * [AMToastHost] with its toasts raised [bottomClearance] above the navigation bar: a scene with a
  * floating action button shows its toasts above the button's resting place, as Material's scaffold
- * does.
+ * does. With [overScreen] it's the host of a window over a screen (a sheet's): while it's composed
+ * it shows its screen's toasts, and its own, and the screen's host shows none.
  */
 @Composable
 internal fun ToastHost(
     modifier: Modifier,
     bottomClearance: Dp,
+    overScreen: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val host = remember { TransientHost<AMToastItem>() }
+    val below = if (overScreen) LocalAMToastHost.current else null
+    val host = remember(below) { TransientHost<AMToastItem>(below) }
+    if (overScreen) OverScreen(host)
     val snackbars = remember { SnackbarHostState() }
     val posting = host.current
     val accessibility = LocalAccessibilityManager.current
@@ -142,10 +149,10 @@ internal fun ToastHost(
     }
 }
 
-/** The nearest [AMToastHost]. Reading it with no host above fails. */
-internal val LocalAMToastHost = staticCompositionLocalOf<TransientHost<AMToastItem>> {
-    error("AMToast shows in the nearest AMToastHost: put one at the root of the window")
-}
+/** The nearest toast host, or null with none above. */
+internal val LocalAMToastHost = staticCompositionLocalOf<TransientHost<AMToastItem>?> { null }
+
+private const val NoToastHost = "AMToast shows in the nearest AMToastHost: put one at the root of the window"
 
 /** A toast as Material's snackbar sees it: the text alone, no action, timed by the toast host. */
 private class ToastVisuals(override val message: String) : SnackbarVisuals {

@@ -83,8 +83,9 @@ public enum class AMSheetSurface {
  * - **A fresh context**: what the sheet holds is solid and enabled whatever surrounds the call;
  *   cards in it float as they do on a page, and on a black sheet a filled button takes the
  *   brighter [AMTheme.controlOutline] in dark mode, as inside a card.
- * - **Its own toasts**: the sheet carries an [AMToastHost], so an [AMToast] posted inside shows at
- *   the sheet's bottom, over it.
+ * - **Toasts and banners over it**: while the sheet is up, an [AMToast] shows at the sheet's
+ *   bottom and an [AMBanner] at the top of the screen, over the sheet, whether posted from inside
+ *   the sheet or from the screen under it, as the topmost window is the one the user sees.
  * - **A window**: it covers the screen from wherever it's called and takes back before the screen
  *   under it. An alert, the spotlight or the remote opened while it's up sit above it.
  *
@@ -185,11 +186,14 @@ public fun AMSheet(
                 // A black sheet lifts the controls on it the way a card does (Primary, and Frosted,
                 // which is solid without art); a page-colored one leaves them as on a page.
                 CompositionLocalProvider(LocalAMOnPrimarySurface provides (surface != AMSheetSurface.Page)) {
-                    // The sheet is a window, so its toasts show in it, over its content.
-                    AMToastHost(size) {
-                        Column(size) {
-                            if (title != null) SheetTitle(title)
-                            content()
+                    // The sheet is a window over the screen: while it's up, the screen's toasts and
+                    // banners, and its own, show over it.
+                    BannerHost(size, overScreen = true) {
+                        ToastHost(size, bottomClearance = 0.dp, overScreen = true) {
+                            Column(size) {
+                                if (title != null) SheetTitle(title)
+                                content()
+                            }
                         }
                     }
                 }
