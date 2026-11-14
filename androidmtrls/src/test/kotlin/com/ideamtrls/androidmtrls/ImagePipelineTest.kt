@@ -13,9 +13,12 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
@@ -77,6 +80,76 @@ class ImagePipelineTest {
             AMImagePipeline.userAgent = null
         }
         assertNull(AMImagePipeline.userAgent)
+    }
+
+    // Sources: the app's loader, then the URL's scheme
+
+    @Test
+    fun httpAndHttpsUrlsComeFromTheNetworkWhateverTheirCase() {
+        for (url in listOf("http://example.com/a.jpg", "https://example.com/a.jpg", "HTTPS://example.com/a.jpg")) {
+            assertEquals(ImageSource.Network(url), imageSourceOf(url))
+        }
+    }
+
+    @Test
+    fun aFileUrlIsReadInPlaceWithItsEscapesDecoded() {
+        assertEquals(ImageSource.LocalFile(File("/data/covers/a.jpg")), imageSourceOf("file:///data/covers/a.jpg"))
+        assertEquals(ImageSource.LocalFile(File("/data/covers/a.jpg")), imageSourceOf("file:/data/covers/a.jpg"))
+        assertEquals(ImageSource.LocalFile(File("/data/my covers/a.jpg")), imageSourceOf("FILE:///data/my%20covers/a.jpg"))
+    }
+
+    @Test
+    fun aFileUrlThatNamesNoLocalPathFails() {
+        for (url in listOf("file://host/a.jpg", "file:///a.jpg?size=2", "file:///a.jpg#top", "file:a.jpg")) {
+            assertThrows(url, IOException::class.java) { imageSourceOf(url) }
+        }
+    }
+
+    @Test
+    fun aContentUriIsReadThroughTheResolver() {
+        val uri = "content://media/external/images/media/12"
+        assertEquals(ImageSource.Content(uri), imageSourceOf(uri))
+    }
+
+    @Test
+    fun anUnsupportedSchemeOrNoSchemeFails() {
+        for (url in listOf("ftp://example.com/a.jpg", "harbor://cover/12", "/data/covers/a.jpg", "", ":a", "1x://a")) {
+            assertThrows(url, IOException::class.java) { imageSourceOf(url) }
+        }
+    }
+
+    @Test
+    fun theLoadersBytesComeFirstForEveryScheme() {
+        val bytes = byteArrayOf(1, 2, 3)
+        for (url in listOf("https://example.com/a.jpg", "file:///data/a.jpg", "content://media/12", "harbor://cover/12")) {
+            val asked = mutableListOf<String>()
+            val source = resolveImageSource(url) { asked += it; bytes }
+            assertSame(bytes, (source as ImageSource.App).bytes)
+            assertEquals(listOf(url), asked)
+        }
+    }
+
+    @Test
+    fun aLoaderReturningNullFallsThroughToTheUrlsOwnSource() {
+        val none: (String) -> ByteArray? = { null }
+        assertEquals(ImageSource.Network("https://example.com/a.jpg"), resolveImageSource("https://example.com/a.jpg", none))
+        assertEquals(ImageSource.LocalFile(File("/data/a.jpg")), resolveImageSource("file:///data/a.jpg", none))
+        assertEquals(ImageSource.Content("content://media/12"), resolveImageSource("content://media/12", none))
+        assertThrows(IOException::class.java) { resolveImageSource("harbor://cover/12", none) }
+    }
+
+    @Test
+    fun withNoLoaderTheUrlsOwnSourceServes() {
+        assertEquals(ImageSource.Network("https://example.com/a.jpg"), resolveImageSource("https://example.com/a.jpg", null))
+    }
+
+    @Test
+    fun aLoadersExceptionFailsTheLoad() {
+        val failure = IllegalStateException("store closed")
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            resolveImageSource("https://example.com/a.jpg") { throw failure }
+        }
+        assertSame(failure, thrown)
     }
 
     // decodeSize

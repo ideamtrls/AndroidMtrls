@@ -1,7 +1,9 @@
 package com.ideamtrls.androidmtrls
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import androidx.collection.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
@@ -23,6 +25,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.nio.ByteBuffer
 import kotlin.coroutines.cancellation.CancellationException
@@ -36,7 +39,11 @@ import kotlin.math.sqrt
  * Loads, decodes and caches the pictures behind [AMRemoteImage] (avatars included) and the art
  * backdrops' photos. Not public API.
  *
- * - **Bytes** come from `HttpURLConnection` on the IO dispatcher, following redirects (https to
+ * - **Sources** ([resolveImageSource]): the app's [AMImagePipeline.loader] first, for any URL;
+ *   when it has nothing, the URL's scheme picks: `http` and `https` from the disk cache, else the
+ *   network; `file` and `content` read on the device, with no disk cache copy. The app's bytes
+ *   aren't copied to disk either, since its own store keeps them.
+ * - **Bytes** from the network come from `HttpURLConnection` on the IO dispatcher, following redirects (https to
  *   https, and http up to https, never down), with the app's [AMImagePipeline.userAgent], or one
  *   naming the app ([defaultImageUserAgent]) when it sets none. A body is at most 32 MB: a longer announced length
  *   is refused before reading, and the read stops as soon as more arrives ([readBounded]), since
@@ -63,6 +70,7 @@ import kotlin.math.sqrt
 internal class ImagePipeline private constructor(context: Context, memoryBytes: Int) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val resolver: ContentResolver = context.contentResolver
     private val memory = ImageMemoryCache<DecodedImage>(memoryBytes) { it.byteCount }
     private val loads = InFlightLoads<ImageKey, DecodedImage>(scope)
 
@@ -83,15 +91,30 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
 
     /**
      * The picture for [key], from memory when it's there, otherwise joining or starting the one
-     * load for it: from the disk cache, else from the network. Throws when the request fails,
-     * misses its deadline, or the bytes don't decode.
+     * load for it, from the first source [resolveImageSource] finds. Throws when the app's loader
+     * throws, the URL's scheme isn't one the pipeline reads, the read or request fails or misses
+     * its deadline, or the bytes don't decode.
      */
     suspend fun load(key: ImageKey): DecodedImage {
         memory[key]?.let { return it }
         return loads.load(key) {
-            val image = fromDisk(key) ?: fromNetwork(key)
+            val image = fromSource(key)
             memory.put(key, image)
             image
+        }
+    }
+
+    /** [key]'s picture from its source. Only a network picture goes through the disk cache. */
+    private suspend fun fromSource(key: ImageKey): DecodedImage {
+        // The app's loader runs here, on the IO dispatcher, interrupted if every view leaves.
+        val source = runInterruptible(Dispatchers.IO) { resolveImageSource(key.url, AMImagePipeline.loader) }
+        return when (source) {
+            is ImageSource.App -> withContext(Dispatchers.Default) { decode(source.bytes, key) }
+            is ImageSource.Network -> fromDisk(key) ?: fromNetwork(key)
+            // The decoder reads these as it decodes, so they decode on the IO dispatcher.
+            is ImageSource.LocalFile -> withContext(Dispatchers.IO) { decode(ImageDecoder.createSource(source.file), key) }
+            is ImageSource.Content ->
+                withContext(Dispatchers.IO) { decode(ImageDecoder.createSource(resolver, Uri.parse(source.uri)), key) }
         }
     }
 
@@ -209,9 +232,13 @@ internal class ImagePipeline private constructor(context: Context, memoryBytes: 
             throw IOException("Too many redirects")
         }
 
-        private fun decode(bytes: ByteArray, key: ImageKey): DecodedImage {
+        private fun decode(bytes: ByteArray, key: ImageKey): DecodedImage =
+            decode(ImageDecoder.createSource(ByteBuffer.wrap(bytes)), key)
+
+        /** Decodes [from] at the size [key]'s frame needs ([decodeSize]). Blocking. */
+        private fun decode(from: ImageDecoder.Source, key: ImageKey): DecodedImage {
             var source = IntSize.Zero
-            val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(ByteBuffer.wrap(bytes))) { decoder, info, _ ->
+            val bitmap = ImageDecoder.decodeBitmap(from) { decoder, info, _ ->
                 source = IntSize(info.size.width, info.size.height)
                 val size = decodeSize(source, IntSize(key.width, key.height), key.fit)
                 if (size != source) decoder.setTargetSize(size.width, size.height)
@@ -232,6 +259,54 @@ internal enum class ImageFit {
 
 /** What the memory cache keys a decode by: the picture and the frame it was decoded for, in pixels. */
 internal data class ImageKey(val url: String, val width: Int, val height: Int, val fit: ImageFit)
+
+/** Where a load reads a picture from ([resolveImageSource]). */
+internal sealed interface ImageSource {
+    /** Bytes the app's [AMImagePipeline.loader] returned, from its own store. Not copied to disk. */
+    class App(val bytes: ByteArray) : ImageSource
+
+    /** An `http` or `https` URL, read from the disk cache, else fetched and stored there. */
+    data class Network(val url: String) : ImageSource
+
+    /** A `file` URL's file, read in place. Not copied to disk. */
+    data class LocalFile(val file: File) : ImageSource
+
+    /** A `content` URI, read through the app's `ContentResolver`. Not copied to disk. */
+    data class Content(val uri: String) : ImageSource
+}
+
+/**
+ * Where a picture at [url] comes from: the bytes [loader] returns for it, when it's set and returns
+ * any, whatever the URL's scheme (an app's own scheme included); otherwise the URL's own source
+ * ([imageSourceOf]). Blocking, since it runs [loader]; an exception [loader] throws propagates.
+ */
+internal fun resolveImageSource(url: String, loader: ((url: String) -> ByteArray?)?): ImageSource =
+    loader?.invoke(url)?.let { ImageSource.App(it) } ?: imageSourceOf(url)
+
+/**
+ * The source [url]'s scheme names, matched without regard to case: `http` and `https` the network,
+ * `file` a file on the device, `content` a content provider. Throws an [IOException] for any other
+ * scheme, a URL with none, and a `file` URL that doesn't name a local path (one with a host, a
+ * query or a fragment).
+ */
+internal fun imageSourceOf(url: String): ImageSource {
+    val scheme = url.substringBefore(':', missingDelimiterValue = "")
+    if (scheme.isEmpty() || !scheme[0].isAsciiLetter() || !scheme.all { it.isAsciiLetter() || it in '0'..'9' || it in "+-." }) {
+        throw IOException("No scheme in $url")
+    }
+    return when (scheme.lowercase()) {
+        "http", "https" -> ImageSource.Network(url)
+        "file" -> try {
+            ImageSource.LocalFile(File(URI(url)))
+        } catch (e: Exception) {
+            throw IOException("Not a local file: $url", e)
+        }
+        "content" -> ImageSource.Content(url)
+        else -> throw IOException("Unsupported scheme: $scheme")
+    }
+}
+
+private fun Char.isAsciiLetter(): Boolean = this in 'a'..'z' || this in 'A'..'Z'
 
 /** A decoded picture, with the size of the original it came from. */
 internal class DecodedImage(val bitmap: ImageBitmap, val sourceSize: IntSize, val byteCount: Int) {

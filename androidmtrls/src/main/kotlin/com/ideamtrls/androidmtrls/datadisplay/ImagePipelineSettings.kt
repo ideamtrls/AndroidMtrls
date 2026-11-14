@@ -5,11 +5,18 @@ package com.ideamtrls.androidmtrls
  * photos and the art backdrops' and art rows' pictures. One pipeline serves the whole process, so
  * these are set once, early, typically in `Application.onCreate`.
  *
+ * The pipeline reads `http` and `https` URLs from the network, and `file` and `content` URIs on the
+ * device; every picture is decoded at the size its view needs and kept in memory. Network pictures
+ * also go to a bounded disk cache in the app's cache directory, which is trimmed as it fills and
+ * which the system may clear: it isn't an offline store. Keeping pictures for offline use is the
+ * app's job, in its own store, which it hands the pipeline through [loader].
+ *
  * ```kotlin
  * class HarborApp : Application() {
  *     override fun onCreate() {
  *         super.onCreate()
  *         AMImagePipeline.userAgent = "Harbor/1.4 (https://example.com/harbor; harbor@example.com)"
+ *         AMImagePipeline.loader = { url -> coverStore.bytesFor(url) }
  *     }
  * }
  * ```
@@ -39,6 +46,29 @@ public object AMImagePipeline {
             }
             configuredUserAgent = value
         }
+
+    /**
+     * The app's own picture store, asked first for every picture the pipeline doesn't hold in
+     * memory: given a picture's URL, it returns the picture's encoded bytes (any format Android
+     * decodes, as a file holds them), or null to let the pipeline load the URL itself. Null, the
+     * default, asks nothing. It's asked for any URL, so it can serve a scheme of the app's own.
+     *
+     * Bytes it returns are decoded at the size the view needs and kept in memory like any other
+     * picture, keyed by the URL, but never copied to the pipeline's disk cache, since the app's
+     * store already keeps them. The library holds no lasting offline store of its own; keeping
+     * pictures for offline use is the app's job, and this is how the app hands them over.
+     *
+     * Runs on one of the pipeline's background threads (the IO dispatcher), never the main thread,
+     * so it may block on a file or a database. It may run on several threads at once, for different
+     * pictures or for one picture at different sizes, so it must be thread-safe. When no view wants
+     * the picture any more, its thread is interrupted. An exception it throws fails that load: the
+     * view shows its fallback and tries again the next time it appears.
+     *
+     * Read for each load, so a change applies from the next one. Pictures already in memory aren't
+     * asked for again.
+     */
+    @Volatile
+    public var loader: ((url: String) -> ByteArray?)? = null
 }
 
 /** Whether [value] can be sent as a `User-Agent` header: printable ASCII, not blank. */
