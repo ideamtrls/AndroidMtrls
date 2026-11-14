@@ -186,13 +186,6 @@ internal class MusicModel(private val scope: CoroutineScope, context: Context) {
     val canGoForward: Boolean
         get() = nextIndex != null
 
-    /**
-     * Whether the Queue sheet opens over the Artists stack's page at [route]: the page on top while
-     * Artists shows. The sheet is composed inside the backdrop of the screen it opens over, so its
-     * glass samples that art; the Player hosts it while it shows.
-     */
-    fun hostsQueue(route: MusicRoute): Boolean = rootView == MusicRootView.Artists && backStack.lastOrNull() == route
-
     fun isCurrent(track: MusicTrack): Boolean = currentTrack?.id == track.id
 
     /** The album's embedded cover, once it's read. */

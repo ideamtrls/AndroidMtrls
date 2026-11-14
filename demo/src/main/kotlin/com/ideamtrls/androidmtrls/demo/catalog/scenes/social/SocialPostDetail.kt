@@ -3,9 +3,12 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +27,7 @@ import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
  * The post's panel over the scene's backdrop: the post in a card (the author, the text and photo,
@@ -42,7 +46,9 @@ internal fun SocialPostDetail(model: SocialModel, postId: String, onBack: () -> 
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = SocialFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.lg),
             ) {
                 SocialPostDetailCard(post, model)

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -27,10 +28,12 @@ import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.LayoutAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.ObserverModifierNode
 import androidx.compose.ui.node.TraversableNode
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.findNearestAncestor
 import androidx.compose.ui.node.invalidateDraw
+import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.node.requireDensity
 import androidx.compose.ui.node.requireLayoutCoordinates
 import androidx.compose.ui.platform.InspectorInfo
@@ -44,31 +47,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 // The art recipe: a picture blurred until it reads as its colors, saturated so the averaged colors
-// stay vivid, then washed with black so white art text holds over it. The values are the art's
-// own, not tokens.
+// stay vivid, then washed toward the mode, so text in the mode's own colors holds over it. The
+// values are the art's own, not tokens.
 
-/** The art's blur, as Android's blur radius: a Gaussian sigma of about 120 dp. */
-private val ArtBlurRadius = 207.dp
-
-/** The saturation boost after the blur, so the averaged colors stay vivid. */
+/** The saturation boost after the full blur, so the averaged colors stay vivid. */
 private const val ArtSaturation = 2.2f
-
-/**
- * The black wash over the art: enough in light mode for white text to hold 4.5:1 over bright
- * pictures, heavier in dark mode.
- */
-private const val ArtWashLight = 0.14f
-private const val ArtWashDark = 0.45f
-
-/**
- * What lies under the art's wash while it has no picture (loading, failed, none): a dark neutral,
- * the same in both appearances, so white art text holds from the first frame instead of sitting
- * on the light page.
- */
-private val ArtFallback = Style.Surface.Art
 
 /** How far an art row's color reaches past the midpoint to its neighbor: about the blur. */
 private val ArtRowBlend = 120.dp
@@ -77,19 +64,52 @@ private val ArtRowBlend = 120.dp
 private val ArtRowBleed = 1000.dp
 
 /**
+ * The art's defaults: its blur, and how far it's washed toward the mode, tuned so text in the
+ * mode's own colors holds 4.5:1 over any art, the secondary color (`onSurfaceVariant`) included,
+ * against Material's baseline static color scheme. An app with its own scheme checks its
+ * secondary color against them.
+ */
+public object AMArtDefaults {
+    /**
+     * The blur, as Android's blur radius: a Gaussian sigma of about 120 dp, so a picture reads as
+     * its colors, never its subject.
+     */
+    public val BlurRadius: Dp = 207.dp
+
+    /**
+     * How far art is lifted toward white in light mode: nothing in it ends up darker than black
+     * washed with white at 0.75 (gray `#BFBFBF`). Over that, `onSurfaceVariant` holds 5.09:1, and
+     * 4.58:1 at the worst where two lifted colors blend (a bright green into a pink); `onSurface`
+     * holds 9.31:1.
+     */
+    public const val LightWash: Float = 0.75f
+
+    /**
+     * How far art is lowered toward black in dark mode: nothing in it ends up brighter than white
+     * washed with black at 0.68 (gray `#525252`). Under that, `onSurfaceVariant` holds 4.61:1 and
+     * `onSurface` 6.07:1; blended colors never get brighter.
+     */
+    public const val DarkWash: Float = 0.68f
+}
+
+/**
  * Draws a picture behind this content as an **art backdrop**: the picture at [url], blurred so
  * heavily it reads as its colors, never its subject, saturated so those colors stay vivid, then
- * washed with black (more in dark mode) so white [amArtText] holds over it. For the color behind
- * an artwork-led screen: an album's page over its cover.
+ * washed toward the mode, light in light mode and dark in dark mode, so text in the mode's own
+ * colors holds over it. For the color behind an artwork-led screen (an album's page over its
+ * cover), or a whole app's background (a photo behind every view).
  *
  * ```kotlin
  * Box(Modifier.fillMaxSize().amArtBackdrop(album.coverUrl)) {
  *     Text(album.title, Modifier.amArtText(), style = MaterialTheme.typography.titleLarge)
  * }
+ *
+ * Box(Modifier.fillMaxSize().amArtBackdrop(beansUrl, blurRadius = 4.dp)) { Shop() }   // its subject shows
  * ```
  *
  * It draws like a background, filling the element it's on. Frosted surfaces sample an
- * [AMBackdrop]'s art, so for frosted cards on it, make it that backdrop's art:
+ * [AMBackdrop]'s art, and the components on it take their over-art look, so for frosted cards and
+ * headers on it, make it that backdrop's art:
  *
  * ```kotlin
  * AMBackdrop(art = { Box(Modifier.fillMaxSize().amArtBackdrop(album.coverUrl)) }, Modifier.fillMaxSize()) {
@@ -97,22 +117,46 @@ private val ArtRowBleed = 1000.dp
  * }
  * ```
  *
+ * - **The wash follows the mode.** In light mode every color darker than black washed with white
+ *   at [lightWash] is lifted to that lightness; in dark mode every color brighter than white
+ *   washed with black at [darkWash] is lowered to it. Colors already on the right side stay, and
+ *   moved ones keep their hue and as much of their color as fits, so the art stays colorful. At
+ *   the defaults ([AMArtDefaults]) text in the mode's colors, secondary text included, holds 4.5:1
+ *   over any picture, so the art's tone is the mode's.
+ * - **Lower washes are the app's call.** Lowering [lightWash] or [darkWash] shows more of the
+ *   picture and gives up that guarantee: check every text on it, and give the [AMBackdrop] around
+ *   it the tone the art then has ([AMArtTone]). Frosted glass over art an app chose not to wash
+ *   (low washes, or a picture drawn without this modifier) is the app's to check too: the glass
+ *   holds its contrast over the library's washed art only.
+ * - **Blur.** By default the picture reads only as its colors. Lower [blurRadius] to keep its
+ *   subject recognizable; the saturation boost fades out with it, so a sharp picture keeps its own
+ *   color.
  * - **Made once.** The picture comes through the library's image pipeline, decoded small; it's
- *   blurred and saturated once and kept, so drawing it costs a stretched bitmap. A picture in
- *   memory shows on the first frame.
+ *   blurred, saturated and washed once and kept, so drawing it costs a stretched bitmap. A picture
+ *   in memory shows on the first frame.
  * - **Changing pictures.** When [url] changes, the new picture fades in over the old with
- *   Material's motion, under the same wash; a change made inside [amInstantSwitch], or while the
- *   system's Remove animations is on, lands at once. A resize swaps without a fade.
- * - **Before it loads**, on a failure and for a null [url], the region shows a dark neutral under
- *   the wash, in both appearances, so white [amArtText] holds while there's no picture; the
- *   picture fades in over it.
+ *   Material's motion; a change made inside [amInstantSwitch], or while the system's Remove
+ *   animations is on, lands at once. A resize or a change of mode swaps without a fade.
+ * - **No picture means the page color.** Before it loads, on a failure and for a null [url], the
+ *   region shows [AMTheme.Surface.page]; the picture fades in over it.
  *
  * It's decoration: it adds nothing for a screen reader and takes no input. For a picture the app
  * already holds as a bitmap, use the `ImageBitmap` form.
  *
- * @param url the picture; null shows the dark neutral under the wash.
+ * @param url the picture; null shows the page color.
+ * @param blurRadius the blur, as Android's blur radius: by default a Gaussian sigma of about
+ *   120 dp, so the picture reads as its colors.
+ * @param lightWash how far the picture is lifted toward white in light mode, from 0 (as it is) to
+ *   1 (white). Below the default, text on it may not hold; check it.
+ * @param darkWash how far the picture is lowered toward black in dark mode, from 0 (as it is) to 1
+ *   (black). Below the default, text on it may not hold; check it.
  */
-public fun Modifier.amArtBackdrop(url: String?): Modifier = artBackdrop(url?.let { ArtSource.Url(it) }, ArtBackdropRecipe)
+public fun Modifier.amArtBackdrop(
+    url: String?,
+    blurRadius: Dp = AMArtDefaults.BlurRadius,
+    lightWash: Float = AMArtDefaults.LightWash,
+    darkWash: Float = AMArtDefaults.DarkWash,
+): Modifier = artBackdrop(url?.let { ArtSource.Url(it) }, artRecipe(blurRadius, lightWash, darkWash))
 
 /**
  * Draws [image] behind this content as an **art backdrop**, the same way the URL form draws a
@@ -124,71 +168,32 @@ public fun Modifier.amArtBackdrop(url: String?): Modifier = artBackdrop(url?.let
  * Box(Modifier.fillMaxSize().amArtBackdrop(cover)) { NowPlaying(track) }
  * ```
  *
- * The bitmap is averaged down, blurred and saturated once and kept, known by the bitmap itself:
- * wrapping the same bitmap again (`asImageBitmap()`) finds the same picture, and the kept picture
- * never keeps the bitmap alive. It's read as it stands, so put new art in a new bitmap rather than
- * drawing into one already shown. Changing bitmaps fades as changing URLs does.
+ * The bitmap is averaged down, blurred, saturated and washed once and kept, known by the bitmap
+ * itself: wrapping the same bitmap again (`asImageBitmap()`) finds the same picture, and the kept
+ * picture never keeps the bitmap alive. It's read as it stands, so put new art in a new bitmap
+ * rather than drawing into one already shown. Changing bitmaps fades as changing URLs does. The
+ * washes and their limits are the URL form's.
  *
- * @param image the picture; null (no art yet) shows the dark neutral under the wash.
+ * @param image the picture; null (no art yet) shows the page color.
+ * @param blurRadius the blur, as Android's blur radius: by default a Gaussian sigma of about
+ *   120 dp, so the picture reads as its colors.
+ * @param lightWash how far the picture is lifted toward white in light mode, from 0 to 1. Below
+ *   the default, text on it may not hold; check it.
+ * @param darkWash how far the picture is lowered toward black in dark mode, from 0 to 1. Below the
+ *   default, text on it may not hold; check it.
  */
-public fun Modifier.amArtBackdrop(image: ImageBitmap?): Modifier =
-    artBackdrop(image?.let { ArtSource.Image(it) }, ArtBackdropRecipe)
-
-/**
- * Draws a picture behind this content as a whole app's background: the art backdrop's recipe
- * ([amArtBackdrop]), then lifted toward white in light mode and pushed toward black in dark mode,
- * so it suits the appearance. Text on it uses the scheme's own colors (`onSurface`), not
- * [amArtText], and cards on it are usually frosted.
- *
- * ```kotlin
- * AMBackdrop(art = { Box(Modifier.fillMaxSize().amPageBackdrop(month.photoUrl)) }, Modifier.fillMaxSize()) { MonthView(month) }
- *
- * Box(Modifier.fillMaxSize().amPageBackdrop(beansUrl, blurRadius = 4.dp, lightWash = 0.55f, darkWash = 0.4f)) { Shop() }
- * ```
- *
- * By default the picture reads only as its colors. Lower [blurRadius] to keep its subject
- * recognizable (the saturation boost fades out with it, so a sharp picture keeps its own color),
- * and lower the washes to let more of it show through; check text on it when you do. As with the
- * art backdrop, make it an [AMBackdrop]'s art for frosted cards to sample it; it fades between
- * pictures the same way and shows the page color until its picture arrives. For a picture the app
- * already holds as a bitmap, use the `ImageBitmap` form.
- *
- * @param url the picture; null shows the page color under the washes.
- * @param blurRadius the blur, as Android's blur radius: by default the art backdrop's, a Gaussian
- *   sigma of about 120 dp.
- * @param lightWash how much white lies over the picture in light mode, from 0 to 1.
- * @param darkWash how much black lies over the picture in dark mode, from 0 to 1.
- */
-public fun Modifier.amPageBackdrop(
-    url: String?,
-    blurRadius: Dp = ArtBlurRadius,
-    lightWash: Float = 0.6f,
-    darkWash: Float = 0.45f,
-): Modifier = artBackdrop(url?.let { ArtSource.Url(it) }, pageRecipe(blurRadius, lightWash, darkWash))
-
-/**
- * Draws [image] behind this content as a whole app's background, the same way the URL form draws
- * a picture it loads: for art the app already holds as a bitmap. The bitmap is processed once and
- * kept, known by the bitmap itself, as [amArtBackdrop]'s `ImageBitmap` form describes.
- *
- * @param image the picture; null (no art yet) shows the page color under the washes.
- * @param blurRadius the blur, as Android's blur radius: by default the art backdrop's, a Gaussian
- *   sigma of about 120 dp.
- * @param lightWash how much white lies over the picture in light mode, from 0 to 1.
- * @param darkWash how much black lies over the picture in dark mode, from 0 to 1.
- */
-public fun Modifier.amPageBackdrop(
+public fun Modifier.amArtBackdrop(
     image: ImageBitmap?,
-    blurRadius: Dp = ArtBlurRadius,
-    lightWash: Float = 0.6f,
-    darkWash: Float = 0.45f,
-): Modifier = artBackdrop(image?.let { ArtSource.Image(it) }, pageRecipe(blurRadius, lightWash, darkWash))
+    blurRadius: Dp = AMArtDefaults.BlurRadius,
+    lightWash: Float = AMArtDefaults.LightWash,
+    darkWash: Float = AMArtDefaults.DarkWash,
+): Modifier = artBackdrop(image?.let { ArtSource.Image(it) }, artRecipe(blurRadius, lightWash, darkWash))
 
 /**
  * Draws the colors of the [amArtRow] rows inside this content behind it, at its full width: color
- * at the row level. Each row's picture, blurred and saturated with the art backdrop's recipe, lies
- * behind that row and scrolls with it; neighbors' colors blend into each other halfway between
- * them, with no line, and one black wash lies over all of them, so white [amArtText] holds.
+ * at the row level. Each row's picture, blurred, saturated and washed toward the mode with the art
+ * backdrop's recipe, lies behind that row and scrolls with it; neighbors' colors blend into each
+ * other halfway between them, with no line. Text in the mode's own colors holds over them.
  *
  * ```kotlin
  * Column(Modifier.verticalScroll(rememberScrollState()).amArtRows()) {
@@ -201,22 +206,34 @@ public fun Modifier.amPageBackdrop(
  * Put it on the scrolling content, right after the scroll and outside its side gutters, so the
  * color runs edge to edge and moves with the rows; nothing behind the page swaps as it scrolls.
  * The first and last colors run well past the content, for overscroll and short pages, so the
- * scrolling container's clip bounds them. Rows report in page order; until a row's picture
- * arrives, and for a null one, its band shows a dark neutral under the wash, so the art text
- * holds. A row's picture is a URL or a bitmap the app holds, and one page can mix them.
+ * scrolling container's clip bounds them. Rows report in page order. Where no row's picture has
+ * arrived yet, where it fails, and for a null one, the band is the page color, blending into its
+ * neighbors as any band does; a row whose picture changes keeps its last one until the new one is
+ * ready. A page with no rows is the page color by itself. A row's
+ * picture is a URL or a bitmap the app holds, and one page can mix them.
  *
  * On its own, the colors are this content's background. For frosted surfaces over the rows (a
- * collapsing header's fill, frosted buttons, a frosted sheet) to blur them, put the page in an
- * [AMArtRowsBackdrop]: the colors then draw as that backdrop's art, behind the whole page, and
- * every frosted surface samples them.
+ * collapsing header's fill, frosted buttons, a frosted sheet) to blur them, and for the components
+ * on them to take their over-art look, put the page in an [AMArtRowsBackdrop]: the colors then draw
+ * as that backdrop's art, behind the whole page.
+ *
+ * @param lightWash how far the rows' pictures are lifted toward white in light mode, from 0 to 1,
+ *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frosted glass over
+ *   them is the app's to check.
+ * @param darkWash how far they're lowered toward black in dark mode, from 0 to 1. Below the
+ *   default, the same holds.
  */
-public fun Modifier.amArtRows(): Modifier = this then ArtRowsElement
+public fun Modifier.amArtRows(
+    lightWash: Float = AMArtDefaults.LightWash,
+    darkWash: Float = AMArtDefaults.DarkWash,
+): Modifier = this then ArtRowsElement(lightWash, darkWash)
 
 /**
  * A region whose art is the art rows inside it: the colors of the [amArtRows] page in [content]
  * draw behind the whole region, the top app bar's place included, moving with the rows as they
  * scroll, and every [AMSurfaceFill.Frosted] surface in [content] blurs the colors under it, as it
- * would an [AMBackdrop]'s art. Section headers and page headers take their over-art look.
+ * would an [AMBackdrop]'s art. Section headers, page headers and the other components on it take
+ * their over-art look for its [tone].
  *
  * ```kotlin
  * AMArtRowsBackdrop(Modifier.fillMaxSize()) {
@@ -235,27 +252,38 @@ public fun Modifier.amArtRows(): Modifier = this then ArtRowsElement
  *   its rows with [amArtRow], as on any art-row page; inside this region the content draws no
  *   background of its own and hands its rows to the region, which draws them, blended and washed
  *   the same way, behind everything in it. The region's own fill, where no row reaches, is the
- *   dark neutral under the wash.
+ *   page color: a page with no rows (loading, empty) sits on the page color by itself, with no
+ *   switching.
  * - **Frosted surfaces** anywhere in [content] sample the rows: a header over them, cards and
  *   buttons on them, and a sheet opened from here. Only the colors are sampled, never the content,
  *   so a surface never blurs itself.
  * - It's decoration: it adds nothing for a screen reader and takes no input.
  *
  * @param modifier the region's size and placement: usually the whole screen.
+ * @param tone how light the rows' art is, for what lies on it and for the status bar's icons
+ *   while the region reaches the top of the window: null, the default, is the mode's, which the
+ *   default washes guarantee. A page that lowers its rows' washes passes the tone its art then has.
  * @param content the page, holding one [amArtRows] content.
  */
 @Composable
 public fun AMArtRowsBackdrop(
     modifier: Modifier = Modifier,
+    tone: AMArtTone? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layer = rememberGraphicsLayer()
     val source = remember(layer) { AMBackdropSource(layer) }
     val art = remember(source) { ArtRowsArt(source) }
-    Box(modifier) {
+    val artTone = tone ?: modeArtTone()
+    Box(modifier.then(artStatusBar(source, artTone))) {
         Box(Modifier.matchParentSize().backdropSource(source).then(ArtRowsArtElement(art)))
         val scope = this
-        CompositionLocalProvider(LocalAMBackdrop provides source, LocalArtRowsArt provides art) { scope.content() }
+        CompositionLocalProvider(
+            LocalAMBackdrop provides source,
+            LocalArtRowsArt provides art,
+            LocalAMArtTone provides artTone,
+            sceneBackdrop(source),
+        ) { scope.content() }
     }
 }
 
@@ -265,7 +293,7 @@ public fun AMArtRowsBackdrop(
  * A row outside an [amArtRows] draws nothing extra. For a picture the app already holds as a
  * bitmap, use the `ImageBitmap` form.
  *
- * @param url the row's picture; null leaves its band the dark neutral.
+ * @param url the row's picture; null leaves its band the page color.
  */
 public fun Modifier.amArtRow(url: String?): Modifier = this then ArtRowElement(url?.let { ArtSource.Url(it) })
 
@@ -275,47 +303,60 @@ public fun Modifier.amArtRow(url: String?): Modifier = this then ArtRowElement(u
  * bitmap is processed once per band and kept, known by the bitmap itself, as [amArtBackdrop]'s
  * `ImageBitmap` form describes.
  *
- * @param image the row's picture; null (no art yet) leaves its band the dark neutral.
+ * @param image the row's picture; null (no art yet) leaves its band the page color.
  */
 public fun Modifier.amArtRow(image: ImageBitmap?): Modifier = this then ArtRowElement(image?.let { ArtSource.Image(it) })
 
 /**
- * Text that sits right on a darkened picture: white, with a tight and a soft black shadow under
- * its glyphs, so its edges hold over the brightest colors.
+ * Text that lies right on art, not on a card: drawn in the ink that reads on the art's tone, with
+ * a soft shadow of the other tone under its glyphs, so its edges hold over the art's brightest
+ * and darkest colors.
  *
  * ```kotlin
  * Text("Albums", Modifier.amArtText(), style = MaterialTheme.typography.titleLarge)
- * Column(Modifier.amArtText()) { Text(album.title); Text(album.artist) }
+ * Column {
+ *     Text(album.title, Modifier.amArtText())
+ *     Text(album.artist, Modifier.amArtText(secondary = true))
+ * }
+ * Text("Paused", Modifier.amArtText(AMArtTone.Dark))   // white, on a scrim over a photo
  * ```
  *
- * Put it on a text or on a group of them: everything it covers draws white, glyphs included,
- * with the shadow drawn from the glyphs themselves.
+ * - **The tone** is [tone] when given, else the nearest art surface's ([AMBackdrop],
+ *   [AMArtRowsBackdrop]), which is the mode's unless that surface was given one, else the mode's.
+ * - **On art in the mode's tone**, which the library's washes guarantee ([AMArtDefaults]), the ink
+ *   is the scheme's own text color, `onSurface`, or `onSurfaceVariant` for [secondary], so text on
+ *   art reads like text on the page and holds 4.5:1 over the washed art.
+ * - **On art of the other tone** (a lowered wash, sharp art, a scrim over a photo), the ink is
+ *   white, or a light gray for [secondary], on dark art, and near-black, or a dark gray, on light
+ *   art. Contrast there depends on the art; check it.
+ *
+ * Put it on a text or on a group of them: everything it covers draws in the ink, glyphs included,
+ * keeping their alpha, with the shadow drawn from the glyphs themselves.
+ *
+ * @param tone the art's tone under the text, for a ground the library can't know: null takes the
+ *   nearest art surface's, or the mode's.
+ * @param secondary the secondary ink, for a supporting line under a title.
  */
-public fun Modifier.amArtText(): Modifier = glyphShadow(Style.Shadow.ArtText, tint = Color.White)
+public fun Modifier.amArtText(tone: AMArtTone? = null, secondary: Boolean = false): Modifier =
+    artGlyphs(ArtGlyphs(tone, secondary))
 
-// The art and page backdrops
+// The art backdrop
 
-/**
- * A backdrop's recipe: its blur, its saturation and, for a page backdrop ([page]), its washes. A
- * page backdrop shows the page color while it has no picture, since text on it takes the scheme's
- * colors; an art backdrop shows the dark neutral, since text on it is white.
- */
+/** A backdrop's recipe: its blur, its saturation and its washes toward the mode. */
 @Immutable
 private data class ArtRecipe(
     val blurRadius: Dp,
     val saturation: Float,
     val lightWash: Float,
     val darkWash: Float,
-    val page: Boolean,
-)
+) {
+    fun wash(dark: Boolean): Float = if (dark) darkWash else lightWash
+}
 
-/** The art backdrop's recipe: the full blur and saturation, no page washes. */
-private val ArtBackdropRecipe = ArtRecipe(ArtBlurRadius, ArtSaturation, 0f, 0f, page = false)
-
-/** A page backdrop's recipe: its saturation fades with its blur, so a sharp picture keeps its own color. */
-private fun pageRecipe(blurRadius: Dp, lightWash: Float, darkWash: Float): ArtRecipe {
-    val share = (blurRadius / ArtBlurRadius).coerceIn(0f, 1f)
-    return ArtRecipe(blurRadius, 1f + (ArtSaturation - 1f) * share, lightWash, darkWash, page = true)
+/** A recipe for [blurRadius]: the saturation boost fades out with the blur, so a sharp picture keeps its own color. */
+private fun artRecipe(blurRadius: Dp, lightWash: Float, darkWash: Float): ArtRecipe {
+    val share = (blurRadius / AMArtDefaults.BlurRadius).coerceIn(0f, 1f)
+    return ArtRecipe(blurRadius, 1f + (ArtSaturation - 1f) * share, lightWash.coerceIn(0f, 1f), darkWash.coerceIn(0f, 1f))
 }
 
 private fun Modifier.artBackdrop(source: ArtSource?, recipe: ArtRecipe): Modifier =
@@ -328,30 +369,33 @@ private data class ArtBackdropElement(val source: ArtSource?, val recipe: ArtRec
     override fun update(node: ArtBackdropNode) = node.update(source, recipe, generation)
 
     override fun InspectorInfo.inspectableProperties() {
-        name = if (recipe.page) "amPageBackdrop" else "amArtBackdrop"
+        name = "amArtBackdrop"
         when (source) {
             is ArtSource.Url -> properties["url"] = source.url
             is ArtSource.Image -> properties["image"] = source.image
             null -> properties["url"] = null
         }
         properties["blurRadius"] = recipe.blurRadius
+        properties["lightWash"] = recipe.lightWash
+        properties["darkWash"] = recipe.darkWash
     }
 }
 
 /**
- * Loads its picture for its frame once it knows its size, and draws it behind the content: the
- * fallback (the page color for a page backdrop, the dark neutral for an art backdrop), the picture
- * leaving (while a new one fades in), the picture showing, the washes.
+ * Loads its picture for its frame and the mode once it knows its size, and draws it behind the
+ * content: the page color, the picture leaving (while a new one fades in), the picture showing.
+ * A change of mode loads the picture washed for the new one, showing the old until it's ready.
  */
 private class ArtBackdropNode(
     private var source: ArtSource?,
     private var recipe: ArtRecipe,
     private var generation: Int,
-) : Modifier.Node(), DrawModifierNode, LayoutAwareModifierNode, CompositionLocalConsumerModifierNode {
+) : Modifier.Node(), DrawModifierNode, LayoutAwareModifierNode, CompositionLocalConsumerModifierNode, ObserverModifierNode {
 
     private var frame = IntSize.Zero
     private var requested: ArtKey? = null
     private var loading: Job? = null
+    private var dark = false
 
     /** The picture showing, and the source it shows. */
     private var shown: ImageBitmap? = null
@@ -377,6 +421,12 @@ private class ArtBackdropNode(
     override fun onAttach() {
         // A fade cut short by leaving ends where it was; coming back, the picture shows in full.
         if (reveal.value < 1f) coroutineScope.launch { reveal.snapTo(1f) }
+        onObservedReadsChanged()
+    }
+
+    // The mode decides the wash, so a change of mode loads the picture again.
+    override fun onObservedReadsChanged() {
+        observeReads { dark = currentValueOf(LocalAMDarkTheme) ?: false }
         load()
     }
 
@@ -405,7 +455,7 @@ private class ArtBackdropNode(
         }
         if (frame.width <= 0 || frame.height <= 0) return
         val blurRadius = with(requireDensity()) { recipe.blurRadius.toPx() }
-        val key = artKey(source, frame, blurRadius, recipe.saturation, fade = 0f)
+        val key = artKey(source, frame, blurRadius, recipe.saturation, dark, recipe.wash(dark), fade = 0f)
         if (key == requested) return
         requested = key
         loading?.cancel()
@@ -424,7 +474,7 @@ private class ArtBackdropNode(
             } catch (_: Exception) {
                 null
             }
-            // A failed resize keeps the picture showing; a failed new picture shows the fallback.
+            // A failed resize keeps the picture showing; a failed new picture shows the page.
             if (image != null) show(image, source) else if (source != shownSource) show(null, source)
         }
     }
@@ -455,23 +505,16 @@ private class ArtBackdropNode(
 
     override fun ContentDrawScope.draw() {
         hasDrawn = true
-        val dark = currentValueOf(LocalAMDarkTheme) ?: false
-        drawRect(
-            when {
-                !recipe.page -> ArtFallback
-                dark -> Style.Page.Dark
-                else -> Style.Page.Light
-            },
-        )
+        drawRect(pageColor(currentValueOf(LocalAMDarkTheme) ?: false))
         val opacity = reveal.value
         if (opacity < 1f) leaving?.let { drawArt(it, Offset.Zero, size, 1f) }
         shown?.let { drawArt(it, Offset.Zero, size, opacity) }
-        drawRect(Color.Black, alpha = if (dark) ArtWashDark else ArtWashLight)
-        val pageWash = if (dark) recipe.darkWash else recipe.lightWash
-        if (pageWash > 0f) drawRect(if (dark) Color.Black else Color.White, alpha = pageWash.coerceIn(0f, 1f))
         drawContent()
     }
 }
+
+/** What art shows where it has no picture: the mode's page color. */
+private fun pageColor(dark: Boolean): Color = if (dark) Style.Page.Dark else Style.Page.Light
 
 /** Stretches a processed picture over [size] at [topLeft]; it's already in the frame's shape. */
 private fun DrawScope.drawArt(image: ImageBitmap, topLeft: Offset, size: Size, alpha: Float) {
@@ -484,28 +527,46 @@ private fun DrawScope.drawArt(image: ImageBitmap, topLeft: Offset, size: Size, a
     )
 }
 
+/**
+ * A band with no picture: the page [color] across [width], fading in over the band's top as a
+ * picture's baked fade does, so the band above blends into it.
+ */
+private fun DrawScope.drawPageBand(band: ArtBand, width: Float, color: Color) {
+    val opaqueTop = band.top + band.fade
+    if (band.fade > 0f) {
+        drawRect(
+            Brush.verticalGradient(listOf(color.copy(alpha = 0f), color), startY = band.top, endY = opaqueTop),
+            Offset(0f, band.top),
+            Size(width, band.fade),
+        )
+    }
+    drawRect(color, Offset(0f, opaqueTop), Size(width, band.bottom - opaqueTop))
+}
+
 // The art rows
 
 /** What an art row looks for among its ancestors: the nearest [amArtRows]. */
 private object ArtRowsKey
 
-private data object ArtRowsElement : ModifierNodeElement<ArtRowsNode>() {
-    override fun create() = ArtRowsNode()
+private data class ArtRowsElement(val lightWash: Float, val darkWash: Float) : ModifierNodeElement<ArtRowsNode>() {
+    override fun create() = ArtRowsNode(lightWash, darkWash)
 
-    override fun update(node: ArtRowsNode) = Unit
+    override fun update(node: ArtRowsNode) = node.update(lightWash, darkWash)
 
     override fun InspectorInfo.inspectableProperties() {
         name = "amArtRows"
+        properties["lightWash"] = lightWash
+        properties["darkWash"] = darkWash
     }
 }
 
 /**
  * The rows' container: the rows register with it, and it draws their bands behind its content,
- * loading each band's picture the first time it's needed. Inside an [AMArtRowsBackdrop] (when that
- * backdrop is the nearest one) it draws nothing itself and hands its bands to the backdrop, telling
- * it to redraw whenever a row or the content itself moves.
+ * loading each band's picture, washed for the mode, the first time it's needed. Inside an
+ * [AMArtRowsBackdrop] (when that backdrop is the nearest one) it draws nothing itself and hands its
+ * bands to the backdrop, telling it to redraw whenever a row or the content itself moves.
  */
-private class ArtRowsNode :
+private class ArtRowsNode(private var lightWash: Float, private var darkWash: Float) :
     Modifier.Node(),
     DrawModifierNode,
     TraversableNode,
@@ -525,6 +586,13 @@ private class ArtRowsNode :
     /** Where the container sits, for measuring its rows against. */
     var coordinates: LayoutCoordinates? = null
         private set
+
+    fun update(lightWash: Float, darkWash: Float) {
+        if (lightWash == this.lightWash && darkWash == this.darkWash) return
+        this.lightWash = lightWash
+        this.darkWash = darkWash
+        changed()
+    }
 
     fun register(row: ArtRowNode) {
         rows += row
@@ -569,25 +637,28 @@ private class ArtRowsNode :
 
     override fun ContentDrawScope.draw() {
         if (backdrop == null) {
-            val dark = currentValueOf(LocalAMDarkTheme) ?: false
             val bleed = ArtRowBleed.toPx()
-            val extent = Size(size.width, size.height + bleed * 2f)
-            drawRect(ArtFallback, Offset(0f, -bleed), extent)
+            drawRect(pageColor(currentValueOf(LocalAMDarkTheme) ?: false), Offset(0f, -bleed), Size(size.width, size.height + bleed * 2f))
             drawBands(size)
-            drawRect(Color.Black, Offset(0f, -bleed), extent, alpha = if (dark) ArtWashDark else ArtWashLight)
         }
         drawContent()
     }
 
     /**
      * Draws each row's band, in this container's frame, for content of [contentSize]: the colors
-     * alone, with no fallback or wash under or over them.
+     * alone, over the page color the caller drew. A band whose picture for its frame and the mode
+     * isn't ready draws its row's last picture stretched to the band, until the new one is; a band
+     * with no picture at all is the page color, faded in like a picture, so the band above blends
+     * into it instead of ending in a line. Over nothing but the page color it has nothing to cover,
+     * so a page whose bands have no pictures stays exactly the page color.
      */
     fun DrawScope.drawBands(contentSize: Size) {
         val container = coordinates?.takeIf { it.isAttached } ?: return
+        val dark = currentValueOf(LocalAMDarkTheme) ?: false
+        val wash = if (dark) darkWash else lightWash
         val placed = rows.mapNotNull { row ->
             val bounds = row.coordinates?.takeIf { it.isAttached }?.let { container.localBoundingBoxOf(it, clipBounds = false) }
-            bounds?.let { row.source to it }
+            bounds?.let { row to it }
         }.sortedBy { it.second.top }
         val bands = artRowBands(
             placed.map { ArtSpan(it.second.top, it.second.bottom) },
@@ -595,18 +666,31 @@ private class ArtRowsNode :
             ArtRowBlend.toPx(),
             ArtRowBleed.toPx(),
         )
-        val blurRadius = ArtBlurRadius.toPx()
-        placed.forEachIndexed { index, (source, _) ->
-            if (source == null) return@forEachIndexed
+        val blurRadius = AMArtDefaults.BlurRadius.toPx()
+        val page = pageColor(dark)
+        // How far down the pictures drawn so far reach: a band with no picture above it lies on
+        // the page color alone.
+        var artBottom = Float.NEGATIVE_INFINITY
+        placed.forEachIndexed { index, (row, _) ->
             val band = bands[index]
-            val frame = IntSize(ceil(contentSize.width).toInt(), ceil(band.bottom - band.top).toInt())
+            val bandSize = Size(contentSize.width, band.bottom - band.top)
+            val frame = IntSize(ceil(bandSize.width).toInt(), ceil(bandSize.height).toInt())
             if (frame.width <= 0 || frame.height <= 0) return@forEachIndexed
-            val key = artKey(source, frame, blurRadius, ArtSaturation, band.fade)
-            val image = ArtImages.cached(key)
-            if (image == null) {
-                request(source, key)
+            val source = row.source
+            val picture = if (source == null) {
+                null
             } else {
-                drawArt(image, Offset(0f, band.top), Size(contentSize.width, band.bottom - band.top), 1f)
+                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, band.fade)
+                val image = ArtImages.cached(key)
+                if (image == null) request(source, key) else row.lastPicture = image
+                // Until its picture for this band is ready, a band keeps the one it showed last.
+                image ?: row.lastPicture
+            }
+            if (picture != null) {
+                drawArt(picture, Offset(0f, band.top), bandSize, 1f)
+                artBottom = max(artBottom, band.bottom)
+            } else if (band.top < artBottom) {
+                drawPageBand(band, contentSize.width, page)
             }
         }
     }
@@ -672,8 +756,8 @@ private class ArtRowsArtElement(val art: ArtRowsArt) : ModifierNodeElement<ArtRo
 }
 
 /**
- * Draws an [AMArtRowsBackdrop]'s art across the region: the dark neutral, each registered
- * content's bands at the content's place in the region, then the wash, all cut to the region.
+ * Draws an [AMArtRowsBackdrop]'s art across the region: the page color, then each registered
+ * content's bands at the content's place in the region, all cut to the region.
  */
 private class ArtRowsArtNode(private var art: ArtRowsArt) :
     Modifier.Node(), DrawModifierNode, CompositionLocalConsumerModifierNode {
@@ -695,10 +779,9 @@ private class ArtRowsArtNode(private var art: ArtRowsArt) :
     }
 
     override fun ContentDrawScope.draw() {
-        val dark = currentValueOf(LocalAMDarkTheme) ?: false
         val region = requireLayoutCoordinates()
         clipRect {
-            drawRect(ArtFallback)
+            drawRect(pageColor(currentValueOf(LocalAMDarkTheme) ?: false))
             art.contents.forEach { content ->
                 val placed = content.coordinates?.takeIf { it.isAttached } ?: return@forEach
                 val offset = region.localPositionOf(placed, Offset.Zero)
@@ -706,7 +789,6 @@ private class ArtRowsArtNode(private var art: ArtRowsArt) :
                     with(content) { drawBands(placed.size.toSize()) }
                 }
             }
-            drawRect(Color.Black, alpha = if (dark) ArtWashDark else ArtWashLight)
         }
         drawContent()
     }
@@ -738,12 +820,16 @@ private class ArtRowNode(source: ArtSource?) : Modifier.Node(), GlobalPositionAw
     var coordinates: LayoutCoordinates? = null
         private set
 
+    /** The picture the row's band showed last, which it keeps until its next one is ready. */
+    var lastPicture: ImageBitmap? = null
+
     private var container: ArtRowsNode? = null
     private var bounds: Rect? = null
 
     fun update(source: ArtSource?) {
         if (source == this.source) return
         this.source = source
+        if (source == null) lastPicture = null
         container?.changed()
     }
 

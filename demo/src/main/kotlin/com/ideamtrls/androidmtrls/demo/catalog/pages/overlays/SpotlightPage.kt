@@ -11,16 +11,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import com.ideamtrls.androidmtrls.AMActionGridButton
-import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amHoldable
 import com.ideamtrls.androidmtrls.amRowPadding
+import com.ideamtrls.androidmtrls.rememberAMSpotlightState
 
 internal val SpotlightEntry = ComponentEntry(
     id = "spotlight",
@@ -71,47 +71,28 @@ private val Week = listOf(
     SpotlightDay("Wednesday", listOf("Team lunch", "Piano recital")),
 )
 
-/** Hold an article to bring it up close, over Share and Delete. */
+/**
+ * Hold an article to bring it up close, over Share and Delete: one [AMSpotlightState] gives the
+ * holds and the spotlight the same actions, so TalkBack finds Share and Delete on each row too.
+ */
 @Composable
 private fun ReadingList() {
-    var held by remember { mutableStateOf<SpotlightArticle?>(null) }
+    val shareIcon = painterResource(R.drawable.ic_share)
+    val deleteIcon = painterResource(R.drawable.ic_delete)
+    val spotlight = rememberAMSpotlightState<SpotlightArticle> {
+        listOf(
+            AMHoldAction("Share", shareIcon, onClick = ::share),
+            AMHoldAction("Delete", deleteIcon, destructive = true, onClick = ::delete),
+        )
+    }
     val inset = AMTheme.tokens.spacing.lg
     Column(Modifier.fillMaxWidth().amCard()) {
         Articles.forEachIndexed { index, article ->
             if (index > 0) AMDivider(inset = inset)
-            TitledRow(
-                article.title,
-                article.source,
-                Modifier.amHoldable(
-                    onHold = { held = article },
-                    customActions = listOf(
-                        CustomAccessibilityAction("Share") { share(); true },
-                        CustomAccessibilityAction("Delete") { delete(); true },
-                    ),
-                ),
-            )
+            TitledRow(article.title, article.source, Modifier.amHoldable(spotlight, article))
         }
     }
-    AMSpotlight(
-        held,
-        onDismissRequest = { held = null },
-        actions = {
-            AMActionGridRow(
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_share), "Share", onClick = {
-                        share()
-                        held = null
-                    })
-                },
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_delete), "Delete", onClick = {
-                        delete()
-                        held = null
-                    }, destructive = true)
-                },
-            )
-        },
-    ) { article ->
+    AMSpotlight(spotlight) { article ->
         TitledRow(article.title, article.source)
     }
 }
@@ -120,6 +101,8 @@ private fun ReadingList() {
 @Composable
 private fun ThisWeek() {
     var held by remember { mutableStateOf<SpotlightDay?>(null) }
+    val addIcon = painterResource(R.drawable.ic_add)
+    val dayIcon = painterResource(R.drawable.ic_calendar_today)
     val inset = AMTheme.tokens.spacing.lg
     Column(Modifier.fillMaxWidth().amCard()) {
         Week.forEachIndexed { index, day ->
@@ -127,13 +110,7 @@ private fun ThisWeek() {
             TitledRow(
                 day.name,
                 if (day.plans.size == 1) "1 planned" else "${day.plans.size} planned",
-                Modifier.amHoldable(
-                    onHold = { held = day },
-                    customActions = listOf(
-                        CustomAccessibilityAction("Add plan") { addPlan(); true },
-                        CustomAccessibilityAction("Open day") { openDay(); true },
-                    ),
-                ),
+                Modifier.amHoldable(onHold = { held = day }, actions = dayActions(addIcon, dayIcon)),
             )
         }
     }
@@ -141,22 +118,7 @@ private fun ThisWeek() {
         held,
         onDismissRequest = { held = null },
         title = { it.name },
-        actions = {
-            AMActionGridRow(
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_add), "Add plan", onClick = {
-                        addPlan()
-                        held = null
-                    })
-                },
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_calendar_today), "Open day", onClick = {
-                        openDay()
-                        held = null
-                    })
-                },
-            )
-        },
+        actions = { dayActions(addIcon, dayIcon) },
     ) { day ->
         Column(Modifier.fillMaxWidth()) {
             day.plans.forEach { plan ->
@@ -165,6 +127,12 @@ private fun ThisWeek() {
         }
     }
 }
+
+/** What a held day offers: Add plan and Open day, as tiles and as the row's TalkBack actions. */
+private fun dayActions(addIcon: Painter, dayIcon: Painter): List<AMHoldAction> = listOf(
+    AMHoldAction("Add plan", addIcon, onClick = ::addPlan),
+    AMHoldAction("Open day", dayIcon, onClick = ::openDay),
+)
 
 /** A hand-built row on the row recipe: a title over a supporting line. */
 @Composable

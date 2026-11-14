@@ -18,10 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.core.os.ConfigurationCompat
-import com.ideamtrls.androidmtrls.AMActionGridButton
-import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMCalendar
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMEmptyState
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
@@ -124,24 +123,16 @@ private fun DayView() {
             }
         }
     }
+    val addEventIcon = painterResource(R.drawable.ic_calendar_add_on)
+    val openDayIcon = painterResource(R.drawable.ic_event_available)
     AMSpotlight(
         held,
         onDismissRequest = { held = null },
         title = { heading.format(it) },
         actions = { heldDay ->
-            AMActionGridRow(
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_calendar_add_on), "Add event", onClick = {
-                        addEvent()
-                        held = null
-                    })
-                },
-                {
-                    AMActionGridButton(painterResource(R.drawable.ic_event_available), "Open day", onClick = {
-                        day = heldDay
-                        held = null
-                    })
-                },
+            listOf(
+                AMHoldAction("Add event", addEventIcon, onClick = ::addEvent),
+                AMHoldAction("Open day", openDayIcon) { day = heldDay },
             )
         },
     ) { heldDay ->

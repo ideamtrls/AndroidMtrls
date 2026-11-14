@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import com.ideamtrls.androidmtrls.AMActionGridButton
-import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMAvatar
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
 
@@ -27,16 +27,6 @@ internal class SocialPostActions(
     private val model: SocialModel,
     val copy: (SocialPost) -> Unit,
 ) {
-    /** The menu's actions as custom actions on the card. */
-    fun accessibilityActions(post: SocialPost): List<CustomAccessibilityAction> {
-        val author = model.user(post.authorId)
-        val second = if (author.isSelf) {
-            CustomAccessibilityAction("Delete") { model.confirmDelete(post.id); true }
-        } else {
-            CustomAccessibilityAction("Mute") { model.mute(author.id); true }
-        }
-        return listOf(CustomAccessibilityAction("Copy") { copy(post); true }, second)
-    }
 }
 
 /**
@@ -45,10 +35,11 @@ internal class SocialPostActions(
  */
 @Composable
 internal fun SocialPostMenu(model: SocialModel, actions: SocialPostActions) {
+    val icons = rememberSocialPostIcons()
     AMSpotlight(
         item = model.postMenuPost,
         onDismissRequest = { model.postMenuId = null },
-        actions = { post -> SocialPostTiles(post, model, actions) },
+        actions = { post -> socialPostActions(post, model, actions, icons) },
     ) { post -> SocialPostPreview(post, model) }
 }
 
@@ -69,28 +60,27 @@ private fun SocialPostPreview(post: SocialPost, model: SocialModel) {
     }
 }
 
-/** Copy and Delete on your own post; Copy and Mute on anyone else's. Each closes the menu first. */
+/** The post menu's glyphs. */
+@Immutable
+internal class SocialPostIcons(val copy: Painter, val delete: Painter, val mute: Painter)
+
+/** The post menu's glyphs. */
 @Composable
-private fun SocialPostTiles(post: SocialPost, model: SocialModel, actions: SocialPostActions) {
+internal fun rememberSocialPostIcons(): SocialPostIcons = SocialPostIcons(
+    copy = painterResource(R.drawable.ic_content_copy),
+    delete = painterResource(R.drawable.ic_delete),
+    mute = painterResource(R.drawable.ic_volume_off),
+)
+
+/** Copy and Delete on your own post; Copy and Mute on anyone else's. A tile closes the menu first. */
+internal fun socialPostActions(post: SocialPost, model: SocialModel, actions: SocialPostActions, icons: SocialPostIcons): List<AMHoldAction> {
     val author = model.user(post.authorId)
-    AMActionGridRow(
-        {
-            AMActionGridButton(painterResource(R.drawable.ic_content_copy), "Copy", onClick = {
-                model.postMenuId = null
-                actions.copy(post)
-            })
-        },
-        {
-            if (author.isSelf) {
-                AMActionGridButton(
-                    painterResource(R.drawable.ic_delete),
-                    "Delete",
-                    onClick = { model.confirmDelete(post.id) },
-                    destructive = true,
-                )
-            } else {
-                AMActionGridButton(painterResource(R.drawable.ic_volume_off), "Mute", onClick = { model.mute(author.id) })
-            }
+    return listOf(
+        AMHoldAction("Copy", icons.copy) { actions.copy(post) },
+        if (author.isSelf) {
+            AMHoldAction("Delete", icons.delete, destructive = true) { model.confirmDelete(post.id) }
+        } else {
+            AMHoldAction("Mute", icons.mute) { model.mute(author.id) }
         },
     )
 }

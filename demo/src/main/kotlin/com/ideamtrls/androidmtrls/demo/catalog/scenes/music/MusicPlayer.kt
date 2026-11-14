@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.ideamtrls.androidmtrls.AMBackdrop
-import com.ideamtrls.androidmtrls.AMLightStatusBarIcons
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCrossfade
 
@@ -21,15 +20,14 @@ import com.ideamtrls.androidmtrls.amCrossfade
  * [musicControlsPlacement] (the spot the remote shows the same card in), and the cover as a square
  * art card, centered in the room between the status bar and the controls and shrinking to fit on
  * short screens. Until the cover is read both show the album's project photo. The art and the card
- * dissolve when the album changes; songs on one album share them. The status bar's icons are light
- * over the art in both appearances ([AMLightStatusBarIcons]). The Queue sheet opens inside this art,
- * so its glass samples it.
+ * dissolve when the album changes; songs on one album share them. The art is washed toward the
+ * mode, so the status bar's icons are the appearance's. While it shows, the Queue sheet's glass
+ * samples this art.
  */
 @Composable
 internal fun MusicPlayerView(model: MusicModel) {
     val album = model.currentAlbum
     val cover = model.cover(album?.id)
-    AMLightStatusBarIcons()
     AMBackdrop(art = { Box(Modifier.fillMaxSize().musicArtBackdrop(cover, album?.coverUrl)) }, Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding().musicControlsPlacement()) {
             Box(
@@ -44,6 +42,5 @@ internal fun MusicPlayerView(model: MusicModel) {
             }
             MusicControlsCard(model)
         }
-        MusicQueueSheet(model)
     }
 }

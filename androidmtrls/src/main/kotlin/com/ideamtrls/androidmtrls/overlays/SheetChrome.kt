@@ -82,7 +82,7 @@ private data class GlassElement(val shape: Shape, val backdrop: AMBackdropSource
 
     override fun update(node: GlassNode) {
         node.shape = shape
-        node.backdrop = backdrop
+        node.follow(backdrop)
         node.invalidateDraw()
     }
 
@@ -99,11 +99,12 @@ private data class GlassElement(val shape: Shape, val backdrop: AMBackdropSource
  * through.
  *
  * The sheet is a window of its own, so it finds its slice of the art by screen position rather
- * than through the layout tree, and samples it again whenever the sheet moves. With no backdrop,
- * or before the art and the sheet are placed, it draws the solid sheet instead, never unblurred
- * translucency.
+ * than through the layout tree, and samples it again whenever the sheet moves and whenever the
+ * art records itself anew (a band's new picture, a scroll under the sheet), which its own window
+ * wouldn't otherwise redraw for. With no backdrop, or before the art and the sheet are placed, it
+ * draws the solid sheet instead, never unblurred translucency.
  */
-private class GlassNode(var shape: Shape, var backdrop: AMBackdropSource?) :
+private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
     Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -116,11 +117,27 @@ private class GlassNode(var shape: Shape, var backdrop: AMBackdropSource?) :
     private var coordinates: LayoutCoordinates? = null
     private var lastPosition = Offset.Unspecified
 
+    /** The art the sheet samples, which it listens to while attached. */
+    var backdrop: AMBackdropSource? = backdrop
+        private set
+
+    private val artRecorded: () -> Unit = { if (isAttached) invalidateDraw() }
+
+    /** Samples [source] from now on, listening to it instead of the art before. */
+    fun follow(source: AMBackdropSource?) {
+        if (source === backdrop) return
+        if (isAttached) backdrop?.removeRecordListener(artRecorded)
+        backdrop = source
+        if (isAttached) source?.addRecordListener(artRecorded)
+    }
+
     override fun onAttach() {
         layer = requireGraphicsContext().createGraphicsLayer()
+        backdrop?.addRecordListener(artRecorded)
     }
 
     override fun onDetach() {
+        backdrop?.removeRecordListener(artRecorded)
         layer?.let { requireGraphicsContext().releaseGraphicsLayer(it) }
         layer = null
         coordinates = null

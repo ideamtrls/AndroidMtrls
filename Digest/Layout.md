@@ -1,13 +1,13 @@
 ---
-scope: Static layout frames — Modifier.amCard(), the row recipe (Modifier.amRowPadding() for hand-built rows, AMRowDefaults for Material ListItem rows), AMSection, AMDisclosureGroup, AMDivider, and how nested surfaces demote (AMSurfaceStyle)
-globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/layout/**, androidmtrls/src/main/res/drawable/am_ic_expand_more.xml, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/layout/**]
-keywords: [Modifier.amCard, card, CardSurfaceNode, CardPaddingNode, draw inside own layout, shapes.large, padding, clip, fill, Solid, Frosted, AMBackdrop, elevation, AMElevation.None, nested cards, AMSurfaceStyle, Flat, Elevated, ProvideAMSurfaceStyle, re-lift, NestingSurfaceNode, TraversableNode, findNearestAncestor, resolveSurfaceStyle, SurfaceStyleOrigin, ElevatedSurfaceDrawer, row recipe, rowVerticalPadding, 28 dp, 80 dp, 100 dp, Modifier.amRowPadding, AMRowDefaults, contentPadding, colors, shapes, ListItem, ListItemDefaults, minimum height, selectedContainerColor, flat rows, AMSection, AMSectionStyle, Rows, Card, Flat, header, footer, footer over art, LocalAMBackdrop, glyphShadow, inset, amFlatSurface, AMDisclosureGroup, folding, expand_more, expand, collapse, AnimatedVisibility, motionScheme, AMDivider, HorizontalDivider, inset divider, CardPage, SectionPage, DisclosureGroupPage, DividerPage, LayoutPages]
-updated: 2026-11-10
+scope: Static layout frames — Modifier.amCard(), the row recipe (Modifier.amRowPadding() for hand-built rows, AMRowDefaults for Material ListItem rows), AMSection and its lazy form (LazyListScope.amSection, a card drawn a row at a time), AMDisclosureGroup, AMDivider, and how nested surfaces demote (AMSurfaceStyle)
+globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/layout/**, androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/LayoutCardSliceTest.kt, androidmtrls/src/main/res/drawable/am_ic_expand_more.xml, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/layout/**]
+keywords: [header-less AMSection, SectionLayout, Modifier.amCard, card, CardSurfaceNode, CardPaddingNode, draw inside own layout, shapes.large, padding, clip, fill, Solid, Frosted, AMBackdrop, elevation, AMElevation.None, nested cards, AMSurfaceStyle, Flat, Elevated, ProvideAMSurfaceStyle, re-lift, NestingSurfaceNode, TraversableNode, findNearestAncestor, resolveSurfaceStyle, SurfaceStyleOrigin, ElevatedSurfaceDrawer, row recipe, rowVerticalPadding, 28 dp, 80 dp, 100 dp, Modifier.amRowPadding, AMRowDefaults, contentPadding, colors, shapes, ListItem, ListItemDefaults, minimum height, selectedContainerColor, flat rows, AMSection, AMSectionStyle, Rows, Card, Flat, header, footer, amSection, LazyListScope, LazyColumn, lazy section, long list, amCardSlice, CardSliceNode, CardSlice, cardSlice, cardSliceReach, drawSurfaceSlice, band, LayoutCardSliceTest, footer over art, LocalAMBackdrop, glyphShadow, inset, amFlatSurface, AMDisclosureGroup, folding, expand_more, expand, collapse, AnimatedVisibility, motionScheme, AMDivider, HorizontalDivider, inset divider, CardPage, SectionPage, DisclosureGroupPage, DividerPage, LayoutPages]
+updated: 2026-11-14
 ---
 
 # Layout
 
-The static frames a screen lives inside: `Modifier.amCard()` (the floating card), the row recipe (`Modifier.amRowPadding()` for hand-built rows, `AMRowDefaults` for rows built on Material's `ListItem`), `AMSection` (a header, a card or flat block, a footer), `AMDisclosureGroup` (a card that folds open in place) and `AMDivider` (Material's divider with an inset). Cards nested in cards demote themselves to flat (`AMSurfaceStyle`).
+The static frames a screen lives inside: `Modifier.amCard()` (the floating card), the row recipe (`Modifier.amRowPadding()` for hand-built rows, `AMRowDefaults` for rows built on Material's `ListItem`), `AMSection` (a header, a card or flat block, a footer) and its lazy form `amSection` (a card of rows a `LazyColumn` draws a row at a time), `AMDisclosureGroup` (a card that folds open in place) and `AMDivider` (Material's divider with an inset). Cards nested in cards demote themselves to flat (`AMSurfaceStyle`).
 
 ## Where things live
 
@@ -15,8 +15,8 @@ Library sources under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/`
 
 | File | What |
 |---|---|
-| `layout/Card.kt` | `Modifier.amCard` (private `CardSurfaceNode`, `CardPaddingNode` and their elements), `Modifier.amRowPadding` (private `RowPaddingNode`), `AMRowDefaults`, internal `Modifier.amFlatSurface` |
-| `layout/Section.kt` | `AMSectionStyle`, `AMSection` (string and slot forms), private `SectionCard` |
+| `layout/Card.kt` | `Modifier.amCard` (private `CardSurfaceNode`, `CardPaddingNode` and their elements), `Modifier.amRowPadding` (private `RowPaddingNode`), `AMRowDefaults`, internal `Modifier.amFlatSurface`, internal `Modifier.amCardSlice` (private `CardSliceNode`), `CardSlice`, `cardSlice`, `cardSliceReach` |
+| `layout/Section.kt` | `AMSectionStyle`, `AMSection` (string and slot forms), `LazyListScope.amSection` (string and slot forms), private `SectionLayout`, `SectionCard`, `SectionFooter`, `lazySection` |
 | `layout/Disclosure.kt` | `AMDisclosureGroup` (string and slot forms) |
 | `layout/Divider.kt` | `AMDivider` |
 
@@ -24,6 +24,7 @@ Pieces in `foundations/` the area builds on (`Foundations.md`): `AMTheme.rowVert
 
 - Glyph: `androidmtrls/src/main/res/drawable/am_ic_expand_more.xml` (the disclosure chevron).
 - Catalog pages: `demo/.../catalog/pages/layout/` (below).
+- Tests: `androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/LayoutCardSliceTest.kt` (the slice math).
 
 ## The row recipe
 
@@ -52,7 +53,7 @@ Pieces in `foundations/` the area builds on (`Foundations.md`): `AMTheme.rowVert
   ) { Text("Send weekly report") }
   ```
   - `contentPadding` = `PaddingValues(horizontal = spacing.lg, vertical = rowVerticalPadding)`. Material's list item takes its content padding out of its own minimum height: it applies the padding, then gives the content a minimum of (56, 72 or 88 dp by line count) minus the top and bottom padding, floored at 0. With 28 dp above and below that minimum is 0, 16 or 32 dp, always below real content, so nothing stacks and the row is exactly content plus 56 dp. Material centers the leading and trailing content while the content area is under 88 dp tall and top-aligns them beyond it.
-  - `colors()` = Material's list item colors on a transparent container at rest, disabled and selected (only a dragged row keeps Material's container), and a checked or selected row keeps its resting content colors. **A row never tints itself when checked or selected**: it stays flat on its card or strip, and its control (a switch, a radio button) shows the state in Material's own look.
+  - `colors()` = Material's list item colors on a transparent container at rest, disabled and selected (only a dragged row keeps Material's container), and a checked or selected row keeps its resting content colors. **A row never tints itself when checked or selected**: it stays flat on its card or strip, and its control (a switch, a radio button) shows the state in Material's own look. The supporting line takes `AMTheme.secondaryText` (`ListItemDefaults.colors(supportingContentColor = …)`), the frosted secondary on glass (`Foundations.md`).
   - `shapes()` = Material's list item shapes made square at rest, pressed, focused, hovered and selected (dragged keeps Material's), so a row never rounds into a pill; a card's clip rounds the rows at its corners, ripple included.
   - Every `ListItem` overload used here is the current (non-experimental) one with `contentPadding`, `colors` and `shapes`; the old fixed-metric overload (`headlineContent`, `tonalElevation`) isn't used.
 - **Between rows**: `AMDivider(inset = AMTheme.tokens.spacing.lg)`, so the line starts where the rows' text does.
@@ -72,7 +73,7 @@ public fun Modifier.amCard(
 The one floating card every container builds on. It reads the theme only for its default shape, and adds two modifier nodes, in this order: `CardSurfaceNode` (draw, position-aware, the card's `NestingSurfaceNode`) and then `CardPaddingNode` (layout). The order is the one `background` then `padding` uses: Compose draws a node that also lays out inside its own layout, at its content's bounds, so one combined node would paint the surface inside the padding, hugging the content. Split, the surface is drawn by the padding's coordinator, at the card's full size.
 
 - **Elevated** (on the page): it pads the content by `padding`, then draws the elevated surface around it through the shared `ElevatedSurfaceDrawer` (`Foundations.md`): the shape's two-layer shadow at `elevation`, the shape filled with `AMTheme.Surface.primary`, the content **clipped to the shape** (Material's card clips, so ripples and full-bleed children keep the corners), and in dark mode the `selectionRing` hairline. `AMElevation.None` keeps fill, corners and hairline and casts nothing.
-- **Frosted** (`fill = AMSurfaceFill.Frosted`): glass over the nearest `AMBackdrop`'s art — the shadow outside the shape only, the blurred slice of the art, `AMTheme.Frosted.fill`, the content clipped, the frosted edge in both modes. With no backdrop, or before the art is placed, it draws solid. A frosted card redraws when it moves over its art. Supporting text on it uses `AMTheme.Frosted.secondaryText`.
+- **Frosted** (`fill = AMSurfaceFill.Frosted`): glass over the nearest `AMBackdrop`'s art — the shadow outside the shape only, the blurred slice of the art, `AMTheme.Frosted.fill`, the content clipped, the frosted edge in both modes. With no backdrop, or before the art is placed, it draws solid. A frosted card redraws when it moves over its art. Supporting text on it uses `AMTheme.secondaryText`, which is the frosted secondary once the content says it lies on glass (`ProvideAMSurfaceFill`, which the library's containers provide; `Foundations.md`).
 - **Flat** (nested): no fill, shadow, hairline, clip or `padding`; the content lies on the outer card, whose own padding is the only inset. Shadows never stack and padding never doubles.
 - **Padding.** None by default: a card of rows takes none, since each row carries the recipe. A block of prose or a composite block takes `PaddingValues(spacing.lg)`.
 - **Order.** After the modifiers that size the card, before the content's own: `Modifier.fillMaxWidth().amCard()`. A clickable card puts `clickable` after `amCard`, so the ripple stays inside the shape. The card itself handles no input.
@@ -94,9 +95,10 @@ The library's containers (`AMSection`'s cards, `AMDisclosureGroup`'s body) also 
 ```kotlin
 AMSection("Notifications", footer = "Email digest sends one summary a day.", style = AMSectionStyle.Rows) { … }
 AMSection(header = { Text("Team", Modifier.weight(1f)); Text("2") }, style = AMSectionStyle.Rows) { … }
+AMSection(footer = "Downloads play offline.", style = AMSectionStyle.Rows) { … }   // no header
 ```
 
-A titled group: `AMSectionHeader` on top, the content block, an optional footer. String form `(title, modifier, footer: String?, style, fill, elevation, inset, content)`; slot form `(header: RowScope slot, modifier, footer: slot?, style, fill, elevation, inset, content)`. The string form delegates to the slot form. `content` is a `ColumnScope` lambda.
+A titled group: `AMSectionHeader` on top, the content block, an optional footer. String form `(title, modifier, footer: String?, style, fill, elevation, inset, content)`; slot form `(header: RowScope slot, modifier, footer: slot?, style, fill, elevation, inset, content)`; **header-less form** `(modifier, footer: String? = null, style, fill, elevation, inset, content)`, for a group under a header of its own (a page's first group under its title) or needing none. All three go through private `SectionLayout(header?, …)`, which leaves the header row out when there's none. `content` is a `ColumnScope` lambda.
 
 - **`AMSectionStyle`**, one per kind of content:
   - `Rows` — a group of rows stacked bare in a card with no padding (`amCard(fill, elevation)`); each row brings the recipe. `AMDivider(inset = spacing.lg)` between rows that want a line.
@@ -104,10 +106,34 @@ A titled group: `AMSectionHeader` on top, the content block, an optional footer.
   - `Flat` — a reading block padded `spacing.lg` on a full-width `Surface.primary` strip (`amFlatSurface`), no corners or shadow; inside a card it draws no fill.
 - **Rows go in `Rows`, not `Card`**: the card style pads, so a row in it would sit inset twice.
 - The header, block and footer stack `spacing.sm` apart. The header takes the section header's look (`titleSmall` in `primary`, heading semantics); the footer gets `bodySmall` in `onSurfaceVariant` through `ProvideTextStyle` and `LocalContentColor`.
-- **Over a picture** (inside an `AMBackdrop`, `LocalAMBackdrop` non-null) the footer takes the header's over-art treatment: `onSurface` and the text legibility shadow (`glyphShadow(Style.Shadow.Text)`), so both hold over the art (`Foundations.md`).
+- **On art** (an art tone around it, `LocalAMArtTone` non-null) the header and the footer are art text for the tone: the header the primary ink (`Foundations.md`), the footer the secondary ink (`artInk(secondary = true)` as its content color, `amArtText(secondary = true)` on its box), `onSurfaceVariant` on the library's art, which the wash holds at 4.5:1 (`DataDisplay.md`).
 - `fill` and `elevation` go to the card (`Rows`, `Card`); `Flat` ignores them.
 - `inset = true` (default) stands the header, footer and card in from the section's edges by `spacing.lg`; pass `false` where the column is already inset (a page gutter). The flat strip always runs the full width.
-- The card styles wrap their content in `ProvideAMSurfaceStyle(Flat)`.
+- The card styles wrap their content in `ProvideAMSurfaceFill(fill)` (so its secondary text resolves from the card, and it no longer lies on art) and `ProvideAMSurfaceStyle(Flat)`.
+
+## `LazyListScope.amSection` — `Section.kt`
+
+```kotlin
+LazyColumn(Modifier.fillMaxSize()) {
+    amSection(episodes, key = { it.id }, title = "Episodes", footer = "${episodes.size} episodes") { episode ->
+        AMListRow(episode.title, subtitle = episode.date)
+    }
+}
+```
+
+`AMSectionStyle.Rows` for a `LazyColumn`, so only the rows on screen compose (a podcast's hundreds of episodes). A plain function on `LazyListScope`, so lowercase `am`. String form `(items, key, title: String? = null, footer: String? = null, fill, elevation, inset, dividers, content: @Composable (T) -> Unit)`; slot form `(items, key, header: RowScope slot, footer: slot? = null, fill, elevation, inset, dividers, content)`. Both go through private `lazySection`.
+
+- **Items.** A header item (`AMSectionHeader`, `spacing.sm` below it) when there's a header; one item per row, `key(item)` as its lazy key; a footer item (`SectionFooter`, the same caption and art-text look as `AMSection`'s, `spacing.sm` above it) when there's a footer. Each kind has its own content type. Header and footer take the list's default keys, so `key` must be unique across the whole list (other sections included) and saveable in a `Bundle`.
+- **A row's item**: a column inset by `spacing.lg` at the sides (`inset = true`), carrying `Modifier.amCardSlice(fill, elevation, shapes.large, first, last)`, its content inside `ProvideAMSurfaceFill(fill)` and `ProvideAMSurfaceStyle(Flat)` as `SectionCard`'s is; above every row but the first, `AMDivider(inset = spacing.lg)` unless `dividers = false`.
+- **The list stacks its items edge to edge**: a `verticalArrangement` gap would break the card at each row; sections are set apart by items of their own or content padding.
+- **Over art** a frosted fill blurs the nearest backdrop under each row; rows marked `amArtRow` on an `amArtRows` list give their own colors (`DataDisplay.md`).
+
+### How a row draws its slice — `Modifier.amCardSlice`
+
+Internal, in `Card.kt`. `CardSliceNode` is a `NestingSurfaceNode` (so cards inside a row are flat, and the slice is flat inside another card, drawing only its content) and owns an `ElevatedSurfaceDrawer`, drawing through `drawSurfaceSlice` (`Foundations.md`); position-aware, so a frosted slice redraws as it scrolls over its art.
+
+- **`cardSlice(size, first, last, reach)`** gives the row's `CardSlice`: `card`, the whole card's stand-in in the row's frame, running `reach` past each inner edge (the first row's card starts at its top, the last row's ends at its bottom); and `band`, the part of the drawing the row shows, its own rect opened by `reach` at the sides and at an outer edge. Neighbors' bands meet exactly, so the shadow, fill, frosted glass, frosted edge and dark-mode hairline run unbroken down the rows, the first row shows the top corners and the shadow above, the last the bottom corners and the shadow below, and each row's content is clipped to the card's shape (ripples included).
+- **`cardSliceReach(level)`** = the level's farthest shadow (a blur reaches about twice its radius, plus its offset) + 48 dp of room for the corners: 112 dp at `Low`.
 
 ## `AMDisclosureGroup` — `Disclosure.kt`
 
@@ -134,7 +160,7 @@ Folding: a card (`amCard(fill = fill)`) whose header opens it in place. String f
 | Page | Preview | Loaded |
 |---|---|---|
 | Card (`CardPage.kt`) | a two-line row ("Project Atlas") in a card | a frosted card ("Project Atlas") over a photo in a 200 dp `AMBackdrop` (`CatalogArt.Valley`: a snowy landscape, a city at night in dark mode; clipped to `shapes.large`), a prose card padded `spacing.lg`, and a card of a two-line row over a switch row |
-| Section (`SectionPage.kt`) | `FullBleed`: a flat "Account" section (label over value, footer) on a surface strip | Notifications (`Rows`, two switch rows, footer), Team (`Rows`, two members), About (`Card` at `AMElevation.None`), all `inset = false`, `spacing.xl` apart |
+| Section (`SectionPage.kt`) | `FullBleed`: a flat "Account" section (label over value, footer) on a surface strip | `Wide`: Notifications (`Rows`, two switch rows, footer), Team (`Rows`, two members), About (`Card` at `AMElevation.None`), then Episodes, a 560 dp `LazyColumn` holding one `amSection` of a podcast's 240 episodes (`AMListRow`s, newest first, footer), all `spacing.xl` apart |
 | Disclosure group (`DisclosureGroupPage.kt`) | a closed "Advanced" card holding a strict-mode switch row | three cards `spacing.md` apart: "Order summary" open, "Billing" with a credit-card glyph, "Shipping details" |
 | Divider (`DividerPage.kt`) | `FullBleed`: "Inbox" and "Archive" rows on a surface strip with a full-width divider | a card: an order total title row, a full-width divider, then subtotal, shipping and total rows (`ListItem` with the amount trailing) with inset dividers |
 

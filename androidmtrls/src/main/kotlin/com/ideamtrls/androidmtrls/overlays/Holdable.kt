@@ -25,22 +25,15 @@ import androidx.compose.ui.semantics.onLongClick
 /**
  * Press and hold: calls [onHold] once this item has been held for the system's long-press
  * timeout, with the long-press haptic as the hold registers. The trigger for an item's
- * [AMSpotlight].
+ * [AMSpotlight]; [actions] are its tiles, which TalkBack users get on the item itself.
  *
  * ```kotlin
- * ArticleRow(
- *     article,
- *     Modifier
- *         .clickable { open(article) }
- *         .amHoldable(
- *             onHold = { held = article },
- *             customActions = listOf(
- *                 CustomAccessibilityAction("Share") { share(article); true },
- *                 CustomAccessibilityAction("Delete") { delete(article); true },
- *             ),
- *         ),
- * )
+ * val actions = articleActions(article)   // the spotlight's tiles, as AMHoldActions
+ * ArticleRow(article, Modifier.clickable { open(article) }.amHoldable(onHold = { held = article }, actions = actions))
  * ```
+ *
+ * With an [AMSpotlightState] the hold and the spotlight share one definition of the actions:
+ * `Modifier.amHoldable(spotlight, article)`.
  *
  * It works alongside the item's own input, wherever it sits in the chain:
  *
@@ -49,49 +42,73 @@ import androidx.compose.ui.semantics.onLongClick
  *   fire; the ripple shows while the finger is down, as for any long press.
  * - **A drag that starts on the item still scrolls.** Once the touch moves past the touch slop, or
  *   something else (a scrolling list) takes it, the hold is off.
- * - **TalkBack**: double-tap and hold opens the hold, and [customActions] put the actions the
- *   spotlight offers on the item itself, so they're one step away.
+ * - **TalkBack**: double-tap and hold opens the hold, and [actions] are custom actions on the item,
+ *   in tile order, named by each action's spoken name, so they're one step away. On a row that also
+ *   swipes or reorders ([AMSwipeableRow], the reorderable lists) they join the row's own actions in
+ *   one list: the hold's first, then the moves, then the swipes, so nothing is lost.
  *
  * @param onHold called when the hold registers, while the finger is still down.
+ * @param actions what the hold offers (the spotlight's tiles), in tile order, for TalkBack users,
+ *   who get them on the item directly. Each runs its action.
  * @param enabled whether the item can be held. False leaves it tap-only and drops the actions.
- * @param customActions the actions the hold offers (the spotlight's tiles), for TalkBack users,
- *   who get them on the item directly.
  */
 public fun Modifier.amHoldable(
     onHold: () -> Unit,
+    actions: List<AMHoldAction> = emptyList(),
     enabled: Boolean = true,
-    customActions: List<CustomAccessibilityAction> = emptyList(),
-): Modifier = this then HoldableElement(onHold, enabled, customActions)
+): Modifier = this then HoldableElement(onHold, actions, enabled)
+
+/**
+ * Press and hold that opens [state]'s spotlight on [item]: the hold calls `state.show(item)`, and
+ * TalkBack users get the spotlight's tiles for [item] (the state's actions) on the item itself,
+ * with no second list to keep in step.
+ *
+ * ```kotlin
+ * val spotlight = rememberAMSpotlightState<Article> { article -> articleActions(article) }
+ * ArticleRow(article, Modifier.amHoldable(spotlight, article))
+ * AMSpotlight(spotlight) { article -> ArticleRow(article) }
+ * ```
+ *
+ * Everything else is the other form's.
+ *
+ * @param state the spotlight the hold opens, and where the item's actions come from.
+ * @param item what's held.
+ * @param enabled whether the item can be held. False leaves it tap-only and drops the actions.
+ */
+public fun <T : Any> Modifier.amHoldable(
+    state: AMSpotlightState<T>,
+    item: T,
+    enabled: Boolean = true,
+): Modifier = amHoldable(onHold = { state.show(item) }, actions = state.actionsFor(item), enabled = enabled)
 
 private data class HoldableElement(
     val onHold: () -> Unit,
+    val actions: List<AMHoldAction>,
     val enabled: Boolean,
-    val customActions: List<CustomAccessibilityAction>,
 ) : ModifierNodeElement<HoldableNode>() {
-    override fun create() = HoldableNode(onHold, enabled, customActions)
+    override fun create() = HoldableNode(onHold, actions, enabled)
 
-    override fun update(node: HoldableNode) {
-        node.onHold = onHold
-        if (node.enabled != enabled || node.customActions != customActions) {
-            node.enabled = enabled
-            node.customActions = customActions
-            node.invalidateSemantics()
-        }
-    }
+    override fun update(node: HoldableNode) = node.update(onHold, actions, enabled)
 
     override fun InspectorInfo.inspectableProperties() {
         name = "amHoldable"
         properties["onHold"] = onHold
+        properties["actions"] = actions.map { it.spokenName }
         properties["enabled"] = enabled
-        properties["customActions"] = customActions
     }
 }
 
 private class HoldableNode(
     var onHold: () -> Unit,
-    var enabled: Boolean,
-    var customActions: List<CustomAccessibilityAction>,
+    private var actions: List<AMHoldAction>,
+    private var enabled: Boolean,
 ) : DelegatingNode(), SemanticsModifierNode, CompositionLocalConsumerModifierNode {
+
+    /** The row container the hold adds its actions to, or null to carry them itself. */
+    private var row: RowActions? = null
+
+    /** The actions as TalkBack sees them, rebuilt only when their names change. */
+    private var spoken: List<CustomAccessibilityAction> = emptyList()
 
     init {
         delegate(
@@ -117,6 +134,44 @@ private class HoldableNode(
         )
     }
 
+    fun update(onHold: () -> Unit, actions: List<AMHoldAction>, enabled: Boolean) {
+        this.onHold = onHold
+        this.actions = actions
+        if (this.enabled != enabled) {
+            this.enabled = enabled
+            invalidateSemantics()
+        }
+        publish()
+    }
+
+    override fun onAttach() {
+        row = currentValueOf(LocalAMRowHold)
+        publish()
+    }
+
+    override fun onDetach() {
+        row?.let { if (it.held === spoken) it.held = emptyList() }
+        row = null
+        spoken = emptyList()
+    }
+
+    /**
+     * Builds the TalkBack actions when their names change (each runs the current action at its
+     * place, so new lambdas need no rebuild) and puts them on the row, or on this item.
+     */
+    private fun publish() {
+        val names = if (enabled) actions.map { it.spokenName } else emptyList()
+        if (names == spoken.map { it.label }) return
+        spoken = names.mapIndexed { index, name ->
+            CustomAccessibilityAction(name) {
+                actions.getOrNull(index)?.onClick?.invoke()
+                true
+            }
+        }
+        val row = row
+        if (row != null) row.held = spoken else if (isAttached) invalidateSemantics()
+    }
+
     private fun hold() {
         currentValueOf(LocalHapticFeedback).performHapticFeedback(HapticFeedbackType.LongPress)
         onHold()
@@ -128,7 +183,8 @@ private class HoldableNode(
             onHold()
             true
         }
-        if (this@HoldableNode.customActions.isNotEmpty()) customActions = this@HoldableNode.customActions
+        // In a row container the row carries them, merged with its own.
+        if (row == null && spoken.isNotEmpty()) customActions = spoken
     }
 }
 

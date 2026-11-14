@@ -36,12 +36,12 @@ the one package.
 | `actions` | `AMButton` and `AMButtonStyle`, `AMIconButton`, `AMCardButton`, `AMFloatingActionButton`, `AMFloatingActions` (the remote), `AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`, `AMFormActions`, `AMCardActionRow` |
 | `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
 | `selection` | `AMSegmentedControl`, `AMMenuPicker`, `AMChipGroup`, `AMFlowLayout`, `AMCalendar`, `AMSelectionMark` and `Modifier.amSelectionCheck` |
-| `navigation` | `AMScene` (a screen's root, with slots for the remote and scene-wide overlays), `AMKeepsPlace`, `AMLightStatusBarIcons`, `AMPanel`, `AMPanelChrome`, `AMArtPanelChrome`, `AMToolbar`, `AMToolbarButton`, `AMTabs`, `AMPageIndicator` |
+| `navigation` | `AMScene` (a screen's root, with slots for the remote and scene-wide overlays), `AMKeepsPlace`, `AMStatusBarIcons`, `AMPanel`, `AMPanelChrome`, `AMArtPanelChrome`, `AMToolbar`, `AMToolbarButton`, `AMTabs`, `AMPageIndicator` |
 | `layout` | `Modifier.amCard()`, the row recipe (`Modifier.amRowPadding()`, `AMRowDefaults`), `AMSection`, `AMDisclosureGroup`, `AMDivider` |
 | `lists` | `AMListRow`, `AMListCard`, `AMLabeledContent`, `AMReorderableRowList`, `AMReorderableCardList`, `AMSwipeableRow` and `AMSwipeAction` |
 | `feedback` | `AMBanner` and `AMBannerHost`, `AMToast` and `AMToastHost`, `AMLoadingOverlay`, `AMEmptyState`, `AMSkeleton` and `Modifier.amShimmer`, `AMProgressView` |
 | `overlays` | `AMSheet`, `AMAlert`, `AMActionsOverlay`, `AMSpotlight` and `Modifier.amHoldable`, `AMBackdropBlur`, `Modifier.amPausedBackdrop`, `Modifier.amDiscardGuard` |
-| `datadisplay` | `AMAvatar`, `AMTag`, `AMBadge` and `AMBadgedBox`, `AMTimeline`, `AMRemoteImage`, `Modifier.amArtBackdrop`, `Modifier.amPageBackdrop`, `Modifier.amArtRows` and `Modifier.amArtRow` inside `AMArtRowsBackdrop`, `Modifier.amArtText` |
+| `datadisplay` | `AMAvatar`, `AMTag`, `AMBadge` and `AMBadgedBox`, `AMTimeline`, `AMRemoteImage`, `Modifier.amArtBackdrop` and `AMArtDefaults`, `Modifier.amArtRows` and `Modifier.amArtRow` inside `AMArtRowsBackdrop`, `AMArtTone`, `Modifier.amArtText` |
 | `collections` | `AMCarousel`, `AMCardStack` |
 
 ## Getting started

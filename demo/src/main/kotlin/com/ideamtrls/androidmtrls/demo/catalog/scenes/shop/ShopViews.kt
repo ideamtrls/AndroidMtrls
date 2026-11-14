@@ -38,17 +38,12 @@ import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import java.util.Locale
 
 // Shared sizes
-
-/**
- * Room every Shop view leaves under its last control, so it scrolls clear of the floating action
- * button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val ShopFabClearance = 88.dp
 
 /** A label thumbnail's edge in a row: a list row's avatar size. */
 private val ShopThumbSize = 40.dp
@@ -68,22 +63,18 @@ internal fun TextStyle.shopFigures(): TextStyle = copy(fontFeatureSettings = "tn
 private val ShopBeansUrl = commonsPhoto("Roasted_coffee_beans.jpg")
 
 /**
- * The scene's one background, so the whole app feels like a coffee shop: roasted beans as a page
- * backdrop, blurred only enough to soften them, so they still read as beans. Light mode's white
- * wash already softens them; dark mode's lighter wash would leave their highlights hard against
- * the dark, so dark blurs more. It fills what holds it: the art of an `AMBackdrop`.
+ * The scene's one background, so the whole app feels like a coffee shop: roasted beans as an art
+ * backdrop, blurred only enough to soften them, so they still read as beans, and washed toward the
+ * mode at the library's defaults, so the text on them holds. Light mode's lift already softens
+ * them; dark mode blurs more, so the lowered highlights don't speckle the dark. It fills what holds
+ * it: the art of an `AMBackdrop`.
  */
 @Composable
 internal fun ShopBackdrop() {
     Box(
         Modifier
             .fillMaxSize()
-            .amPageBackdrop(
-                ShopBeansUrl,
-                blurRadius = if (AMTheme.isDark) 17.dp else 3.5.dp,
-                lightWash = 0.55f,
-                darkWash = 0.4f,
-            ),
+            .amArtBackdrop(ShopBeansUrl, blurRadius = if (AMTheme.isDark) 17.dp else 3.5.dp),
     )
 }
 
@@ -240,7 +231,9 @@ internal fun ShopProductCard(
         } else {
             ShopLabelArt(product, ShopLabelStyle.Tile)
             Text(product.name, style = nameStyle, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(product.priceLabel, style = priceStyle, color = AMTheme.Frosted.secondaryText, maxLines = 1)
+            ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                Text(product.priceLabel, style = priceStyle, color = AMTheme.secondaryText, maxLines = 1)
+            }
         }
     }
 }

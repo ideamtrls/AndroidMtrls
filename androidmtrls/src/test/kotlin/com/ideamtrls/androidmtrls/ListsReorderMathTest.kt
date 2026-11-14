@@ -1,10 +1,112 @@
 package com.ideamtrls.androidmtrls
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Test
 
-/** The reorderable lists' and the swipeable row's pure geometry. */
+/** The reorderable lists' and the swipeable row's pure geometry, and the order a drag shows. */
 class ListsReorderMathTest {
+
+    private fun order(vararg keys: String) = ReorderOrder().apply { observe(keys.toList()) }
+
+    @Test
+    fun eachStepShowsAtOnceWhileTheCallersOrderIsBehind() {
+        val order = order("a", "b", "c", "d")
+        assertEquals(true, order.move(0, 1))
+        assertEquals(true, order.move(1, 2))
+        assertEquals(true, order.move(2, 3))
+        assertEquals(listOf("b", "c", "d", "a"), order.shown)
+        assertEquals(listOf("b", "c", "d", "a"), order.shownFor(listOf("a", "b", "c", "d")))
+    }
+
+    @Test
+    fun theCallersStepsArriveLaterAndInOrder() {
+        val order = order("a", "b", "c", "d")
+        order.move(0, 1)
+        order.move(1, 2)
+        order.move(2, 3)
+        // The caller's first step comes in: the drag's order holds.
+        order.observe(listOf("b", "a", "c", "d"))
+        assertEquals(listOf("b", "c", "d", "a"), order.shown)
+        // Then its last, the one between conflated away: caught up, its own list shows.
+        val caught = listOf("b", "c", "d", "a")
+        assertSame(caught, order.shownFor(caught))
+        order.observe(caught)
+        assertSame(caught, order.shownFor(caught))
+    }
+
+    @Test
+    fun aStepBeyondTheCallersShowsOnTopOfIt() {
+        val order = order("a", "b", "c")
+        order.move(0, 1)
+        order.observe(listOf("b", "a", "c"))
+        // Caught up, then a new step while the caller hasn't taken it.
+        order.move(1, 2)
+        assertEquals(listOf("b", "c", "a"), order.shownFor(listOf("b", "a", "c")))
+        order.observe(listOf("b", "c", "a"))
+        val caught = listOf("b", "c", "a")
+        assertSame(caught, order.shownFor(caught))
+    }
+
+    @Test
+    fun aDragThereAndBackWaitsForTheCallersWayBack() {
+        val order = order("a", "b", "c")
+        order.move(0, 1)
+        order.move(1, 0)
+        assertEquals(listOf("a", "b", "c"), order.shownFor(listOf("a", "b", "c")))
+        // The caller's first step comes in: the drag's order holds.
+        order.observe(listOf("b", "a", "c"))
+        assertEquals(listOf("a", "b", "c"), order.shown)
+        // And its second: caught up.
+        val back = listOf("a", "b", "c")
+        order.observe(back)
+        assertSame(back, order.shownFor(back))
+    }
+
+    @Test
+    fun aCallerThatMovesOnShowsItsOwnOrder() {
+        val order = order("a", "b", "c")
+        order.move(0, 2)
+        val sorted = listOf("c", "b", "a")
+        assertSame(sorted, order.shownFor(sorted))
+        order.observe(sorted)
+        assertEquals(sorted, order.shown)
+        // A later step starts from the caller's order.
+        order.move(0, 1)
+        assertEquals(listOf("b", "c", "a"), order.shown)
+    }
+
+    @Test
+    fun itemsTheCallerAddsOrRemovesMeanwhileKeepTheirPlaces() {
+        val order = order("a", "b", "c")
+        order.move(0, 2)
+        // The caller adds "x" at the top and removes "b" before taking the step.
+        val caller = listOf("x", "a", "c")
+        assertEquals(listOf("x", "c", "a"), order.shownFor(caller))
+        order.observe(caller)
+        assertEquals(listOf("x", "c", "a"), order.shown)
+        // Then takes it.
+        val caught = listOf("x", "c", "a")
+        order.observe(caught)
+        assertSame(caught, order.shownFor(caught))
+    }
+
+    @Test
+    fun aStepThatMovesNothingIsRefused() {
+        val order = order("a", "b")
+        assertEquals(false, order.move(1, 1))
+        assertEquals(false, order.move(0, 2))
+        assertEquals(false, order.move(-1, 0))
+        val keys = listOf("a", "b")
+        assertSame(keys, order.shownFor(keys))
+    }
+
+    @Test
+    fun arrangeFillsTheSharedPlacesInTheGivenOrder() {
+        assertEquals(listOf("c", "x", "a", "b"), reorderArrange(listOf("a", "x", "b", "c"), listOf("c", "a", "y", "b")))
+        assertEquals(listOf("a"), reorderArrange(listOf("a"), emptyList()))
+        assertEquals(emptyList<String>(), reorderArrange(emptyList(), listOf("a")))
+    }
 
     @Test
     fun stepsDownOncePastTheMiddleOfTheItemBelow() {

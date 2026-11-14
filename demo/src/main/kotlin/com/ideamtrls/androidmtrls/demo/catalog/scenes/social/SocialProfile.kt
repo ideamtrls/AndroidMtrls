@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +39,7 @@ import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPanel
 import com.ideamtrls.androidmtrls.AMTabs
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import java.text.NumberFormat
 
 /** The profile's tabs. */
@@ -58,7 +62,9 @@ internal fun SocialProfile(model: SocialModel, userId: String, onBack: () -> Uni
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = SocialFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 SocialProfileHeader(user, model)

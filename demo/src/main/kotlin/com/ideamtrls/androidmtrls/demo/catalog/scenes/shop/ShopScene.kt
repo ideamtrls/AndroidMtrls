@@ -185,10 +185,11 @@ private fun ShopOverlays(model: ShopModel) {
         surface = AMSheetSurface.Frosted,
     ) { ShopCheckoutSheet(model) }
 
+    val quickAddIcons = rememberShopQuickAddIcons()
     AMSpotlight(
         item = if (model.showsQuickAdd) model.quickAddProduct else null,
         onDismissRequest = { model.showsQuickAdd = false },
-        actions = { product -> ShopQuickAddTiles(product, model) },
+        actions = { product -> shopQuickAddActions(product, model, quickAddIcons) },
     ) { product -> ShopQuickAddPreview(product) }
 
     AMLoadingOverlay(model.isPlacingOrder, "Placing order…")

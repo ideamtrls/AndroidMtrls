@@ -1,8 +1,10 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -18,12 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DrawModifierNode
@@ -33,7 +38,10 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.requireGraphicsContext
 import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 
 /**
@@ -107,7 +115,9 @@ public sealed interface AMButtonStyle {
     /**
      * Material's text button: no surface, no shadow, its label in the color scheme's primary, its
      * ripple in the theme's medium shape like the filled styles. For actions that recede, in
-     * dialogs and panels or beside a filled button.
+     * dialogs and panels or beside a filled button. On art (inside an [AMBackdrop] or
+     * [AMArtRowsBackdrop]) its label takes the ink of the art's tone (`onSurface` on the library's
+     * art), and a destructive one a red moved to hold 4.5:1 on that tone.
      */
     @Immutable
     public data object Ghost : AMButtonStyle
@@ -149,10 +159,14 @@ public val LocalAMButtonStyle: ProvidableCompositionLocal<AMButtonStyle> =
  * Disabled (its own [enabled], or a disabling container around it), the label greys to Material's
  * disabled color and a filled button drops its shadow, keeping its place, size and fill.
  *
+ * TalkBack reads the label, or [contentDescription] when the label alone doesn't name the action.
+ *
  * @param text the label.
  * @param onClick called when the button is tapped.
  * @param modifier the button's placement and size.
  * @param icon a glyph before the label, at the style's Material glyph size. Null shows none.
+ * @param contentDescription what TalkBack reads in place of the label, when the label is short of
+ *   a full name ("Remove" on a download reads "Remove download"). Null reads the label.
  * @param style the look: [LocalAMButtonStyle] unless given, so a container can style its buttons.
  * @param destructive whether the action removes something: the label takes [AMSemantic.Destructive].
  * @param enabled whether the button takes taps.
@@ -163,20 +177,12 @@ public fun AMButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: Painter? = null,
+    contentDescription: String? = null,
     style: AMButtonStyle = LocalAMButtonStyle.current,
     destructive: Boolean = false,
     enabled: Boolean = true,
 ) {
-    val filled = style != AMButtonStyle.Ghost
-    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = icon != null) {
-        if (icon != null) {
-            val glyph = if (filled) ButtonDefaults.iconSizeFor(FilledHeight) else ButtonDefaults.IconSize
-            val gap = if (filled) ButtonDefaults.iconSpacingFor(FilledHeight) else ButtonDefaults.IconSpacing
-            Icon(icon, contentDescription = null, modifier = Modifier.size(glyph))
-            Spacer(Modifier.size(gap))
-        }
-        Text(text)
-    }
+    AMButton(onClick, modifier, icon, contentDescription, style, destructive, enabled) { Text(text) }
 }
 
 /** The filled styles' height: Material's medium button. */
@@ -184,11 +190,29 @@ private val FilledHeight = ButtonDefaults.MediumContainerHeight
 
 /**
  * A button with custom content: [content] laid out in a row, taking the style's label type and
- * color, so a custom label (a glyph after the text, two weights) stays on-system. Otherwise the same
- * button as the string form.
+ * color, so a custom label (a glyph after the text, two weights, a figure beside the label) stays
+ * on-system. Otherwise the same button as the string form, led by [icon] at the style's glyph size
+ * and spacing, with the padding Material gives a button that leads with a glyph.
+ *
+ * ```kotlin
+ * // Shows "Cancel · 62%", reads "Cancel download, 62%".
+ * AMButton(
+ *     onClick = ::cancelDownload,
+ *     icon = painterResource(R.drawable.ic_close),
+ *     contentDescription = "Cancel download, $percent%",
+ *     style = AMButtonStyle.Secondary(),
+ * ) {
+ *     Text("Cancel")
+ *     Text(" · $percent%", style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum"))
+ * }
+ * ```
  *
  * @param onClick called when the button is tapped.
  * @param modifier the button's placement and size.
+ * @param icon a glyph before [content], at the style's Material glyph size. Null shows none.
+ * @param contentDescription what TalkBack reads in place of [content] (the glyph and the custom
+ *   label are hidden from it), when what the button shows is short of a full name. Null reads
+ *   [content].
  * @param style the look: [LocalAMButtonStyle] unless given, so a container can style its buttons.
  * @param destructive whether the action removes something: the content takes
  *   [AMSemantic.Destructive].
@@ -199,12 +223,108 @@ private val FilledHeight = ButtonDefaults.MediumContainerHeight
 public fun AMButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: Painter? = null,
+    contentDescription: String? = null,
     style: AMButtonStyle = LocalAMButtonStyle.current,
     destructive: Boolean = false,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
-    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = false, content = content)
+    val filled = style != AMButtonStyle.Ghost
+    val face: @Composable RowScope.() -> Unit = {
+        if (icon != null) {
+            val glyph = if (filled) ButtonDefaults.iconSizeFor(FilledHeight) else ButtonDefaults.IconSize
+            val gap = if (filled) ButtonDefaults.iconSpacingFor(FilledHeight) else ButtonDefaults.IconSpacing
+            Icon(icon, contentDescription = null, modifier = Modifier.size(glyph))
+            Spacer(Modifier.size(gap))
+        }
+        content()
+    }
+    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = icon != null) {
+        if (contentDescription != null) {
+            // The spoken name stands in for the face: the button merges it, the face is hidden.
+            Row(
+                Modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
+                verticalAlignment = Alignment.CenterVertically,
+                content = face,
+            )
+        } else {
+            face()
+        }
+    }
+}
+
+/**
+ * Two page buttons that share a row: side by side at equal widths, `spacing.md` apart and equally
+ * tall, when each label fits on one line at half the width; otherwise stacked, [first] over
+ * [second], each full width, `spacing.md` apart. A label never shrinks or breaks to make room: a
+ * longer label ("Remove download") or a larger font scale stacks the pair instead.
+ *
+ * ```kotlin
+ * AMButtonPair(
+ *     { AMButton("Play", onClick = ::play, icon = painterResource(R.drawable.ic_play_arrow)) },
+ *     { AMButton("Shuffle", onClick = ::shuffle, icon = painterResource(R.drawable.ic_shuffle), style = AMButtonStyle.Secondary()) },
+ * )
+ * ```
+ *
+ * Give each slot one [AMButton] with no size of its own: the pair sizes them. Each keeps its own
+ * style, so the pair suits any two page actions; the row that closes a form is [AMFormActions].
+ *
+ * @param first the button at the start of the row, or on top when stacked.
+ * @param second the button at the end of the row, or below when stacked.
+ * @param modifier the pair's placement. The pair fills the width it's given.
+ */
+@Composable
+public fun AMButtonPair(
+    first: @Composable () -> Unit,
+    second: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val gap = AMTheme.tokens.spacing.md
+    Layout(contents = listOf(first, second), modifier = modifier.fillMaxWidth()) { measurables, constraints ->
+        val a = measurables[0].first()
+        val b = measurables[1].first()
+        val gapPx = gap.roundToPx()
+        val width = constraints.maxWidth
+        val half = buttonPairHalf(width, gapPx)
+        // Each button's one-line width, label unbroken.
+        val split = buttonPairSplits(
+            a.maxIntrinsicWidth(Constraints.Infinity),
+            b.maxIntrinsicWidth(Constraints.Infinity),
+            width,
+            gapPx,
+        )
+        if (split) {
+            val height = maxOf(a.minIntrinsicHeight(half), b.minIntrinsicHeight(half))
+            val cell = Constraints(minWidth = half, maxWidth = half, minHeight = height)
+            val pa = a.measure(cell)
+            val pb = b.measure(cell)
+            layout(width, maxOf(pa.height, pb.height)) {
+                pa.placeRelative(0, 0)
+                pb.placeRelative(width - pb.width, 0)
+            }
+        } else {
+            val row = Constraints.fixedWidth(width)
+            val pa = a.measure(row)
+            val pb = b.measure(row)
+            layout(width, pa.height + gapPx + pb.height) {
+                pa.placeRelative(0, 0)
+                pb.placeRelative(0, pa.height + gapPx)
+            }
+        }
+    }
+}
+
+/** Each button's width when an [AMButtonPair] [width] wide splits, [gap] between them. */
+internal fun buttonPairHalf(width: Int, gap: Int): Int = (width - gap) / 2
+
+/**
+ * Whether an [AMButtonPair] [width] wide splits: both buttons' one-line widths ([firstWidth],
+ * [secondWidth]) fit in half the row, [gap] between them. Otherwise it stacks.
+ */
+internal fun buttonPairSplits(firstWidth: Int, secondWidth: Int, width: Int, gap: Int): Boolean {
+    val half = buttonPairHalf(width, gap)
+    return firstWidth <= half && secondWidth <= half
 }
 
 /** Both forms of [AMButton]: picks the Material button and size for [style], and its padding. */
@@ -229,11 +349,7 @@ private fun ButtonBody(
             modifier = modifier,
             enabled = isEnabled,
             shape = MaterialTheme.shapes.medium,
-            colors = if (destructive) {
-                ButtonDefaults.textButtonColors(contentColor = AMSemantic.Destructive.color)
-            } else {
-                ButtonDefaults.textButtonColors()
-            },
+            colors = ButtonDefaults.textButtonColors(contentColor = ghostLabelColor(destructive)),
             contentPadding = if (leadingIcon) {
                 ButtonDefaults.TextButtonWithIconContentPadding
             } else {
@@ -241,6 +357,23 @@ private fun ButtonBody(
             },
             content = content,
         )
+    }
+}
+
+/**
+ * A ghost button's label: Material's `primary` on the page, and on art the ink of the art's tone,
+ * since `primary` falls short over light art (3.51:1 on the light wash's floor). Destructive, the
+ * scheme's error: moved on art just far enough to hold 4.5:1 on the art's tone.
+ */
+@Composable
+@ReadOnlyComposable
+private fun ghostLabelColor(destructive: Boolean): Color {
+    val tone = LocalAMArtTone.current
+    return when {
+        destructive && tone != null -> artInkHolding(AMSemantic.Destructive.color, tone)
+        destructive -> AMSemantic.Destructive.color
+        tone != null -> artInk(tone = tone)
+        else -> MaterialTheme.colorScheme.primary
     }
 }
 
@@ -364,7 +497,7 @@ private class ControlSurfaceNode(
             drawSurface(
                 context = requireGraphicsContext(),
                 shape = shape,
-                elevation = elevation,
+                shadow = elevation.shadowLevel,
                 fill = fill,
                 hairline = if (onPrimary) Style.ControlOutline.Dark else Color.Unspecified,
                 dark = dark,

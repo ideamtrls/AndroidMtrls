@@ -112,7 +112,8 @@ public fun <T> AMTabs(
             animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
             label = "AMTabs",
         ) { id ->
-            entries.firstOrNull { it.id == id }?.content?.invoke()
+            // The content lies on the tabs' surface.
+            ProvideAMSurfaceFill(fill) { entries.firstOrNull { it.id == id }?.content?.invoke() }
         }
     }
 }

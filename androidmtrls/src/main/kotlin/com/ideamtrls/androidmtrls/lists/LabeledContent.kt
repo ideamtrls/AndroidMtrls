@@ -21,7 +21,8 @@ import kotlin.math.min
 
 /**
  * A label and its value on one row: Material's `ListItem` at the row recipe's rhythm, [label] at
- * the start in `bodyLarge` and [value] at the end in `bodyLarge` and `onSurfaceVariant`, read as
+ * the start in `bodyLarge` and [value] at the end in `bodyLarge` and the surface's secondary
+ * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on glass), read as
  * a value rather than as a list item's small trailing note.
  *
  * ```kotlin
@@ -32,10 +33,12 @@ import kotlin.math.min
  * }
  * ```
  *
- * The label keeps its own width, on one line, and the value takes the rest of the row, at its
- * end, wrapping onto lines aligned to the end. Only when the value's longest word wouldn't fit
- * does the label give up width, wrapping between its words, never inside one. The two line up on
- * their first lines.
+ * When both fit on one line, they do. When they don't, the shorter one keeps its line as long as
+ * it's no wider than half the row, and the other wraps in the rest: a short label beside a long
+ * address keeps its line and the address wraps at the end, and a long label beside "2 hours ago"
+ * wraps while the value stays whole. When both are longer than half, each wraps in half the row.
+ * Neither ever breaks inside a word. Values wrap onto lines aligned to the end, and the two line up
+ * on their first lines.
  *
  * The row only shows; it takes no taps. Like [AMListRow] it fills itself with
  * [AMTheme.Surface.primary] standing on the page and draws no fill inside a card. A screen reader
@@ -58,7 +61,7 @@ public fun AMLabeledContent(
 
 /**
  * A label and a custom value on one row, such as a status tag. The value gets `bodyLarge`, lines
- * aligned to the end and `onSurfaceVariant`, so text inside it reads as a value. Otherwise the
+ * aligned to the end and [AMTheme.secondaryText], so text inside it reads as a value. Otherwise the
  * same row as the string form: the label at its own width, the value in the rest at the end.
  *
  * @param label what the value is.
@@ -89,13 +92,14 @@ public fun AMLabeledContent(
 
 /**
  * The label and the value side by side, `spacing.lg` apart: the label at the width
- * [labeledContentLabelWidth] gives it, the value in the rest, placed at the end. Their first
- * baselines line up when both have one; otherwise they center on each other.
+ * [labeledContentLabelWidth] gives it from both texts' one-line and longest-word widths, the value
+ * in the rest, placed at the end. Their first baselines line up when both have one; otherwise they
+ * center on each other.
  */
 @Composable
 private fun LabeledContentLayout(label: String, value: @Composable () -> Unit) {
     val gap = AMTheme.tokens.spacing.lg
-    val valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val valueColor = AMTheme.secondaryText
     val valueStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End)
     Layout(
         contents = listOf(
@@ -113,15 +117,13 @@ private fun LabeledContentLayout(label: String, value: @Composable () -> Unit) {
         val valueMeasurable = valueMeasurables.first()
         val gapPx = gap.roundToPx()
         val labelNatural = labelMeasurable.maxIntrinsicWidth(Constraints.Infinity)
-        val width = if (constraints.hasBoundedWidth) {
-            constraints.maxWidth
-        } else {
-            labelNatural + gapPx + valueMeasurable.maxIntrinsicWidth(Constraints.Infinity)
-        }
+        val valueNatural = valueMeasurable.maxIntrinsicWidth(Constraints.Infinity)
+        val width = if (constraints.hasBoundedWidth) constraints.maxWidth else labelNatural + gapPx + valueNatural
         val room = (width - gapPx).coerceAtLeast(0)
         val labelWidth = labeledContentLabelWidth(
             labelNatural = labelNatural,
             labelLongestWord = labelMeasurable.minIntrinsicWidth(Constraints.Infinity),
+            valueNatural = valueNatural,
             valueLongestWord = valueMeasurable.minIntrinsicWidth(Constraints.Infinity),
             room = room,
         )
@@ -152,9 +154,30 @@ private fun LabeledContentLayout(label: String, value: @Composable () -> Unit) {
 
 /**
  * How wide a labeled row's label is laid out, in pixels, beside a value, with [room] for both (the
- * row's width less the gap): its natural one-line width [labelNatural], given up only as far as the
- * value's longest word [valueLongestWord] needs, and never below the label's own longest word
- * [labelLongestWord], so it never breaks inside a word. Never wider than [room].
+ * row's width less the gap); the value gets the rest. From each text's one-line width
+ * ([labelNatural], [valueNatural]) and longest word ([labelLongestWord], [valueLongestWord]):
+ *
+ * - both fit on one line: the label at its own width;
+ * - otherwise the shorter one keeps its line while it's no wider than half the room, and the other
+ *   wraps in the rest (the value first, so a short value beside a long label stays whole);
+ * - both wider than half: half the room each.
+ *
+ * Then neither breaks inside a word: the label leaves the value at least its longest word, and
+ * keeps at least its own longest word, which wins when both can't. Never wider than [room].
  */
-internal fun labeledContentLabelWidth(labelNatural: Int, labelLongestWord: Int, valueLongestWord: Int, room: Int): Int =
-    min(labelNatural, max(labelLongestWord, room - valueLongestWord)).coerceIn(0, max(room, 0))
+internal fun labeledContentLabelWidth(
+    labelNatural: Int,
+    labelLongestWord: Int,
+    valueNatural: Int,
+    valueLongestWord: Int,
+    room: Int,
+): Int {
+    val half = room / 2
+    val preferred = when {
+        labelNatural + valueNatural <= room -> labelNatural
+        valueNatural <= half -> room - valueNatural
+        labelNatural <= half -> labelNatural
+        else -> half
+    }
+    return max(min(preferred, room - valueLongestWord), labelLongestWord).coerceIn(0, max(room, 0))
+}

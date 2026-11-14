@@ -27,7 +27,7 @@ internal val MusicSceneEntry = ComponentEntry(
     keywords = listOf(
         "music", "player", "art backdrop", "frosted", "slider", "queue", "reorder", "album", "artist", "streaming",
         "AMScene", "AMKeepsPlace", "AMArtPanelChrome", "AMBackdrop", "amArtBackdrop", "amArtRows", "AMArtRowsBackdrop",
-        "AMLightStatusBarIcons", "AMSlider", "AMSpotlight", "amHoldable", "AMReorderableRowList", "AMSheet", "scene",
+        "AMArtTone", "AMSlider", "AMSpotlight", "amHoldable", "AMReorderableRowList", "AMSheet", "scene",
     ),
 ) { MusicScene() }
 
@@ -39,8 +39,9 @@ internal val MusicSceneEntry = ComponentEntry(
  * artist and album panels, each over its own art under [com.ideamtrls.androidmtrls.AMArtPanelChrome];
  * the Player sits outside it, so a trip to the Player leaves the stack as it was.
  *
- * The spotlight and the toasts are the scene's overlays, beside the roots, so the remote's button
- * fades under them and a switch of root never interrupts them. Playback stops when the scene leaves.
+ * The Queue sheet, the spotlight and the toasts are the scene's overlays, beside the roots, so the
+ * remote's button fades under them, a switch of root never interrupts them, and the frosted Queue
+ * sheet blurs the art of whichever page shows. Playback stops when the scene leaves.
  */
 @Composable
 internal fun MusicScene() {
@@ -88,14 +89,14 @@ internal fun MusicScene() {
  * The Artists root view: the Navigation 3 stack of the Artists page and the panels it pushes. Each
  * page sits on its own backdrop (the Artists page and the artist page on their art rows, the album
  * page on its cover's art), so its light/dark chip and toolbar buttons are solid and its frosted
- * surfaces blur its own art; the dark neutral behind them shows while Navigation 3 moves between
- * pages. The page on top hosts the Queue sheet.
+ * surfaces blur its own art; the page color behind them shows while Navigation 3 moves between
+ * pages.
  */
 @Composable
 private fun MusicArtistsStack(model: MusicModel) {
     NavDisplay(
         backStack = model.backStack,
-        modifier = Modifier.fillMaxSize().background(AMTheme.Surface.art),
+        modifier = Modifier.fillMaxSize().background(AMTheme.Surface.page),
         onBack = model::back,
         entryProvider = { route ->
             when (route) {
@@ -107,13 +108,15 @@ private fun MusicArtistsStack(model: MusicModel) {
     )
 }
 
-/** The press-and-hold queue menu in the spotlight, and the scene's toasts. */
+/** The Queue sheet, the press-and-hold queue menu in the spotlight, and the scene's toasts. */
 @Composable
 private fun MusicOverlays(model: MusicModel) {
+    MusicQueueSheet(model)
+    val icons = rememberMusicQueueIcons()
     AMSpotlight(
         item = model.queueMenuTarget,
         onDismissRequest = { model.queueMenuTarget = null },
-        actions = { target -> MusicQueueTiles(target, model) },
+        actions = { target -> musicQueueActions(target, model, icons) },
     ) { target ->
         MusicQueuePreview(target, model)
     }

@@ -6,9 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import com.ideamtrls.androidmtrls.AMActionGridButton
-import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMElevation
+import com.ideamtrls.androidmtrls.AMHoldAction
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
 import java.time.LocalDate
@@ -26,24 +25,16 @@ private const val CalendarPeekEventLimit = 4
 internal fun CalendarDayPeek(model: CalendarModel) {
     val formats = rememberCalendarFormats()
     val now = rememberCalendarNow()
+    val addEvent = painterResource(R.drawable.ic_calendar_add_on)
+    val openDay = painterResource(R.drawable.ic_event_available)
     AMSpotlight(
         model.peekDay,
         onDismissRequest = { model.peekDay = null },
         title = { day -> formats.dayHeading(day, now.toLocalDate()) },
         actions = { day ->
-            AMActionGridRow(
-                {
-                    AMActionGridButton(
-                        painterResource(R.drawable.ic_calendar_add_on), "Add event",
-                        onClick = { model.addEvent(day) },
-                    )
-                },
-                {
-                    AMActionGridButton(
-                        painterResource(R.drawable.ic_event_available), "Open day",
-                        onClick = { model.openDay(day) },
-                    )
-                },
+            listOf(
+                AMHoldAction("Add event", addEvent) { model.addEvent(day) },
+                AMHoldAction("Open day", openDay) { model.openDay(day) },
             )
         },
         // Flat, as the scene's cards are.

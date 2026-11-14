@@ -2,12 +2,14 @@ package com.ideamtrls.androidmtrls.demo
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,6 +33,7 @@ import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amInstantSwitch
 import com.ideamtrls.androidmtrls.amRowPadding
 
@@ -67,12 +70,6 @@ private fun search() {}
 
 /** The band's height: the scene's screen. */
 private val SceneHeight = 380.dp
-
-/**
- * Room at the end of a list so its last row can scroll clear of the button: the button's 56 dp, the
- * `spacing.lg` under it and the same again over it.
- */
-private val ButtonClearance = 88.dp
 
 /**
  * A scene on the band: its height, and no system bars of its own, so the button rests just above
@@ -175,7 +172,8 @@ private fun MailboxView(title: String, messages: List<Message>) {
     val spacing = AMTheme.tokens.spacing
     Column(Modifier.fillMaxSize()) {
         AMPageHeader(title)
-        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = ButtonClearance)) {
+        // The band has no navigation bar of its own (sceneFrame), so the list clears the button alone.
+        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = WindowInsets.amFloatingActions.exclude(WindowInsets.navigationBars).asPaddingValues()) {
             itemsIndexed(messages) { index, message ->
                 if (index > 0) AMDivider(inset = spacing.lg)
                 Column(Modifier.amRowPadding()) {

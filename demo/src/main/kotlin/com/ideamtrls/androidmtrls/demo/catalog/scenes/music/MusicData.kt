@@ -1,7 +1,6 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.unit.dp
 import java.text.Collator
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -382,8 +381,3 @@ internal sealed interface MusicQueueTarget {
     }
 }
 
-/**
- * Room every Music scroll view leaves under its last entry, so it scrolls clear of the floating
- * action button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val MusicFabClearance = 88.dp

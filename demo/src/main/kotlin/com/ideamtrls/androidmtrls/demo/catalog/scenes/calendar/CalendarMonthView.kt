@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +47,7 @@ import com.ideamtrls.androidmtrls.AMTimeline
 import com.ideamtrls.androidmtrls.AMTimelineDot
 import com.ideamtrls.androidmtrls.AMTimelineLabel
 import com.ideamtrls.androidmtrls.amCard
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amTimelineFirstLine
 import java.time.LocalDate
 
@@ -77,7 +81,9 @@ internal fun CalendarMonthView(model: CalendarModel) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = CalendarFabClearance),
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.amFloatingActions)
+                .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
             AMCalendar(

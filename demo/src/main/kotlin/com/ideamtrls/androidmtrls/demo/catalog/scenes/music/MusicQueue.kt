@@ -21,8 +21,8 @@ import com.ideamtrls.androidmtrls.amCard
 
 /**
  * The Queue sheet, frosted like the scene's cards (glass over the art of the screen it opens on),
- * titled "Queue". The scene composes it inside that screen's backdrop ([MusicModel.hostsQueue], or
- * the Player's).
+ * titled "Queue". It's one of the scene's overlays, so its glass samples the art of whichever page
+ * shows (the Player, or the Artists stack's page on top), and a switch of root never cuts it.
  */
 @Composable
 internal fun MusicQueueSheet(model: MusicModel) {

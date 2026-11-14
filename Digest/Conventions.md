@@ -2,7 +2,7 @@
 scope: Cross-cutting public-API, naming, parameter-order, state, theming, native-behavior, glyph and motion conventions for every AndroidMtrls component — read before adding or changing ANY public API
 globs: [androidmtrls/build.gradle.kts, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/**, androidmtrls/src/main/res/drawable/**]
 keywords: [AM prefix, Modifier.am, LocalAM, amInstantSwitch, rememberAMFloatingActionButtonState, ProvideAMSurfaceStyle, remember, Provide, explicitApi, public API, internal, one package, area folders, filenames, parameter order, Compose component guidelines, modifier parameter, content lambda, trailing lambda, contentDescription, icon, label, title, onClick, onValueChange, onDismissRequest, string overload, slot overload, nullable slot, sealed style, AMButtonStyle, CompositionLocal default, hoisted state, visible, rememberSaveable, enabled, LocalAMEnabled, Immutable, Stable, action payload, visual-only, quiet defaults, autofocus, flat widgets, enforcement ladder, MaterialTheme, static color scheme, dynamic color, type roles, sentence case, row recipe, amRowPadding, AMRowDefaults, ripple, Indication, 48 dp, minimumInteractiveComponentSize, predictive back, edge-to-edge, insets, SwipeToDismissBox, SaveableStateHolder, long press, HapticFeedbackType, TalkBack, font scale, sp, Material Symbols, am_ic_, vector drawable, autoMirrored, colorControlNormal, motion policy, MotionScheme, Remove animations, third-party libraries]
-updated: 2026-11-10
+updated: 2026-11-13
 ---
 
 # Conventions
@@ -19,7 +19,7 @@ The cross-cutting rules every public API in the library follows: naming, paramet
 ## Project-wide facts (apply to EVERY task)
 
 - Kotlin 2.4 with **`explicitApi()`**: every declaration states its visibility, and every public one its return type. Anything not meant for apps is `internal` or `private`.
-- **minSdk 36 (Android 16)**, compileSdk 37 (the demo targets 37). **Phones only**: no tablet, foldable or landscape designs.
+- **minSdk 36 (Android 16)**, never lowered, with no `SDK_INT` checks, `@RequiresApi` or older-release fallbacks; compileSdk 37 (the demo targets 37). **Phones only**: no tablet, foldable or landscape designs.
 - **Pre-release.** Breaking parameter reorders are allowed: fix the parameter order to match the rules below rather than appending parameters to keep source compatibility.
 - **Jetpack and Google only.** No third-party libraries in the library or the demo. Image loading and blur are built in-house.
 - The library exposes Compose UI, Foundation and Material 3 to apps (`api`), because its theme installs `MaterialTheme` and its components hand Material types through.

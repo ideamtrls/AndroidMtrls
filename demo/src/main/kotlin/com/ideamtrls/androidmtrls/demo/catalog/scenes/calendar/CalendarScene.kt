@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMActionGrid
 import com.ideamtrls.androidmtrls.AMActionGridButton
 import com.ideamtrls.androidmtrls.AMActionGridRow
@@ -23,7 +22,7 @@ import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.amInstantSwitch
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import java.time.YearMonth
 
 internal val CalendarSceneEntry = ComponentEntry(
@@ -37,12 +36,6 @@ internal val CalendarSceneEntry = ComponentEntry(
         "month", "agenda", "day peek", "hold", "event form", "toast", "empty state", "scene",
     ),
 ) { CalendarScene() }
-
-/**
- * Room every Calendar view leaves under its last content, so it scrolls clear of the floating
- * action button: the button's 56 dp, with `spacing.lg` under it and the same over it.
- */
-internal val CalendarFabClearance = 88.dp
 
 /**
  * Calendar: one month at a time with the selected day's agenda under it, and a months view the
@@ -60,7 +53,7 @@ internal fun CalendarScene() {
     AMBackdrop(
         art = {
             val month = if (model.currentView == CalendarView.Month) model.displayedMonth else YearMonth.now()
-            Box(Modifier.fillMaxSize().amPageBackdrop(calendarMonthArt(month)))
+            Box(Modifier.fillMaxSize().amArtBackdrop(calendarMonthArt(month)))
         },
         Modifier.fillMaxSize(),
     ) {

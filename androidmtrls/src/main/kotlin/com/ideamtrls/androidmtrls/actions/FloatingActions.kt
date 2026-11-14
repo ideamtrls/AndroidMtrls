@@ -3,10 +3,17 @@ package com.ideamtrls.androidmtrls
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 
 /** What a screen reader says for the remote's button unless the app names it. */
 private const val ShowActionsLabel = "Show actions"
@@ -91,3 +98,38 @@ public fun AMFloatingActions(
     }
     AMActionsOverlay(expanded, onDismissRequest = { onExpandedChange(false) }, content = menu)
 }
+
+/**
+ * The insets that keep the end of scrolling content clear of the scene's floating action button:
+ * the navigation bar, then the room the button takes over it at rest (the `spacing.lg` it rests
+ * above the bar and its 56 dp) and the same `spacing.lg` again, so the last item scrolls clear of
+ * the button: 88 dp over the bar by default. Bottom only.
+ *
+ * ```kotlin
+ * LazyColumn(contentPadding = WindowInsets.amFloatingActions.asPaddingValues()) { … }
+ * ```
+ *
+ * Content that already pads the navigation bar, such as a scaffold's content, consumes that
+ * padding first, so the bar counts once:
+ *
+ * ```kotlin
+ * Column(
+ *     Modifier.verticalScroll(rememberScrollState())
+ *         .padding(padding)
+ *         .consumeWindowInsets(padding)
+ *         .windowInsetsPadding(WindowInsets.amFloatingActions),
+ * ) { … }
+ * ```
+ */
+public val WindowInsets.Companion.amFloatingActions: WindowInsets
+    @Composable get() = WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+        .add(WindowInsets(bottom = floatingActionButtonTop() + AMTheme.tokens.spacing.lg))
+
+/**
+ * How far above the navigation bar the scene's floating action button reaches at rest: the gap it
+ * rests above the bar (`spacing.lg`) and its 56 dp. A scene's toasts show just over it; scrolling
+ * content clears it by one more gap (`WindowInsets.amFloatingActions`).
+ */
+@Composable
+@ReadOnlyComposable
+internal fun floatingActionButtonTop(): Dp = FloatingActionButtonDiameter + AMTheme.tokens.spacing.lg

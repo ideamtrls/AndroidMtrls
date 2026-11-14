@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 
@@ -29,8 +30,9 @@ import androidx.compose.ui.semantics.semantics
  * - **Rhythm.** 28 dp above and below the content and 16 dp at the sides ([AMRowDefaults]): one
  *   line makes an 80 dp row, a title and subtitle a 100 dp row. Text wraps; the row grows.
  * - **Taps.** Without [onClick] the row only draws. With it, the row is a button with Material's
- *   ripple. For actions on a press and hold, add `Modifier.amHoldable`; for swipe actions, wrap it
- *   in [AMSwipeableRow].
+ *   ripple, and [onClickLabel] names what a tap does for TalkBack ("double-tap to play" rather
+ *   than "double-tap to activate"). For actions on a press and hold, add `Modifier.amHoldable`;
+ *   for swipe actions, wrap it in [AMSwipeableRow].
  * - **Chosen.** [selected] draws the selection ring ([AMTheme.selectionRingWidth] in
  *   [AMTheme.selectionRing]) inside the row's edges and tells a screen reader it's selected. The
  *   row itself never tints.
@@ -41,6 +43,8 @@ import androidx.compose.ui.semantics.semantics
  * @param leadingContent a glyph, avatar or picture before the text. Null shows none.
  * @param trailingContent an accessory after the text: a value, a tag, a switch. Null shows none.
  * @param selected whether the row is the chosen one, ringed.
+ * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to" ("Play",
+ *   "Open album"). Null leaves TalkBack's generic "activate". Only a row with [onClick] uses it.
  * @param onClick makes the row a button. Null leaves it a plain row.
  * @param enabled whether the row takes taps. A disabled row keeps its place and dims.
  */
@@ -52,6 +56,7 @@ public fun AMListRow(
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     selected: Boolean = false,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
@@ -61,6 +66,7 @@ public fun AMListRow(
         supportingContent = if (subtitle.isNullOrEmpty()) null else ({ Text(subtitle) }),
         trailingContent = trailingContent,
         selected = selected,
+        onClickLabel = onClickLabel,
         onClick = onClick,
         enabled = enabled,
     ) {
@@ -78,6 +84,8 @@ public fun AMListRow(
  * @param supportingContent what sits under the headline. Null shows none.
  * @param trailingContent an accessory after the text: a value, a tag, a switch. Null shows none.
  * @param selected whether the row is the chosen one, ringed.
+ * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to". Null leaves
+ *   TalkBack's generic "activate". Only a row with [onClick] uses it.
  * @param onClick makes the row a button. Null leaves it a plain row.
  * @param enabled whether the row takes taps. A disabled row keeps its place and dims.
  * @param content the row's headline.
@@ -89,6 +97,7 @@ public fun AMListRow(
     supportingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     selected: Boolean = false,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     content: @Composable () -> Unit,
@@ -98,6 +107,7 @@ public fun AMListRow(
         .fillMaxWidth()
         .amFlatSurface()
         .then(claimRowActions())
+        .rowClickLabel(onClickLabel, onClick, isEnabled)
         .then(
             if (selected) {
                 Modifier
@@ -136,3 +146,21 @@ public fun AMListRow(
         }
     }
 }
+
+/**
+ * Names a list item's tap for TalkBack: its click action carrying [label], so TalkBack says
+ * "double-tap to" the label. Material's list item takes no click label, and it lays its click
+ * out on the node this modifier joins, so this replaces that action with the same tap, labeled.
+ * Nothing without a label or a tap, or while disabled (Material's own action stays).
+ */
+internal fun Modifier.rowClickLabel(label: String?, onClick: (() -> Unit)?, enabled: Boolean): Modifier =
+    if (label == null || onClick == null || !enabled) {
+        this
+    } else {
+        semantics {
+            onClick(label) {
+                onClick()
+                true
+            }
+        }
+    }

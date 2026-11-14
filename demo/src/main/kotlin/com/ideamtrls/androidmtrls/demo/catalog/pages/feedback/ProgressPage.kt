@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMListRow
 import com.ideamtrls.androidmtrls.AMProgressView
 import com.ideamtrls.androidmtrls.AMProgressViewStyle
 import com.ideamtrls.androidmtrls.AMTheme
@@ -19,8 +20,8 @@ internal val ProgressEntry = ComponentEntry(
     summary = "A spinner or a linear bar, with its label",
     icon = R.drawable.ic_progress_activity,
     keywords = listOf(
-        "AMProgressView", "AMProgressViewStyle", "Spinner", "Bar", "CircularProgressIndicator",
-        "LinearProgressIndicator", "loading", "determinate", "indeterminate", "percent", "upload",
+        "AMProgressView", "AMProgressViewStyle", "Spinner", "Glyph", "Bar", "CircularProgressIndicator",
+        "LinearProgressIndicator", "loading", "determinate", "indeterminate", "percent", "upload", "row", "trailing",
     ),
 ) { ProgressPage() }
 
@@ -48,7 +49,10 @@ private fun MailProgress() {
     }
 }
 
-/** A sync card: three bars done, part way and waiting, then a spinner for the next check. */
+/**
+ * A sync card: three bars done, part way and waiting, a row refreshing with the glyph at its end,
+ * then a spinner for the next check.
+ */
 @Composable
 private fun SyncProgress() {
     val spacing = AMTheme.tokens.spacing
@@ -58,6 +62,12 @@ private fun SyncProgress() {
         AMProgressView("Videos", progress = { 0.35f }, valueLabel = "35%", style = AMProgressViewStyle.Bar)
         AMDivider(inset = spacing.lg)
         AMProgressView("Documents", progress = { 0f }, valueLabel = "Waiting", style = AMProgressViewStyle.Bar)
+        AMDivider(inset = spacing.lg)
+        AMListRow(
+            "Shared albums",
+            subtitle = "Refreshing",
+            trailingContent = { AMProgressView("Refreshing shared albums", style = AMProgressViewStyle.Glyph) },
+        )
         AMDivider(inset = spacing.lg)
         AMProgressView(
             "Checking for new files",

@@ -31,9 +31,28 @@ internal object Style {
     object Surface {
         val Light = Color.White
         val Dark = Color.Black
+    }
 
-        /** The dark neutral standing in for art before its picture lands, in both modes. */
-        val Art = Color(0xFF333333)
+    /**
+     * Text lying on art whose tone isn't the mode's (an app's lowered wash, sharp art, a scrim over
+     * a photo). On art in the mode's tone, text takes the scheme's own colors instead.
+     */
+    object ArtInk {
+        /** On dark art in light mode: white, and a light gray for secondary text. */
+        val OnDark = Color.White
+        val OnDarkSecondary = Color(0xFFD1D1D6)
+
+        /** On light art in dark mode: near-black, and a dark gray for secondary text. */
+        val OnLight = Color(0xFF1C1C1E)
+        val OnLightSecondary = Color(0xFF48484A)
+
+        /**
+         * The darkest the library's light-mode art gets, as relative luminance: two colors lifted
+         * to the default light wash's floor (gray `#BFBFBF`, 0.5225) dip to this where bands blend,
+         * at worst (a bright green into a pink, measured). Colored text on light art holds 4.5:1
+         * against it.
+         */
+        const val LightArtGround = 0.4646f
     }
 
     /**
@@ -55,10 +74,21 @@ internal object Style {
             far = ShadowLayer(0.dp, 0.dp, 0f, 0f),
         )
 
-        /** The default lift: cards, filled buttons, toolbar buttons, tiles, the toast. */
+        /** The default lift: cards, filled buttons, tiles, the toast. */
         val Low = ShadowLevel(
             near = ShadowLayer(6.dp, 2.dp, 0.10f, 0.55f),
             far = ShadowLayer(27.dp, 10.dp, 0.08f, 0.45f),
+        )
+
+        /**
+         * A solid toolbar button: [Low] fitted inside a top app bar's row. Material clips each of
+         * a bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
+         * circle, where [Low]'s far layer would be cut into a hard edge. So the near layer stays
+         * and the far layer is tight enough to have faded out (under 1 %) at the row's edge.
+         */
+        val BarButton = ShadowLevel(
+            near = ShadowLayer(6.dp, 2.dp, 0.10f, 0.55f),
+            far = ShadowLayer(8.dp, 3.dp, 0.08f, 0.25f),
         )
 
         /** The deeper lift of a sheet, which sits higher off the page than a card. */
@@ -73,10 +103,17 @@ internal object Style {
             far = ShadowLayer(16.dp, 4.dp, 0.10f, 0.10f),
         )
 
-        /** White art text on a darkened picture: a tight and a soft layer, stronger than [Text]. */
+        /** Light art text on dark art: a tight and a soft black layer, stronger than [Text]. */
         val ArtText = ShadowLevel(
             near = ShadowLayer(1.dp, 1.dp, 0.30f, 0.30f),
             far = ShadowLayer(10.dp, 2.dp, 0.28f, 0.28f),
+        )
+
+        /** Dark art text on light art: the same layers in white, a glow that lifts the glyphs' edges. */
+        val ArtTextLight = ShadowLevel(
+            near = ShadowLayer(1.dp, 1.dp, 0.30f, 0.30f),
+            far = ShadowLayer(10.dp, 2.dp, 0.28f, 0.28f),
+            color = Color.White,
         )
     }
 
@@ -151,7 +188,8 @@ internal object Style {
 
     /**
      * The overlay behind the remote, the spotlight and other modal layers: the screen blurs, and
-     * in dark mode only, a black dim lies over the blur. The same blur stills a picture in place
+     * the mode's wash lies over it, white in light mode and black in dark mode, so the spotlight's
+     * title holds over any screen, sharp art included. The same blur stills a picture in place
      * (`AMBackdropBlur`, `amPausedBackdrop`).
      */
     object ModalOverlay {
@@ -161,15 +199,14 @@ internal object Style {
          */
         val BlurRadius = 34.dp
 
-        /** The black dim over the blur, in dark mode only. */
-        const val DarkDimAlpha = 0.4f
-
         /**
-         * The dim that stands in for the blur while the system has cross-window blur off: Material's
-         * scrim strength in light mode, the platform's dialog dim in dark mode.
+         * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode.
+         * Over sharp black art, `onSurface` (the spotlight's title) holds 5.99:1 in light mode;
+         * over sharp white art, 5.38:1 in dark mode. The blur only evens the screen out, so the
+         * wash holds alone where the system has cross-window blur off.
          */
-        const val FallbackDimLight = 0.32f
-        const val FallbackDimDark = 0.6f
+        val WashLight = Color.White.copy(alpha = 0.6f)
+        val WashDark = Color.Black.copy(alpha = 0.65f)
 
         /**
          * The page wash over a paused picture (`AMPausedScrim.Page`), in both modes: enough to demote
@@ -188,6 +225,6 @@ internal data class ShadowLayer(val blur: Dp, val offsetY: Dp, val lightAlpha: F
     fun alpha(dark: Boolean): Float = if (dark) darkAlpha else lightAlpha
 }
 
-/** One elevation level: its near and far layers. */
+/** One elevation level: its near and far layers, in [color]: black, or white for a glow under dark text. */
 @Immutable
-internal data class ShadowLevel(val near: ShadowLayer, val far: ShadowLayer)
+internal data class ShadowLevel(val near: ShadowLayer, val far: ShadowLayer, val color: Color = Color.Black)

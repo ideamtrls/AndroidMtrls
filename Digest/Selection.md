@@ -1,8 +1,8 @@
 ---
 scope: Option-choosing primitives — segmented control, menu picker, chip groups and the flow layout, the month calendar, and selection marks — the library's selection/ folder and the Selection catalog pages
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/selection/**, androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/selection/**, androidmtrls/src/main/res/drawable/am_ic_check.xml, androidmtrls/src/main/res/drawable/am_ic_arrow_drop_down.xml, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/selection/**]
-keywords: [AMSegmentedControl, SingleChoiceSegmentedButtonRow, SegmentedButton, itemShape, check icon, AMMenuPicker, ListItem, RadioButton, selectableGroup, spotlight, AMSpotlight, arrow_drop_down, AMChipGroup, FilterChip, check mark, leadingIcon, FilterChipDefaults.IconSize, multi-select, single choice, selection, onSelectionChange, selected, onSelectedChange, named arguments, AMFlowLayout, FlowRow, FlowRowScope, spacing, lineSpacing, touch target, AMCalendar, YearMonth, LocalDate, month grid, calendarMonthCells, WeekFields, firstDayOfWeek, markers, event dots, onHold, amHoldable, today, primary, secondaryContainer, tabular digits, tnum, font scale cap, MaxTextScale, TalkBack, contentDescription, AMSelectionMark, Modifier.amSelectionCheck, check glyph, selection ring, selectionRingWidth, AMElevation.Text, ShapeShadows, GraphicsLayer, vectorResource, toggleable, resolveEnabled, SelectionPages, CalendarMonthCellsTest]
-updated: 2026-11-10
+keywords: [AMMenuSpotlight, AMMenuOptions, menu from any control, AMSegmentedControl, SingleChoiceSegmentedButtonRow, SegmentedButton, itemShape, check icon, AMMenuPicker, ListItem, RadioButton, selectableGroup, spotlight, AMSpotlight, arrow_drop_down, AMChipGroup, FilterChip, check mark, leadingIcon, FilterChipDefaults.IconSize, multi-select, single choice, selection, onSelectionChange, selected, onSelectedChange, named arguments, AMFlowLayout, FlowRow, FlowRowScope, spacing, lineSpacing, touch target, AMCalendar, YearMonth, LocalDate, month grid, calendarMonthCells, WeekFields, firstDayOfWeek, markers, event dots, onHold, amHoldable, today, primary, secondaryContainer, tabular digits, tnum, font scale cap, MaxTextScale, TalkBack, contentDescription, AMSelectionMark, Modifier.amSelectionCheck, check glyph, selection ring, selectionRingWidth, AMElevation.Text, ShapeShadows, GraphicsLayer, vectorResource, toggleable, resolveEnabled, SelectionPages, CalendarMonthCellsTest]
+updated: 2026-11-14
 ---
 
 # Selection
@@ -16,7 +16,7 @@ Library sources under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/s
 | File | What |
 |---|---|
 | `SegmentedControl.kt` | `AMSegmentedControl` |
-| `MenuPicker.kt` | `AMMenuPicker` |
+| `MenuPicker.kt` | `AMMenuPicker`, `AMMenuSpotlight`, `AMMenuOptions` |
 | `ChipGroup.kt` | `AMChipGroup` (many choices, one choice); private `ChipFlow`, `ChipGlyph` |
 | `FlowLayout.kt` | `AMFlowLayout` |
 | `Calendar.kt` | `AMCalendar`; internal `calendarMonthCells`; private `WeekdayHeader`, `DayCell`, `TextStyle.capped` |
@@ -53,7 +53,17 @@ AMMenuPicker("Sort by", listOf("Newest", "Oldest", "A–Z"), label = { it }, sel
 `AMMenuPicker(title, options, label, selected, onSelectedChange, modifier, icon: Painter? = null, enabled)`. One form: its content is fixed (glyph, title, value).
 
 - **The row**: Material's clickable `ListItem` with `AMRowDefaults` (colors, shapes, content padding: the row recipe, 80 dp for one line). Leading: the optional `icon`. Headline: `title`. Trailing: the current option's label in `bodyMedium` and `am_ic_arrow_drop_down`, `spacing.xs` apart, both in the list item's trailing color (`onSurfaceVariant`; Material's disabled color when disabled). The whole row takes the tap with ripple, and TalkBack reads the title and value together. A flat row: callers put it in a card or on a surface strip, `AMDivider(inset = spacing.lg)` between rows.
-- **The options**: a tap sets `choosing` (`rememberSaveable`) and `AMSpotlight(choosing, title = title)` comes up (`Overlays.md`): a `selectableGroup` column of selectable `ListItem`s on the row recipe, each led by a Material `RadioButton` (`onClick = null`, the row takes the tap), the current one on. Tapping an option calls `onSelectedChange` (unless it's already current) and closes; back and a tap outside close it unchanged.
+- **The options**: a tap sets `choosing` (`rememberSaveable`) and `AMMenuSpotlight` comes up with the row's title and options (below). Tapping an option calls `onSelectedChange` (unless it's already current) and closes; back and a tap outside close it unchanged.
+
+### From any control — `AMMenuSpotlight`, `AMMenuOptions`
+
+```kotlin
+AMIconButton("${speed}×", "Playback speed, $speed times", onClick = { choosingSpeed = true })
+AMMenuSpotlight(choosingSpeed, onDismissRequest = { choosingSpeed = false }, title = "Speed", options = speeds, label = { "$it×" }, selected = speed, onSelectedChange = { speed = it })
+```
+
+- **`AMMenuSpotlight(visible, onDismissRequest, title, options, label, selected, onSelectedChange, modifier)`**: the picker's spotlight on its own, for a control that isn't a row (a speed button, a sleep-timer button): `AMSpotlight(visible, title = title)` (`Overlays.md`) with no tiles, holding `AMMenuOptions`. A tap on an option calls `onSelectedChange` unless it's the current one, then `onDismissRequest`; back and a tap outside call `onDismissRequest` alone. A window like every overlay: opened from the remote's menu or a sheet it sits above them, and it reports to the scene's registry, so the floating action button fades out under it. `AMMenuPicker`'s row opens it.
+- **`AMMenuOptions(options, label, selected, onSelectedChange, modifier)`**: the option rows alone, for a card of the app's own: a `fillMaxWidth().selectableGroup()` column of selectable `ListItem`s on the row recipe (`AMRowDefaults`), each led by a Material `RadioButton` (`onClick = null`, the row takes the tap), the current one on. A tap calls `onSelectedChange` with the option, the current one included, so a menu can close on any pick.
 
 ## `AMChipGroup` (`ChipGroup.kt`)
 
@@ -109,7 +119,7 @@ AMRemoteImage(url, contentDescription = "Photo 3", modifier = Modifier.aspectRat
 | Page | Preview | Loaded |
 |---|---|---|
 | Segmented control | Day, Week, Month, full width | Mine, Shared, Archived over a card of the chosen scope's documents (clickable `ListItem`s: title over when it was edited, who shared it, or when it was archived) |
-| Menu picker | `FullBleed`: "Sort by" (Newest, Oldest, A–Z) on a surface strip | a card: "Streaming quality" with `ic_cell_tower` (Low, Standard, High), "Sleep timer" (Off to 1 hour), "Download quality" disabled at High |
+| Menu picker | `FullBleed`: "Sort by" (Newest, Oldest, A–Z) on a surface strip | a card: "Streaming quality" with `ic_cell_tower` (Low, Standard, High), "Sleep timer" (Off to 1 hour), "Download quality" disabled at High, then a "Speed" row whose trailing text button ("1.0×", `AMIconButton`'s text form) opens `AMMenuSpotlight` with five speeds |
 | Chip group | eight genres, Jazz and Electronic chosen | a card padded `spacing.lg`: one city (All, Brooklyn, Kyoto, Lisbon, Reykjavík), a full-width divider, then any moods with glyphs (Quiet, Outdoors, Late night, Good coffee, Live music) |
 | Selection check | three 96 dp photos in `shapes.medium`, the first and last marked | a 3 × 3 grid of square photos `spacing.sm` apart, each `toggleable` (checkbox role) and marked while picked |
 | Calendar | `FullBleed`: this month on a surface strip, dots on six days | the month in a card over a card of the selected day's events (a clear day shows the "Nothing scheduled" / "No events on this day." `AMEmptyState` on the page, padded `spacing.lg`); holding a day brings up its events in the spotlight under its name ("Saturday, November 7", `getBestDateTimePattern`) with Add event and Open day, which selects it |

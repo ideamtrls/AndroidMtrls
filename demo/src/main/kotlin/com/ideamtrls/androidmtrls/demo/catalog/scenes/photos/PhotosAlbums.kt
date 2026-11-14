@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -41,6 +44,7 @@ import com.ideamtrls.androidmtrls.AMReorderableCardList
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 /** "1 album" / "n albums": the Albums count line. */
 private fun photosAlbumCountLabel(count: Int): String = if (count == 1) "1 album" else "$count albums"
@@ -72,7 +76,9 @@ internal fun PhotosAlbums(model: PhotosModel) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(top = spacing.sm, bottom = PhotosFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 if (albums.isEmpty()) {
@@ -114,7 +120,7 @@ internal fun PhotosAlbums(model: PhotosModel) {
 private fun PhotosAlbumCard(model: PhotosModel, album: PhotosAlbum) {
     AMListCard(
         leadingContent = { PhotosAlbumCover(model.cover(album), 56.dp, MaterialTheme.shapes.small) },
-        supportingContent = { Text(photosCountLabel(album.photoIds.size), color = AMTheme.Frosted.secondaryText) },
+        supportingContent = { Text(photosCountLabel(album.photoIds.size)) },
         fill = AMSurfaceFill.Frosted,
         onClick = { model.openAlbum(album.id) },
     ) {

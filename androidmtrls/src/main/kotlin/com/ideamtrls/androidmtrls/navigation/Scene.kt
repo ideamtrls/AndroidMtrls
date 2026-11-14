@@ -68,7 +68,7 @@ public fun AMScene(
     val registry = remember { AMOverlayRegistry() }
     // Toasts clear the button's resting place: its height and its gap above the navigation bar.
     val toastClearance = if (floatingActions != null) {
-        FloatingActionButtonDiameter + AMTheme.tokens.spacing.lg
+        floatingActionButtonTop()
     } else {
         0.dp
     }
@@ -135,9 +135,13 @@ public fun AMScene(
  *   remote fades away over it. The current view's tile is `active`, ringed.
  * - **What belongs to the whole scene goes in [overlays]**: the sheets, alerts, spotlight, loading
  *   overlay and toasts any root can bring up. They're composed beside the roots, inside the scene
- *   (so they report to its overlay registry, show in its hosts and sit inside whatever backdrop
- *   is around it) and outside every root, so a switch of root never takes down an open sheet.
- *   Overlays a single root owns can stay in that root.
+ *   (so they report to its overlay registry and show in its hosts) and outside every root, so a
+ *   switch of root never takes down an open sheet, nor cuts one sliding away. Overlays a single
+ *   root owns can stay in that root.
+ * - **Overlays lie on the showing root's art.** A frosted sheet in [overlays] samples the backdrop
+ *   the showing root draws, the outermost [AMBackdrop] or [AMArtRowsBackdrop] of the root or of the
+ *   panel on top, and follows it as roots switch, panels come and go and the art changes. While
+ *   the root draws none, it samples whatever backdrop is around the scene, or draws solid.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -152,8 +156,8 @@ public fun AMScene(
  * @param modifier the scene's size and placement: usually the whole window.
  * @param floatingActions the remote's button and menu, an [AMFloatingActions]. Null shows none.
  * @param overlays what the whole scene presents over its roots, whichever is showing: its sheets,
- *   alerts, spotlight, loading overlay and toasts. Composed after the roots and before the remote.
- *   Null composes nothing.
+ *   alerts, spotlight, loading overlay and toasts. Composed after the roots and before the remote,
+ *   on the showing root's art. Null composes nothing.
  * @param backStack a root's Navigation 3 back stack, its own view's entry first, kept in the app's
  *   state: the root shows a panel while it holds more than one entry. A root without panels
  *   returns an empty list, the default.
@@ -173,9 +177,24 @@ public fun <T : Any> AMScene(
     containerColor: Color = AMTheme.Surface.page,
     content: @Composable (root: T) -> Unit,
 ) {
+    val backdrops = remember { AMSceneBackdrops() }
     AMScene(modifier, floatingActions, containerColor) {
-        AMKeepsPlace(current, landing, onCurrentChange, Modifier.fillMaxSize(), backStack, content)
+        CompositionLocalProvider(LocalAMSceneBackdrops provides backdrops) {
+            AMKeepsPlace(current, landing, onCurrentChange, Modifier.fillMaxSize(), backStack, content)
+        }
         // Beside the roots, never inside one: a switch of root leaves these up.
-        overlays?.invoke()
+        if (overlays != null) SceneOverlays(backdrops, overlays)
     }
+}
+
+/**
+ * The scene's overlays, on the art the showing root draws, or on the scene's own while it draws
+ * none: frosted sheets among them sample it, from their own windows, by screen position.
+ */
+@Composable
+private fun SceneOverlays(backdrops: AMSceneBackdrops, overlays: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalAMBackdrop provides (backdrops.showing ?: LocalAMBackdrop.current),
+        content = overlays,
+    )
 }

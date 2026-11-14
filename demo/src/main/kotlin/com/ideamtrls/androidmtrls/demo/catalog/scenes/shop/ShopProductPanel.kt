@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +42,7 @@ import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
+import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
  * A product's panel, titled with its name, on the beans: the label large, the name and price, the
@@ -62,7 +66,9 @@ internal fun ShopProductPanel(model: ShopModel, id: String, onBack: () -> Unit) 
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm, bottom = ShopFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.xl),
             ) {
                 ShopProductHead(product, size)
@@ -117,7 +123,7 @@ internal fun ShopProductPanel(model: ShopModel, id: String, onBack: () -> Unit) 
                         Text(
                             "${index + 1}. $step",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AMTheme.Frosted.secondaryText,
+                            color = AMTheme.secondaryText,
                         )
                     }
                 }
@@ -162,7 +168,7 @@ private fun ShopProductDetails(product: ShopProduct) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
                 product.details.forEach { detail ->
                     Row(horizontalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                        Text(detail.label, Modifier.width(labelWidth), style = style, color = AMTheme.Frosted.secondaryText)
+                        Text(detail.label, Modifier.width(labelWidth), style = style, color = AMTheme.secondaryText)
                         Text(detail.value, Modifier.weight(1f), style = style)
                     }
                 }

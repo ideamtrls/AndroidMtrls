@@ -17,13 +17,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.ideamtrls.androidmtrls.AMBanner
+import com.ideamtrls.androidmtrls.AMBannerItem
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMElevation
 import com.ideamtrls.androidmtrls.AMRowDefaults
+import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMTextField
@@ -53,21 +57,31 @@ private fun SheetPage() {
     }
 }
 
-/** A full-height sheet editing the display name, which asks before it drops an edit. */
+/**
+ * A full-height sheet editing the display name, which asks before it drops an edit. Saving with no
+ * name keeps the sheet up and posts a warning banner from the page, which comes down over the
+ * sheet.
+ */
 @Composable
 private fun EditProfile() {
     var editing by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
+    var banner by remember { mutableStateOf<AMBannerItem?>(null) }
     AMButton("Show sheet", onClick = { editing = true }, modifier = Modifier.fillMaxWidth())
     AMSheet(editing, onDismissRequest = { editing = false }, title = "Edit profile") {
         ProfileForm(
             saved = name,
             onSave = {
-                name = it
-                editing = false
+                if (it.isBlank()) {
+                    banner = AMBannerItem("Add a display name", message = "It's how people find you.", style = AMSemantic.Warning)
+                } else {
+                    name = it
+                    editing = false
+                }
             },
         )
     }
+    AMBanner(banner, onDismissRequest = { banner = null })
 }
 
 /** The name in a card at the top, Save at the bottom of the sheet. */

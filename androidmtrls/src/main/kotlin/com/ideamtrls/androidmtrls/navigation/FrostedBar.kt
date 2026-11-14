@@ -1,5 +1,7 @@
 package com.ideamtrls.androidmtrls
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
@@ -35,9 +37,12 @@ import kotlin.math.max
 /**
  * [bar] with the frosted fill behind it, faded in by [fill] (0 at rest, 1 once content is under
  * it). [fill] is read while drawing, so a moving fraction redraws the fill without recomposing.
+ * While [covers] (the fill is in), the bar tells its art the status bar lies on the fill, so the
+ * art's tone no longer decides the icons there.
  */
 @Composable
-internal fun FrostedBar(fill: () -> Float, modifier: Modifier = Modifier, bar: @Composable () -> Unit) {
+internal fun FrostedBar(fill: () -> Float, covers: Boolean, modifier: Modifier = Modifier, bar: @Composable () -> Unit) {
+    ReportTopCover(LocalAMBackdrop.current, covers)
     Box(modifier) {
         Box(Modifier.matchParentSize().graphicsLayer { alpha = fill() }.frostedBarFill())
         bar()
@@ -76,6 +81,33 @@ internal fun twoRowBarFill(scrollBehavior: TopAppBarScrollBehavior?): Float =
 
 /** The overlap past which Material's top app bar counts content as under it. */
 internal const val BarScrolledFraction: Float = 0.01f
+
+/**
+ * Whether a two-row bar's frosted fill has come in far enough for its lines to take the bar's own
+ * colors: from [BarLinesFilledFill]. Before that they lie on the art.
+ */
+@Composable
+internal fun twoRowBarFilledState(scrollBehavior: TopAppBarScrollBehavior?): State<Boolean> =
+    remember(scrollBehavior) { derivedStateOf { twoRowBarFill(scrollBehavior) >= BarLinesFilledFill } }
+
+/**
+ * How far a bar's frosted fill comes in before its lines take the bar's own colors on it: from
+ * 0.9, `onSurface` holds 4.5:1 on the fill even where the art under it is black in light mode.
+ */
+internal const val BarLinesFilledFill: Float = 0.9f
+
+/**
+ * The color of one of a bar's lines (its title, its subtitle): on art (an art tone around it) and
+ * while the bar isn't [filled], the ink of the art's tone, [secondary] for a subtitle; once filled,
+ * or off art, [barColor], the bar's own on its fill. Animated between them with Material's effects
+ * motion. On the library's art the tone is the mode's, so the two are the scheme's own colors and
+ * a title doesn't change at all.
+ */
+@Composable
+internal fun barLineColor(filled: Boolean, barColor: Color, secondary: Boolean = false): Color {
+    val target = if (LocalAMArtTone.current != null && !filled) artInk(secondary) else barColor
+    return animateColorAsState(target, MaterialTheme.motionScheme.defaultEffectsSpec(), label = "bar line").value
+}
 
 /**
  * A bar's frosted fill: the nearest [AMBackdrop]'s art under the bar, blurred, under the frosted

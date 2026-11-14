@@ -1,8 +1,8 @@
 ---
 scope: The rules the demo's six Showcase scenes (Social, Music, Photos, Calendar, Shop, Account) share — where scene code lives, scenes vs pages, presentation and back, panels and route types, page headers, sentence case, sheets and the discard guard, the light/dark chip, the remote, motion, rows, banners and toasts, state and cancellation, photos
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/**, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/showcase/**]
-keywords: [Scenes, scene rules, Showcase, ShowcasePages, socialScene, musicScene, photosScene, calendarScene, shopScene, accountScene, catalog/scenes, scene entry, AMScene, roots form, overlays slot, AMKeepsPlace, amStatusBarEdge, AMLightStatusBarIcons, landing view, back order, Exit tile, logout, LocalCatalogNavigator, panels, NavDisplay, route type, SocialRoute, MusicRoute, PhotosRoute, ShopRoute, AMPanel, AMPanelChrome, AMArtPanelChrome, AMPageHeader, navigationIcon, exitUntilCollapsedScrollBehavior, AMBackdrop, NavigationBackHandler, select mode, step screen, field card, outlined fields, sentence case, AMSheet title, discard guard, amDiscardGuard, SceneAppearanceButton, light/dark chip, remote, AMFloatingActions, Actions, AMActionGrid, AMActionGridRow, active tile, no badges, tile titles, amInstantSwitch, amCrossfade, motion, AMListRow, AMSection Rows, bare rows, inset divider, AMBanner, AMToast, toast above the button, scene model, rememberSaveable, Saver, rememberCoroutineScope, cancellation, cancelPendingWork, FAB clearance, AMRemoteImage, AMAvatar, commonsPhoto, picsum]
-updated: 2026-11-10
+keywords: [Scenes, scene rules, Showcase, ShowcasePages, socialScene, musicScene, photosScene, calendarScene, shopScene, accountScene, catalog/scenes, scene entry, AMScene, roots form, overlays slot, AMKeepsPlace, amStatusBarEdge, AMStatusBarIcons, landing view, back order, Exit tile, logout, LocalCatalogNavigator, panels, NavDisplay, route type, SocialRoute, MusicRoute, PhotosRoute, ShopRoute, AMPanel, AMPanelChrome, AMArtPanelChrome, AMPageHeader, navigationIcon, exitUntilCollapsedScrollBehavior, AMBackdrop, NavigationBackHandler, select mode, step screen, field card, outlined fields, sentence case, AMSheet title, discard guard, amDiscardGuard, SceneAppearanceButton, light/dark chip, remote, AMFloatingActions, Actions, AMActionGrid, AMActionGridRow, active tile, no badges, tile titles, amInstantSwitch, amCrossfade, motion, AMListRow, AMSection Rows, bare rows, inset divider, AMBanner, AMToast, toast above the button, scene model, rememberSaveable, Saver, rememberCoroutineScope, cancellation, cancelPendingWork, FAB clearance, AMRemoteImage, AMAvatar, commonsPhoto]
+updated: 2026-11-14
 ---
 
 # Demo scenes
@@ -26,7 +26,7 @@ The rules every Showcase scene follows. A scene is a small, realistic app built 
 
 - A scene is a catalog entry pushed over the list (`CatalogNavigator.open`), so Navigation 3 pushes and pops it with predictive back.
 - **Its root is `AMScene`'s roots form** (Social, Music, Photos, Calendar, Shop): each root's place is saved and restored, and the scene's own overlays (sheets, alerts, the spotlight, toasts) go in its `overlays` slot, composed beside the roots so a root switch never closes one; a scene with art behind everything wraps the whole `AMScene` in its `AMBackdrop` (Shop's beans). Account uses the plain form, with `AMKeepsPlace` directly under its sign-in flow for the signed-in views.
-- **Under the status bar.** A root with no top bar puts `Modifier.amStatusBarEdge()` on its scrolling content, so rows fade out under the status bar instead of being cut off (Calendar's months view). Anything showing dark art at rest outside an art panel claims light status-bar icons with `AMLightStatusBarIcons` (Music's Artists header at rest, the Player); art panels claim them themselves.
+- **Under the status bar.** A root with no top bar puts `Modifier.amStatusBarEdge()` on its scrolling content, so rows fade out under the status bar instead of being cut off (Calendar's months view). The scenes' art is washed toward the mode, so the status bar's icons are the appearance's everywhere and no scene claims them.
 - **Back follows the library's order**: an alert, then the spotlight or the remote, then a sheet, then the current root's panels, then the landing view (an instant swap back to it), then out of the scene to the catalog. A scene adds a back handler (`NavigationBackHandler` from navigationevent-compose) only for a flow or mode of its own: Account's sign-in steps (standing aside on the flow's first step) and Photos' select mode (back ends it first).
 - **Every remote keeps an Exit tile** (`logout`, "Exit"), folded into the menu's last row, which closes the menu, cancels the scene's pending work (Music stops its playback) and calls `LocalCatalogNavigator.current.back()`.
 
@@ -59,7 +59,7 @@ The rules every Showcase scene follows. A scene is a small, realistic app built 
 - The menu is an `AMActionGrid` of `AMActionGridRow`s, exactly 2, 3 or 4 tiles a row, with Exit folded into the last row (Music puts its controls card above its one row). Tiles carry no badges.
 - **Tile titles are short**: one or two words ("Profile", "Artists"); short verb phrases only in 2-up rows ("Add to album").
 - **View tiles**: the current view's tile is `active`; a tap closes the menu, then switches the root inside `amInstantSwitch`, so the new view appears at once, restored, while the menu fades over it. Action tiles close the menu, then act.
-- **Clearance**: every scrolling view ends with room for the button above the navigation bar, the scene's `<Name>FabClearance` (88 dp: the button's 56 dp with `spacing.lg` under and over it).
+- **Clearance**: every scrolling view ends clear of the button with the library's `WindowInsets.amFloatingActions`: a column in a scaffold consumes the scaffold's padding, then pads with it (`consumeWindowInsets(padding).windowInsetsPadding(WindowInsets.amFloatingActions)`); a lazy list takes its bottom content padding from it (`asPaddingValues()`) in place of the scaffold's.
 
 ## Motion
 
@@ -85,5 +85,5 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 
 ## Photos and art
 
-- Pictures load through the library's image pipeline (`AMRemoteImage`, `AMAvatar`, the art modifiers) from each scene's own URLs: Wikimedia Commons files through `commonsPhoto` (Social's people and posts, Calendar's month art, Shop's beans), picsum's images by id (Photos), and the owner's site (Music). Scenes never use `catalogPhoto`, so `artwork night` leaves them as they are.
-- Art backdrops use the data display modifiers (`amArtBackdrop`, `amPageBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`).
+- Pictures load through the library's image pipeline (`AMRemoteImage`, `AMAvatar`, the art modifiers) from each scene's own URLs: Wikimedia Commons files through `commonsPhoto` (Social's people and posts, Calendar's month art, Shop's beans, Photos' library), and the owner's site (Music). Scenes never use `catalogPhoto`, so `artwork night` leaves them as they are.
+- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the mode's colors.

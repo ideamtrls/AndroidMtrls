@@ -258,7 +258,8 @@ public fun AMTimelineDot(modifier: Modifier = Modifier, color: Color = AMTheme.s
 
 /**
  * A timeline entry's standard text: [title] in `bodyLarge` and `onSurface`, over an optional
- * [subtitle] in `bodyMedium` and `onSurfaceVariant`, the pair a list row uses. The title marks
+ * [subtitle] in `bodyMedium` and the surface's secondary text color ([AMTheme.secondaryText]),
+ * the pair a list row uses. The title marks
  * itself as the entry's first line ([Modifier.amTimelineFirstLine][amTimelineFirstLine]), so the
  * marker centers on it.
  *
@@ -299,7 +300,7 @@ public fun AMTimelineLabel(
         if (!subtitle.isNullOrEmpty()) {
             Text(
                 subtitle,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = AMTheme.secondaryText,
                 style = typography.bodyMedium.withFigures(tabularFigures),
             )
         }

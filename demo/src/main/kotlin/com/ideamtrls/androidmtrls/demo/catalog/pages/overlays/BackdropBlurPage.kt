@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMBackdropBlur
 import com.ideamtrls.androidmtrls.AMRemoteImage
@@ -62,6 +63,8 @@ private fun NowPlaying() {
     AMBackdrop(
         art = { AMRemoteImage(art, contentDescription = null) },
         modifier = Modifier.fillMaxWidth().height(280.dp).clip(MaterialTheme.shapes.large),
+        // The photo is shown as it is, unwashed: its art text is white over it.
+        tone = AMArtTone.Dark,
     ) {
         AMBackdropBlur(Modifier.matchParentSize())
         Column(
@@ -79,7 +82,7 @@ private fun NowPlaying() {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text("Harbor lights", Modifier.amArtText(), style = MaterialTheme.typography.titleMedium)
-                Text("The lanterns", Modifier.amArtText(), style = MaterialTheme.typography.bodyMedium)
+                Text("The lanterns", Modifier.amArtText(secondary = true), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

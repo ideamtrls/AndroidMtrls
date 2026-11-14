@@ -12,7 +12,13 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
@@ -32,7 +38,8 @@ import androidx.compose.ui.Modifier
  * For a held item, the item form ([AMSpotlight] taking `item`) is usually handier.
  *
  * - **Where it sits**: low on the screen, where the remote's tiles sit. [content] lies on one solid
- *   card at the page gutters, an optional [title] above it in the section header's look, and an
+ *   card at the page gutters, an optional [title] above it in the section header's look over art
+ *   (`onSurface`, which holds over the window's wash), and an
  *   optional row of tiles ([actions]) below it at the action grid's insets. When the card is taller
  *   than the room above the tiles (large text, a long list), it scrolls.
  * - **Always solid**: the card and the tiles are opaque whatever the screen behind uses, so a
@@ -80,35 +87,41 @@ public fun AMSpotlight(
 }
 
 /**
- * The spotlight for one item: up while [item] isn't null, showing that item, as for a press and
- * hold.
+ * The spotlight for one item: up while [item] isn't null, showing that item over its own tiles, as
+ * for a press and hold.
  *
  * ```kotlin
  * var held by remember { mutableStateOf<Article?>(null) }
+ * val share = painterResource(R.drawable.ic_share)
+ * val delete = painterResource(R.drawable.ic_delete)
  * ArticleRow(article, Modifier.amHoldable(onHold = { held = article }))
  * AMSpotlight(
  *     held,
  *     onDismissRequest = { held = null },
  *     actions = { article ->
- *         AMActionGridRow(
- *             { AMActionGridButton(painterResource(R.drawable.ic_share), "Share", onClick = { share(article); held = null }) },
- *             { AMActionGridButton(painterResource(R.drawable.ic_delete), "Delete", onClick = { delete(article); held = null }, destructive = true) },
+ *         listOf(
+ *             AMHoldAction("Share", share) { share(article) },
+ *             AMHoldAction("Delete", delete, destructive = true) { delete(article) },
  *         )
  *     },
  * ) { article -> ArticleRow(article) }
  * ```
  *
- * Everything else is the visible form's. While it fades out after [item] turns null, it keeps
- * showing the last item, so the card leaves intact.
+ * - **Tiles per item.** [actions] gives each item its own: two to four tiles in the remote's
+ *   columns, one tile at half the row, or none, an empty list showing no tiles at all, so one
+ *   spotlight serves held items with tiles and pickers without. A tile closes the spotlight
+ *   ([onDismissRequest]), then acts.
+ * - Everything else is the visible form's. While it fades out after [item] turns null, it keeps
+ *   showing the last item, so the card leaves intact.
  *
  * @param item the item in focus, or null when nothing is.
- * @param onDismissRequest called on back and on a tap outside the card and tiles; set [item] to
- *   null.
+ * @param onDismissRequest called on back, on a tap outside the card and tiles, and on a tile; set
+ *   [item] to null.
  * @param modifier the layout's placement: the whole window.
  * @param title a heading above the card for the item (a day's name), or null for none (the
  *   default).
- * @param actions what to do with the item: one [AMActionGridRow] of two to four tiles. Null shows
- *   none.
+ * @param actions what can be done with the item: at most four [AMHoldAction]s, in tile order. An
+ *   empty list, the default, shows no tiles.
  * @param elevation the card's shadow: [AMElevation.Low] by default, [AMElevation.None] for a flat
  *   card that keeps its fill and corners.
  * @param content the item up close.
@@ -119,23 +132,109 @@ public fun <T : Any> AMSpotlight(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     title: (T) -> String? = { null },
-    actions: (@Composable (item: T) -> Unit)? = null,
+    actions: (item: T) -> List<AMHoldAction> = { emptyList() },
     elevation: AMElevation = AMElevation.Low,
     content: @Composable (item: T) -> Unit,
 ) {
     val last = remember { LastItem<T>() }
     if (item != null) last.value = item
     val shown = item ?: last.value
+    val tiles = shown?.let(actions).orEmpty()
     AMSpotlight(
         visible = item != null,
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         title = shown?.let(title),
-        actions = if (actions != null && shown != null) { { actions(shown) } } else null,
+        actions = if (tiles.isNotEmpty()) { { HoldActionTiles(tiles, onPicked = onDismissRequest) } } else null,
         elevation = elevation,
     ) {
         if (shown != null) content(shown)
     }
+}
+
+/**
+ * A spotlight for held items and the actions each one offers, shared by the holds that open it
+ * ([Modifier.amHoldable][amHoldable] with this state) and the spotlight that shows them
+ * ([AMSpotlight] with this state): the hold opens it on its item, the spotlight shows that item
+ * over its tiles, and TalkBack users get the same tiles as actions on each item, from one
+ * definition.
+ *
+ * ```kotlin
+ * val share = painterResource(R.drawable.ic_share)
+ * val spotlight = rememberAMSpotlightState<Article> { article -> listOf(AMHoldAction("Share", share) { share(article) }) }
+ * articles.forEach { ArticleRow(it, Modifier.amHoldable(spotlight, it)) }
+ * AMSpotlight(spotlight) { article -> ArticleRow(article) }
+ * ```
+ *
+ * Create it with [rememberAMSpotlightState]. The held item is kept in memory, not saved: like a
+ * press and hold, it doesn't outlive the screen.
+ */
+@Stable
+public class AMSpotlightState<T : Any> internal constructor(actions: (item: T) -> List<AMHoldAction>) {
+    /** The item up in the spotlight, or null when nothing is held. */
+    public var item: T? by mutableStateOf(null)
+        private set
+
+    /** What each item offers, in tile order. */
+    internal var actions: (item: T) -> List<AMHoldAction> by mutableStateOf(actions)
+
+    /** Brings [item] up in the spotlight. */
+    public fun show(item: T) {
+        this.item = item
+    }
+
+    /** Puts the spotlight away. */
+    public fun dismiss() {
+        item = null
+    }
+
+    /** What [item] offers: its spotlight's tiles, its TalkBack actions. */
+    public fun actionsFor(item: T): List<AMHoldAction> = actions(item)
+}
+
+/**
+ * Remembers an [AMSpotlightState] whose items offer [actions]: each item's spotlight tiles, in
+ * order, and the same actions for TalkBack on the item. An empty list for an item shows no tiles.
+ * The latest [actions] is used each time, so it can read the screen's current state.
+ *
+ * @param actions what an item offers, at most four [AMHoldAction]s. Build it from painters read
+ *   while composing.
+ */
+@Composable
+public fun <T : Any> rememberAMSpotlightState(actions: (item: T) -> List<AMHoldAction> = { emptyList() }): AMSpotlightState<T> {
+    val state = remember { AMSpotlightState(actions) }
+    SideEffect { state.actions = actions }
+    return state
+}
+
+/**
+ * The spotlight for [state]'s held item: up while one is held, that item over the tiles it offers,
+ * as the item form shows them. A tile, back and a tap outside put it away.
+ *
+ * @param state the held item and what each item offers.
+ * @param modifier the layout's placement: the whole window.
+ * @param title a heading above the card for the item, or null for none (the default).
+ * @param elevation the card's shadow: [AMElevation.Low] by default, [AMElevation.None] for a flat
+ *   card that keeps its fill and corners.
+ * @param content the item up close.
+ */
+@Composable
+public fun <T : Any> AMSpotlight(
+    state: AMSpotlightState<T>,
+    modifier: Modifier = Modifier,
+    title: (T) -> String? = { null },
+    elevation: AMElevation = AMElevation.Low,
+    content: @Composable (item: T) -> Unit,
+) {
+    AMSpotlight(
+        item = state.item,
+        onDismissRequest = state::dismiss,
+        modifier = modifier,
+        title = title,
+        actions = state::actionsFor,
+        elevation = elevation,
+        content = content,
+    )
 }
 
 /** The item a spotlight last showed, kept so it leaves intact once its item is gone. */
@@ -165,7 +264,12 @@ private fun SpotlightLayout(
             .padding(top = spacing.xxl, bottom = spacing.xxl),
         verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.Bottom),
     ) {
-        if (title != null) AMSectionHeader(title, Modifier.padding(horizontal = spacing.lg))
+        // The title lies on the paused screen under the mode's wash: art in the mode's tone.
+        if (title != null) {
+            CompositionLocalProvider(LocalAMArtTone provides modeArtTone()) {
+                AMSectionHeader(title, Modifier.padding(horizontal = spacing.lg))
+            }
+        }
         Box(
             Modifier
                 .weight(1f, fill = false)

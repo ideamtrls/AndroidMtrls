@@ -1,8 +1,8 @@
 ---
 scope: The demo catalog app — the activity and Navigation 3 root, the catalog list and its search, the CatalogCategory/ComponentEntry registry, the ComponentPage scaffold (preview, loaded — nothing else on a page), stage layouts, inspection controls, the library theme at the root, debug launch extras, sample photos, and the recipe for adding a component page.
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/MainActivity.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogRoot.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogList.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/Inspection.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogCategory.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentEntry.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentPage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/Stage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/LaunchOptions.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogPhoto.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ScreenHost.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/**, demo/src/main/res/drawable/**, demo/src/main/AndroidManifest.xml]
-keywords: [Demo, catalog, MainActivity, enableEdgeToEdge, SystemBarStyle, CatalogRoot, NavDisplay, Navigation 3, back stack, CatalogKey, CatalogKey.Panel, CatalogNavigator, openPanel, CatalogPanels, LocalCatalogNavigator, predictive back, listSaver, CatalogList, AMPageHeader, LargeTopAppBar, exitUntilCollapsedScrollBehavior, AMSectionHeader, search, SearchBarState, ExpandedFullScreenSearchBar, SearchBar, InputField, ListItem, subheader, CatalogCategory, componentEntries, ComponentEntry, CatalogRegistry, FoundationsPages, DataDisplayPages, CollectionsPages, ShowcasePages, entries, id convention, ComponentPage, NoPreview, Preview, Loaded, PageSection, Stage, StageLayout, Floating, FullBleed, Wide, Fill, PageGutter, bleed, LocalCatalogTarget, CatalogAutoPresent, CatalogScreenHost, AMBannerHost, AMToastHost, no launcher buttons, Inspection, Inspection.isDark, InspectionRoot, InspectionMenu, SceneAppearanceButton, InspectionAppearance, InspectionTextSize, InspectionLayoutDirection, LocalInspection, SharedPreferences, fontScale, LocalDensity, LocalLayoutDirection, AMTheme, darkTheme, AMTheme.isDark, AMTheme.Surface, LaunchOptions, entry, scrollTo, present, demoTime, LaunchOptions.clock, shopFillsCheckout, appearance, rtl, artwork, catalogPhoto, commonsPhoto, CatalogArt, picsum, Wikimedia Commons, ic_ glyphs, adding a component page]
-updated: 2026-11-10
+keywords: [cover extra, SolidArt, Demo, catalog, MainActivity, enableEdgeToEdge, SystemBarStyle, CatalogRoot, NavDisplay, Navigation 3, back stack, CatalogKey, CatalogKey.Panel, CatalogNavigator, openPanel, CatalogPanels, LocalCatalogNavigator, predictive back, listSaver, CatalogList, AMPageHeader, LargeTopAppBar, exitUntilCollapsedScrollBehavior, AMSectionHeader, search, SearchBarState, ExpandedFullScreenSearchBar, SearchBar, InputField, ListItem, subheader, CatalogCategory, componentEntries, ComponentEntry, CatalogRegistry, FoundationsPages, DataDisplayPages, CollectionsPages, ShowcasePages, entries, id convention, ComponentPage, NoPreview, Preview, Loaded, PageSection, Stage, StageLayout, Floating, FullBleed, Wide, Fill, PageGutter, bleed, LocalCatalogTarget, CatalogAutoPresent, CatalogScreenHost, AMBannerHost, AMToastHost, no launcher buttons, Inspection, Inspection.isDark, InspectionRoot, InspectionMenu, SceneAppearanceButton, InspectionAppearance, InspectionTextSize, InspectionLayoutDirection, LocalInspection, SharedPreferences, fontScale, LocalDensity, LocalLayoutDirection, AMTheme, darkTheme, AMTheme.isDark, AMTheme.Surface, LaunchOptions, entry, scrollTo, present, demoTime, LaunchOptions.clock, shopFillsCheckout, appearance, rtl, artwork, catalogPhoto, CatalogPhotos, commonsPhoto, CatalogArt, Wikimedia Commons, ic_ glyphs, adding a component page]
+updated: 2026-11-14
 ---
 
 # Demo
@@ -15,7 +15,7 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 
 | Path | What lives there | Who edits it |
 |---|---|---|
-| `app/MainActivity.kt` | `MainActivity`: reads the launch extras, edge to edge, system bar icons following the applied appearance, `InspectionRoot { CatalogRoot() }` | shared |
+| `app/MainActivity.kt` | `MainActivity`: reads the launch extras, edge to edge, `InspectionRoot { CatalogRoot() }` | shared |
 | `app/CatalogRoot.kt` | `CatalogKey`, `CatalogNavigator`, `LocalCatalogNavigator`, `CatalogRoot` (the Navigation 3 back stack) | shared |
 | `app/CatalogList.kt` | `CatalogList` (the list screen and its search) and the private `CatalogSearchField`, `CatalogSections`, `CatalogSubheader`, `CatalogRow` | shared |
 | `app/Inspection.kt` | `InspectionAppearance`, `InspectionTextSize`, `InspectionLayoutDirection`, `Inspection` and its `isDark()`, `LocalInspection`, `InspectionRoot` (which installs `AMTheme`), `InspectionMenu`, `SceneAppearanceButton` | shared |
@@ -27,7 +27,7 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 ## The activity — `MainActivity`
 
 - `onCreate` reads the launch extras (`LaunchOptions.read(intent)`), calls `enableEdgeToEdge()`, and builds an `Inspection` over the `inspection` SharedPreferences.
-- Its content computes the applied dark flag (`inspection.isDark()`) and, whenever it changes, calls `enableEdgeToEdge` again with `SystemBarStyle.auto(TRANSPARENT, TRANSPARENT) { dark }` for both bars, so the status and navigation bar icons follow the inspection appearance, not only the system's.
+- The status and navigation bar icons follow the inspection appearance, not only the system's, because the root's `AMTheme(darkTheme = inspection.isDark())` (`InspectionRoot`) is the window's outermost theme, which sets them (`Foundations.md`); the activity does nothing more for them.
 - Then `InspectionRoot(inspection) { CatalogRoot() }`.
 
 ## Navigation — `CatalogRoot`
@@ -109,7 +109,7 @@ The widening is done in layout (a private `bleed` layout modifier measures the c
 
 **`SceneAppearanceButton()`** is the light/dark chip each Showcase scene carries in its landing view's header actions (`DemoScenes.md`): an `AMToolbarButton` that flips the appearance away from what is on screen (`inspection.isDark()`), from System too, writing Light or Dark to the stored setting the menu writes. Its glyph is the target appearance's (`ic_light_mode` / `ic_dark_mode`), read as "Switch to light mode" or "Switch to dark mode". A launch-pinned appearance keeps the screen as it is, as it does for the menu.
 
-Only the activity (for the bar icons), the root, the menu and the scene chip read the settings; pages don't.
+Only the root (its theme sets the bar icons too), the menu and the scene chip read the settings; pages don't.
 
 ## The theme — `AMTheme`
 
@@ -124,6 +124,7 @@ The catalog runs inside the library's own theme: `InspectionRoot` wraps everythi
 - `present preview|loaded`: the `CatalogAutoPresent` demo in that section opens, once.
 - `appearance light|dark|system`, `fontScale <float>`, `rtl true|false`: pin that inspection setting for the launch. A pinned setting doesn't write the stored one, and the inspection menu can't change it until a launch without the extra.
 - `artwork night`: every catalog photo switches to a second set (below).
+- `cover white|black`: every cover and photo in the Music scene (its art rows, art backdrops, art cards and thumbnails) becomes one of `SolidArt`'s solid pictures (`catalog/scaffold/CatalogPhoto.kt`, a 4 × 4 bitmap each, one per process), the extremes the art's wash is tuned for (`SceneMusic.md`).
 - `demoTime <H:MM>`: the clock-driven samples (the Date picker page's starting value, the Calendar scene's now marker) read the time through `LaunchOptions.clock()`, which pins the time of day (24-hour, today's date) so screenshots agree with a pinned status bar clock.
 - `shopFillsCheckout yes`: the Shop scene's checkout opens with its form filled in (`LaunchOptions.shopFillsCheckout`).
 
@@ -135,8 +136,8 @@ adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entr
 ## Sample photos — `catalogPhoto`, `commonsPhoto`, `CatalogArt`
 
 `scaffold/CatalogPhoto.kt` builds the URLs a page's sample pictures load from:
-- **`catalogPhoto(seed, width, height)`**: picsum's fixed image per seed (square when `height` is null). Under `artwork night` each seed gets `-night` appended, so a component's light and dark screenshots show different artwork. A photo that fills a wide frame asks for that frame's shape, 800 wide by the matching height, so the whole picture shows instead of a square's middle slice.
-- **`commonsPhoto(file)`**: a Wikimedia Commons file by name, 1000 px wide (`Special:FilePath`; the file's page credits its author and license), for art that has to show a particular subject.
+- **`catalogPhoto(seed, width, height)`**: the Commons file `CatalogPhotos` maps the seed to, through `commonsPhoto`. Each seed has a day file and a night file, every one different: the default set is daytime scenes (orchard, salt flats, the Matterhorn, the selection tiles and picker, the card stack's albums) and Ada Lovelace for `ada` and `spacing-ada`; under `artwork night` the whole catalog switches to the night set (night skies, city lights, Grace Hopper and Margaret Hamilton), so a component's light and dark screenshots show different artwork. Commons serves a file at its own shape and the frame crops it, so the width asked for is the larger of `width` and 1.5 × the frame's height (`height`, or `width` when null), enough for a 3:2 landscape to cover the frame. A seed missing from the map fails at once (`getValue`); adding a page photo means adding its seed there.
+- **`commonsPhoto(file, width = 1000)`**: a Wikimedia Commons file by name at `width` px (`Special:FilePath?width=`; the file's page credits its author and license). Commons redirects to the nearest of its standard thumbnail widths at or above it (360 gets 500), at the file's own shape. Every photo in the demo comes from Commons this way.
 - **`CatalogArt`**: vetted Commons pairs for wide hero photos, snowy mountains and forests by day and New York at night by dark: `Mountain`, `Valley`, `Forest`, `Peaks`, `Winter`, read with `url(dark)`.
 
 ## Glyphs

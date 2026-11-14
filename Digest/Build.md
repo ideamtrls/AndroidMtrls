@@ -2,7 +2,7 @@
 scope: Building and running the AndroidMtrls library and demo — the Gradle setup and version catalog, the environment variables, SDK levels and modules, and installing and launching the demo with adb and its debug extras.
 globs: [settings.gradle.kts, build.gradle.kts, gradle.properties, gradle/libs.versions.toml, gradle/wrapper/gradle-wrapper.properties, androidmtrls/build.gradle.kts, demo/build.gradle.kts, demo/src/main/AndroidManifest.xml, demo/src/main/res/values/themes.xml, demo/src/main/res/values-night/themes.xml, .gitignore]
 keywords: [build, gradle, gradlew, wrapper, Gradle 9.6.1, AGP, Android Gradle Plugin 9.5.1, built-in Kotlin, Kotlin 2.4.21, compose compiler plugin, kotlin.compiler.execution.strategy, in-process, Kotlin daemon, JAVA_HOME, ANDROID_HOME, GRADLE_USER_HOME, .gradle-home, local.properties, version catalog, libs.versions.toml, Compose BOM, material3 1.5.0-rc01, Navigation 3, navigationevent, activity-compose, lifecycle-runtime-compose, core-ktx, JUnit, androidx.test runner, espresso-core, ui-test-junit4, ui-test-manifest, connectedDebugAndroidTest, testInstrumentationRunner, minSdk 36, compileSdk 37, targetSdk 37, JVM 17, explicitApi, modules, androidmtrls, demo, applicationId, namespace, BuildConfig, assembleDebug, installDebug, adb, am start, launch extras, screencap, portrait, edge-to-edge, INTERNET, Theme.Demo, .gitignore]
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # Build
@@ -107,5 +107,6 @@ adb exec-out screencap -p > .tmp/shot.png
 | `fontScale` | a float, such as `1.3` | pins the font scale for this launch |
 | `rtl` | `true`, `false` | pins the layout direction for this launch |
 | `artwork` | `night` | catalog photos switch to their second set |
+| `cover` | `white`, `black` | every cover and photo in the Music scene becomes a solid white or black picture (`SolidArt`), the art's extremes |
 
 A pinned setting doesn't write the stored inspection settings, and the inspection menu can't change it until a launch without the extra. `Demo.md` covers how each one works.

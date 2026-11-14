@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -45,7 +47,8 @@ import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amSelectionCheck
 import com.ideamtrls.androidmtrls.amShimmer
 
@@ -165,7 +168,7 @@ internal fun photosGridPadding(scaffold: PaddingValues): PaddingValues {
         start = scaffold.calculateStartPadding(direction) + spacing.lg,
         top = scaffold.calculateTopPadding() + spacing.sm,
         end = scaffold.calculateEndPadding(direction) + spacing.lg,
-        bottom = scaffold.calculateBottomPadding() + PhotosFabClearance,
+        bottom = WindowInsets.amFloatingActions.asPaddingValues().calculateBottomPadding(),
     )
 }
 
@@ -235,7 +238,7 @@ private fun PhotosTile(photo: PhotosItem, loading: Boolean, selecting: Boolean, 
 @Composable
 internal fun PhotosPageBackdrop(photo: PhotosItem?, content: @Composable BoxScope.() -> Unit) {
     val url = photo?.thumbUrl
-    AMBackdrop(art = { Box(Modifier.fillMaxSize().amPageBackdrop(url)) }, modifier = Modifier.fillMaxSize(), content = content)
+    AMBackdrop(art = { Box(Modifier.fillMaxSize().amArtBackdrop(url)) }, modifier = Modifier.fillMaxSize(), content = content)
 }
 
 /** While [selecting], back ends select mode before anything else on the view. */

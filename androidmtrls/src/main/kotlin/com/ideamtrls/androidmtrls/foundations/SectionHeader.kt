@@ -23,8 +23,9 @@ import androidx.compose.ui.semantics.semantics
  * AMSectionHeader("Recents", Modifier.padding(horizontal = 16.dp))
  * ```
  *
- * Over a picture (inside an [AMBackdrop]) it takes `onSurface` and the text legibility shadow
- * ([AMElevation.Text]), so it holds over the art.
+ * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) it's art text for the art's tone
+ * ([amArtText]): `onSurface` on the library's art, which the art's wash holds it over, with a
+ * shadow of the other tone, so it holds over the art.
  *
  * It fills the width it's given and adds no padding: place it at the row inset.
  *
@@ -49,20 +50,21 @@ public fun AMSectionHeader(title: String, modifier: Modifier = Modifier) {
  * }
  * ```
  *
- * Over a picture (inside an [AMBackdrop]) it takes `onSurface` and the text legibility shadow.
+ * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) it's art text for the art's tone
+ * ([amArtText]), glyphs included.
  *
  * @param modifier its placement and padding.
  * @param content the label's parts, in a row.
  */
 @Composable
 public fun AMSectionHeader(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
-    val overArt = LocalAMBackdrop.current != null
-    val color = if (overArt) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
+    val onArt = LocalAMArtTone.current != null
+    val color = if (onArt) artInk() else MaterialTheme.colorScheme.primary
     Row(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) { heading() }
-            .then(if (overArt) Modifier.glyphShadow(Style.Shadow.Text) else Modifier),
+            .then(if (onArt) Modifier.amArtText() else Modifier),
         horizontalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {

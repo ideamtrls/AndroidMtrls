@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -95,12 +96,7 @@ public fun AMRemoteImage(
         modifier
             .fillMaxSize()
             .onSizeChanged { frame = it }
-            .clearAndSetSemantics {
-                if (contentDescription != null) {
-                    this.contentDescription = contentDescription
-                    role = Role.Image
-                }
-            },
+            .imageNode(contentDescription),
         propagateMinConstraints = true,
     ) {
         val current = image
@@ -109,6 +105,43 @@ public fun AMRemoteImage(
         } else {
             fallback()
         }
+    }
+}
+
+/**
+ * [AMRemoteImage]'s frame for a picture the app already holds: [image] cropped to cover the frame
+ * [modifier] gives, or [fallback] over the frame while it's null. One image node for a screen
+ * reader whatever shows, as the remote image is.
+ */
+@Composable
+internal fun HeldImage(
+    image: ImageBitmap?,
+    contentDescription: String?,
+    modifier: Modifier,
+    fallback: @Composable () -> Unit,
+) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .imageNode(contentDescription),
+        propagateMinConstraints = true,
+    ) {
+        if (image != null) {
+            Image(image, contentDescription = null, contentScale = ContentScale.Crop)
+        } else {
+            fallback()
+        }
+    }
+}
+
+/**
+ * Makes a picture's frame one node: an image with [contentDescription], or nothing a screen
+ * reader stops on when it's null.
+ */
+private fun Modifier.imageNode(contentDescription: String?): Modifier = clearAndSetSemantics {
+    if (contentDescription != null) {
+        this.contentDescription = contentDescription
+        role = Role.Image
     }
 }
 

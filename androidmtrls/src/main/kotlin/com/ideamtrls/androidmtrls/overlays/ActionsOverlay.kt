@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
  *
  * It's a window of its own, so it covers the whole screen from wherever it's called, sheets
  * included, and takes back before anything under it. The screen behind blurs with the platform's
- * blur-behind ([AMTheme.Overlay.blurRadius]), under a black dim in dark mode only
- * ([AMTheme.Overlay.darkDimAlpha]); where the system has cross-window blur off (battery saver, some
- * devices) it dims instead, and it follows that setting live. Blur, dim and content fade in and
- * out together with Material's motion.
+ * blur-behind ([AMTheme.Overlay.blurRadius]), under the mode's wash ([AMTheme.Overlay.wash]);
+ * where the system has cross-window blur off (battery saver, some devices) the wash alone stills
+ * it, following that setting live. Blur, wash and content fade in and out together with Material's
+ * motion.
  *
  * Back, and a tap on the blur (between tiles too), call [onDismissRequest]; set your state to hide
  * it. A tile that acts should hide it too. Opening and closing it changes nothing underneath.

@@ -22,6 +22,7 @@ import com.ideamtrls.androidmtrls.AMSlider
 import com.ideamtrls.androidmtrls.AMSliderDecoration
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
 import kotlin.math.max
 
@@ -45,9 +46,11 @@ internal fun MusicControlsCard(model: MusicModel, modifier: Modifier = Modifier)
             .fillMaxWidth()
             .amCard(fill = AMSurfaceFill.Frosted, padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
     ) {
-        MusicControlsHeading(track, model)
-        MusicScrubber(track, model)
-        MusicTransport(model)
+        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+            MusicControlsHeading(track, model)
+            MusicScrubber(track, model)
+            MusicTransport(model)
+        }
     }
 }
 
@@ -65,7 +68,7 @@ private fun MusicControlsHeading(track: MusicTrack, model: MusicModel) {
         Text(
             if (album != null) "${track.artist} · ${album.title}" else track.artist,
             style = MaterialTheme.typography.bodyMedium,
-            color = AMTheme.Frosted.secondaryText,
+            color = AMTheme.secondaryText,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -145,20 +148,16 @@ private fun MusicTransport(model: MusicModel) {
 }
 
 /**
- * Places the controls card where the remote shows it: `spacing.lg` from the sides, and its bottom
- * edge where the remote's grid puts the bottom of the row above its one tile row — clear of the
- * navigation bar, then `spacing.xxl`, a tile and `spacing.md`. The tile's height is fixed, so the
+ * Places the controls card where the remote shows it: at the grid's side padding, and its bottom
+ * edge where the remote's grid puts the bottom of the row above its one tile row
+ * (`AMTheme.ActionGrid.rowBottom(1)`, above the navigation bar). The tile's height is fixed, so the
  * two edges stay together at every text size (the card grows upward).
  */
 @Composable
 @ReadOnlyComposable
 internal fun Modifier.musicControlsPlacement(): Modifier {
-    val spacing = AMTheme.tokens.spacing
+    val grid = AMTheme.ActionGrid
     return this
         .navigationBarsPadding()
-        .padding(
-            start = spacing.lg,
-            end = spacing.lg,
-            bottom = spacing.xxl + AMTheme.ActionGrid.tileHeight + spacing.md,
-        )
+        .padding(start = grid.sidePadding, end = grid.sidePadding, bottom = grid.rowBottom(1))
 }

@@ -1,5 +1,6 @@
 package com.ideamtrls.androidmtrls
 
+import android.view.WindowInsetsController
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -8,9 +9,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 
 /**
@@ -36,8 +40,16 @@ import androidx.compose.ui.unit.Dp
  * in that appearance, its color scheme. So a subtree that only changes [tokens] keeps the app's
  * colors and a forced light or dark mode.
  *
+ * **The system bars follow it.** The outermost `AMTheme` in a window sets that window's status and
+ * navigation bar icons for [darkTheme] (dark icons in light mode, light ones in dark mode) and
+ * sets them again whenever it changes, so an appearance the app pins reaches the bars too, not
+ * only the system's. A nested theme leaves the bars to the outer one. Edge to edge stays the
+ * activity's (`enableEdgeToEdge()` once in `onCreate`); art of the other tone under the status bar
+ * still turns its icons over on top of this ([AMStatusBarIcons]).
+ *
  * @param darkTheme whether the dark appearance shows. Every style value that differs by mode
- *   follows this flag rather than the system's, so an app can force either appearance.
+ *   follows this flag rather than the system's, and so do the window's bar icons under the
+ *   outermost theme, so an app can force either appearance.
  * @param colorScheme the static Material color scheme. Defaults to Material's baseline scheme for
  *   [darkTheme]. Never pass a dynamic scheme: the style layer is tuned against static colors.
  * @param tokens the spacing scale and semantic tints.
@@ -50,6 +62,9 @@ public fun AMTheme(
     tokens: AMTokens = AMTheme.tokens,
     content: @Composable () -> Unit,
 ) {
+    // The outermost theme owns the window's bars. Composed ahead of the content, so on a change
+    // it sets the bars before the art's light-icon claims take them again.
+    if (LocalAMDarkTheme.current == null) SystemBarsAppearance(darkTheme)
     MaterialTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.standard(),
@@ -86,6 +101,30 @@ public object AMTheme {
     public val isDark: Boolean
         @Composable @ReadOnlyComposable get() = LocalAMDarkTheme.current ?: false
 
+    /**
+     * The tone of the art under this composition, or null off art: the nearest art surface's
+     * ([AMBackdrop], [AMArtRowsBackdrop]), which is the mode's unless the app gave it one. The
+     * components that lie on art read it to take their over-art look; read it for text of your own
+     * that lies on art, or use [Modifier.amArtText][amArtText].
+     */
+    public val artTone: AMArtTone?
+        @Composable @ReadOnlyComposable get() = LocalAMArtTone.current
+
+    /**
+     * Secondary text (a supporting line, a value, a caption) for the surface this composition lies
+     * on, resolved from that surface: on art, the secondary ink of its tone (`onSurfaceVariant` on
+     * the library's art, which the wash holds at 4.5:1); on frosted glass over art,
+     * [Frosted.secondaryText], which holds over the tint; on the page or a solid card, Material's
+     * `onSurfaceVariant`. The library's containers say which surface their content lies on; a
+     * hand-built card says it with [ProvideAMSurfaceFill].
+     */
+    public val secondaryText: Color
+        @Composable @ReadOnlyComposable get() = when {
+            LocalAMArtTone.current != null -> artInk(secondary = true)
+            LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null -> Frosted.secondaryText
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
+
     /** The floating surface and the page it floats on. */
     public object Surface {
         /**
@@ -98,20 +137,11 @@ public object AMTheme {
 
         /**
          * The tuned page behind floating surfaces: `#F2F2F7` in light mode, `#141416` in dark
-         * mode, far enough above black that black surfaces read as floating. Screens, scaffolds
-         * and a scrolled page header use it.
+         * mode, far enough above black that black surfaces read as floating. Screens, scaffolds,
+         * a scrolled page header, and art that has no picture (yet) use it.
          */
         public val page: Color
             @Composable @ReadOnlyComposable get() = if (isDark) Style.Page.Dark else Style.Page.Light
-
-        /**
-         * The dark neutral that stands in for art until its picture lands: `#333333` in both
-         * modes, so white art text stays legible over it. Art backdrops and art rows draw it under
-         * their wash before the picture arrives; a screen that sits on art puts it behind its
-         * transitions so a light page never flashes between pictures.
-         */
-        public val art: Color
-            get() = Style.Surface.Art
     }
 
     /**
@@ -135,6 +165,18 @@ public object AMTheme {
         public val secondaryText: Color
             @Composable @ReadOnlyComposable get() =
                 if (isDark) Style.Frosted.SecondaryTextDark else Style.Frosted.SecondaryTextLight
+
+        /**
+         * The accent on the glass, for tinted text and glyphs on a frosted surface (a link, a
+         * now-playing title, a toggle that's on): the scheme's `primary`, moved along its own line
+         * just far enough to hold 4.5:1 on the frosted fill over the library's washed art, in each
+         * mode. Material's baseline `primary` already holds (4.95:1 light, 8.56:1 dark) and comes
+         * back unchanged; a lighter brand color comes back darker in light mode. Over art an app
+         * didn't wash, the glass is the app's to check. The library's own tinted text and glyphs on
+         * glass use it.
+         */
+        public val tint: Color
+            @Composable @ReadOnlyComposable get() = frostedTint(MaterialTheme.colorScheme.primary, isDark)
 
         /** The blur under the fill, as Android's blur radius. */
         public val blurRadius: Dp = Style.Frosted.BlurRadius
@@ -174,7 +216,7 @@ public object AMTheme {
 
     /**
      * The modal overlay recipe behind the remote and the spotlight: the screen behind blurs, and
-     * in dark mode only, a black dim lies over the blur.
+     * the mode's [wash] lies over it.
      */
     public object Overlay {
         /**
@@ -184,17 +226,54 @@ public object AMTheme {
          */
         public val blurRadius: Dp = Style.ModalOverlay.BlurRadius
 
-        /** The black dim over the blur in dark mode. Light mode has none. */
-        public const val darkDimAlpha: Float = Style.ModalOverlay.DarkDimAlpha
+        /**
+         * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode,
+         * enough for the spotlight's title, in `onSurface`, to hold 4.5:1 over any screen behind
+         * it, sharp art included, with the blur or without it.
+         */
+        public val wash: Color
+            @Composable @ReadOnlyComposable get() = if (isDark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight
     }
 
-    /** The remote's grid of tiles. */
+    /**
+     * The remote's grid of tiles ([AMActionGrid]), and where it puts its rows, so content can line
+     * up with them (a controls card resting where the remote shows it, just above its bottom row)
+     * without deriving the layout from the tokens.
+     *
+     * ```kotlin
+     * Modifier
+     *     .navigationBarsPadding()
+     *     .padding(horizontal = AMTheme.ActionGrid.sidePadding, bottom = AMTheme.ActionGrid.rowBottom(1))
+     * ```
+     */
     public object ActionGrid {
         /**
          * Every tile's height, so grid rows stay even whatever their labels. Fixed: it doesn't
          * grow with the font scale.
          */
         public val tileHeight: Dp = Style.ActionGrid.TileHeight
+
+        /** How far the grid stands in from the window's sides: `spacing.lg`. */
+        public val sidePadding: Dp
+            @Composable @ReadOnlyComposable get() = tokens.spacing.lg
+
+        /**
+         * How far above the navigation bar the grid puts the bottom of row [index], counting rows
+         * from the bottom: 0 is the bottom row, at the grid's bottom padding (`spacing.xxl`); each
+         * row above sits a [tileHeight] and the row gap (`spacing.md`) higher. Content whose
+         * bottom rests at `rowBottom(1)` sits just above the bottom row, where a second row would.
+         */
+        @Composable
+        @ReadOnlyComposable
+        public fun rowBottom(index: Int): Dp {
+            val spacing = tokens.spacing
+            return actionGridRowBottom(index, tileHeight, bottomPadding = spacing.xxl, rowGap = spacing.md)
+        }
+
+        /** How far above the navigation bar the grid puts the top of row [index], counted from the bottom. */
+        @Composable
+        @ReadOnlyComposable
+        public fun rowTop(index: Int): Dp = rowBottom(index) + tileHeight
     }
 }
 
@@ -203,6 +282,25 @@ public object AMTheme {
  * read it while drawing redraw when the appearance changes.
  */
 internal val LocalAMDarkTheme = compositionLocalOf<Boolean?> { null }
+
+/**
+ * Sets the status and navigation bar icons of this composition's window for [dark]: dark icons on
+ * the light appearance, light ones on the dark, again whenever [dark] changes. Nothing in a
+ * preview, which has no window to tint.
+ */
+@Composable
+private fun SystemBarsAppearance(dark: Boolean) {
+    if (LocalInspectionMode.current) return
+    val view = LocalView.current
+    DisposableEffect(view, dark) {
+        view.windowInsetsController?.setSystemBarsAppearance(if (dark) 0 else LightSystemBars, LightSystemBars)
+        onDispose {}
+    }
+}
+
+/** The appearance bits for dark icons on both system bars. */
+private const val LightSystemBars =
+    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 
 /** The tokens the nearest [AMTheme] set. */
 internal val LocalAMTokens = compositionLocalOf { AMTokens.Default }
@@ -220,3 +318,45 @@ private val BaselineLight = lightColorScheme()
 private val BaselineDark = darkColorScheme()
 
 private fun baselineColorScheme(dark: Boolean): ColorScheme = if (dark) BaselineDark else BaselineLight
+
+/**
+ * The relative luminance of the frosted fill over the library's art at its hardest for text: in
+ * light mode the fill over the light wash's darkest blend, in dark mode the fill over the dark
+ * wash's ceiling.
+ */
+internal fun frostedGround(dark: Boolean): Float {
+    val art = if (dark) artWashCeiling(AMArtDefaults.DarkWash) else Style.ArtInk.LightArtGround
+    val fill = if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight
+    // The fill lies over the art in sRGB, as the GPU blends it.
+    val gray = fill.red * fill.alpha + linearToSrgb(art) * (1f - fill.alpha)
+    return srgbToLinear(gray)
+}
+
+/**
+ * [color] moved, keeping its hue, just far enough to hold 4.5:1 on frosted glass over the
+ * library's art ([frostedGround]): darker in light mode, lighter in dark mode. A color that
+ * already holds stays.
+ */
+internal fun frostedTint(color: Color, dark: Boolean): Color {
+    val ground = frostedGround(dark)
+    val rgb = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
+    if (dark) {
+        washToLuminance(rgb, 4.5f * (ground + 0.05f) - 0.05f, raise = true)
+    } else {
+        washToLuminance(rgb, (ground + 0.05f) / 4.5f - 0.05f, raise = false)
+    }
+    return Color(linearToSrgb(rgb[0]), linearToSrgb(rgb[1]), linearToSrgb(rgb[2]), color.alpha)
+}
+
+/**
+ * The accent for tinted text and glyphs on the surface this composition lies on: [AMTheme.Frosted.tint]
+ * on frosted glass over art, else the scheme's `primary`.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun surfaceAccent(): Color =
+    if (LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null) {
+        AMTheme.Frosted.tint
+    } else {
+        MaterialTheme.colorScheme.primary
+    }

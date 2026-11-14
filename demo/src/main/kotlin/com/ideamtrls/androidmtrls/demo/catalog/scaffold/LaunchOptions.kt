@@ -21,6 +21,8 @@ import kotlinx.coroutines.delay
  *   setting for this launch. The stored setting is left alone, and the inspection menu can't
  *   change a pinned one until a launch without the extra.
  * - `artwork night`: every catalog photo switches to its second set ([catalogPhoto]).
+ * - `cover white|black`: every cover and photo in the Music scene becomes a solid white or black
+ *   picture ([SolidArt]), the extremes the art's wash is tuned for.
  * - `demoTime <H:MM>`: the clock-driven samples (the Date picker page's starting value, the Calendar
  *   scene's now marker) show that time of day, 24-hour, to agree with a pinned status bar clock
  *   ([clock]).
@@ -53,6 +55,10 @@ internal object LaunchOptions {
     var artwork: String? = null
         private set
 
+    /** The `cover` extra: `white` or `black`, the solid picture the Music scene shows for every cover. */
+    var cover: String? = null
+        private set
+
     /** The `shopFillsCheckout` extra: the Shop scene's checkout starts filled in. */
     var shopFillsCheckout: Boolean = false
         private set
@@ -77,6 +83,7 @@ internal object LaunchOptions {
         fontScale = extra("fontScale")?.toFloatOrNull()?.takeIf { it > 0f }
         rtl = extra("rtl")?.lowercase()?.toBooleanStrictOrNull()
         artwork = extra("artwork")?.lowercase()
+        cover = extra("cover")?.lowercase()?.takeIf { it == "white" || it == "black" }
         shopFillsCheckout = extra("shopFillsCheckout")?.lowercase() in setOf("yes", "true", "1")
         demoTime = extra("demoTime")?.split(":")?.mapNotNull { it.toIntOrNull() }
             ?.takeIf { it.size == 2 && it[0] in 0..23 && it[1] in 0..59 }

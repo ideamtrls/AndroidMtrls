@@ -42,7 +42,10 @@ private fun PlanSummary() {
     }
 }
 
-/** A subscription's details in a card, its status as a tag. */
+/**
+ * A subscription's details in a card, its status as a tag. The last two rows wrap: a short label
+ * beside a long address, and a long label beside a short value that stays whole.
+ */
 @Composable
 private fun Subscription() {
     val inset = AMTheme.tokens.spacing.lg
@@ -56,5 +59,9 @@ private fun Subscription() {
         AMLabeledContent("Renews", "Jan 12, 2027")
         AMDivider(inset = inset)
         AMLabeledContent("Seats", "12 of 25")
+        AMDivider(inset = inset)
+        AMLabeledContent("Billing address", "214 Van Brunt St, Brooklyn, NY 11231")
+        AMDivider(inset = inset)
+        AMLabeledContent("Charged automatically on the renewal date", "Visa ending 4242")
     }
 }

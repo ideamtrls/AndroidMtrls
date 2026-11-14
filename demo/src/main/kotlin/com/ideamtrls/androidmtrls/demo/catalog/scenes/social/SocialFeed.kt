@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,11 +18,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMBadge
@@ -28,15 +28,17 @@ import com.ideamtrls.androidmtrls.AMCardActionRow
 import com.ideamtrls.androidmtrls.AMCardButton
 import com.ideamtrls.androidmtrls.AMIconButton
 import com.ideamtrls.androidmtrls.AMPageHeader
+import com.ideamtrls.androidmtrls.AMPullToRefreshBox
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amHoldable
 
 /**
  * The Feed, the scene's landing view: its header (the light/dark chip and the alerts bell, which
  * pushes the alerts as a panel) over the posts, newest first, each a card. Pulling the list down
- * refreshes it. Until the first load lands, the same feed shows as shimmering placeholders under
+ * reopens a collapsed header, then refreshes it. Until the first load lands, the same feed shows as shimmering placeholders under
  * a live header.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +47,6 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
     val spacing = AMTheme.tokens.spacing
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             AMPageHeader(
                 "Feed",
@@ -64,10 +65,12 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { padding ->
-        PullToRefreshBox(
+        // The pull carries the header's scroll behavior, so a downward drag reopens the header first.
+        AMPullToRefreshBox(
             isRefreshing = model.isRefreshing,
             onRefresh = model::refresh,
             modifier = Modifier.fillMaxSize().padding(top = padding.calculateTopPadding()),
+            scrollBehavior = scrollBehavior,
         ) {
             LazyColumn(
                 Modifier.fillMaxSize(),
@@ -75,7 +78,7 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
                     start = spacing.lg,
                     end = spacing.lg,
                     top = spacing.sm,
-                    bottom = padding.calculateBottomPadding() + SocialFabClearance,
+                    bottom = WindowInsets.amFloatingActions.asPaddingValues().calculateBottomPadding(),
                 ),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
                 userScrollEnabled = !model.isLoading,
@@ -99,13 +102,13 @@ internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
 private fun SocialPostCard(post: SocialPost, model: SocialModel, postActions: SocialPostActions) {
     val spacing = AMTheme.tokens.spacing
     val author = model.user(post.authorId)
-    val menuActions = postActions.accessibilityActions(post)
+    val menuActions = socialPostActions(post, model, postActions, rememberSocialPostIcons())
     Column(
         Modifier
             .fillMaxWidth()
             .socialCard()
             .clickable(onClickLabel = "Open post") { model.openPost(post.id) }
-            .amHoldable(onHold = { model.showPostMenu(post.id) }, customActions = menuActions),
+            .amHoldable(onHold = { model.showPostMenu(post.id) }, actions = menuActions),
     ) {
         Row(
             Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),

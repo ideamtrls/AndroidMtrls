@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
@@ -167,19 +169,30 @@ internal fun Modifier.amElevatedSurface(
     elevation: AMElevation = AMElevation.Low,
     fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = this then ElevatedSurfaceElement(shape, elevation, fill, hairline)
+): Modifier = amElevatedSurface(shape, elevation.shadowLevel, fill, hairline)
+
+/**
+ * [amElevatedSurface] casting a row of the shadow table that no [AMElevation] names: a shadow
+ * fitted to a tight place, such as [Style.Shadow.BarButton] inside a top app bar's clipped row.
+ */
+internal fun Modifier.amElevatedSurface(
+    shape: Shape,
+    shadow: ShadowLevel,
+    fill: AMSurfaceFill = AMSurfaceFill.Solid,
+    hairline: Color = Color.Unspecified,
+): Modifier = this then ElevatedSurfaceElement(shape, shadow, fill, hairline)
 
 private data class ElevatedSurfaceElement(
     val shape: Shape,
-    val elevation: AMElevation,
+    val shadow: ShadowLevel,
     val fill: AMSurfaceFill,
     val hairline: Color,
 ) : ModifierNodeElement<ElevatedSurfaceNode>() {
-    override fun create() = ElevatedSurfaceNode(shape, elevation, fill, hairline)
+    override fun create() = ElevatedSurfaceNode(shape, shadow, fill, hairline)
 
     override fun update(node: ElevatedSurfaceNode) {
         node.shape = shape
-        node.elevation = elevation
+        node.shadow = shadow
         node.fill = fill
         node.hairline = hairline
         node.invalidateDraw()
@@ -188,7 +201,7 @@ private data class ElevatedSurfaceElement(
     override fun InspectorInfo.inspectableProperties() {
         name = "amElevatedSurface"
         properties["shape"] = shape
-        properties["elevation"] = elevation
+        properties["shadow"] = shadow
         properties["fill"] = fill
         properties["hairline"] = hairline
     }
@@ -196,7 +209,7 @@ private data class ElevatedSurfaceElement(
 
 private class ElevatedSurfaceNode(
     var shape: Shape,
-    var elevation: AMElevation,
+    var shadow: ShadowLevel,
     var fill: AMSurfaceFill,
     var hairline: Color,
 ) : Modifier.Node(),
@@ -220,7 +233,7 @@ private class ElevatedSurfaceNode(
         drawSurface(
             context = requireGraphicsContext(),
             shape = shape,
-            elevation = elevation,
+            shadow = shadow,
             fill = fill,
             hairline = hairline,
             dark = currentValueOf(LocalAMDarkTheme) ?: false,
@@ -273,14 +286,14 @@ internal class ElevatedSurfaceDrawer {
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
         shape: Shape,
-        elevation: AMElevation,
+        shadow: ShadowLevel,
         fill: AMSurfaceFill,
         hairline: Color,
         dark: Boolean,
         backdrop: AMBackdropSource?,
         clipContent: Boolean,
     ) {
-        val level = elevation.shadowLevel
+        val level = shadow
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
 
         if (fill == AMSurfaceFill.Frosted && backdrop != null) {
@@ -300,6 +313,49 @@ internal class ElevatedSurfaceDrawer {
         drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
         drawClippedContent(path, clipContent)
         if (dark) drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(true), Style.Hairline.Width)
+    }
+
+    /**
+     * Draws one row's [frame] of a card around the content, for a card a lazy list draws a row at
+     * a time: the card at `frame.card`, drawn as [drawSurface] draws it with the content clipped
+     * to its shape, and shown only inside `frame.band`, so slices laid edge to edge make one card.
+     */
+    fun ContentDrawScope.drawSurfaceSlice(
+        context: GraphicsContext,
+        frame: CardSlice,
+        shape: Shape,
+        shadow: ShadowLevel,
+        fill: AMSurfaceFill,
+        dark: Boolean,
+        backdrop: AMBackdropSource?,
+    ) {
+        val card = frame.card
+        val path = Path().apply {
+            addOutline(shape.createOutline(card.size, layoutDirection, this@drawSurfaceSlice))
+            translate(card.topLeft)
+        }
+        val content = this
+        // Draws in the card's own frame, at the card's size, so its shadows and edges are the card's.
+        fun DrawScope.inCard(block: DrawScope.() -> Unit) =
+            inset(card.left, card.top, size.width - card.right, size.height - card.bottom, block)
+        val art = backdrop?.takeIf { fill == AMSurfaceFill.Frosted }
+        clipRect(frame.band.left, frame.band.top, frame.band.right, frame.band.bottom) {
+            if (art != null) {
+                clipPath(path, ClipOp.Difference) { inCard { shadows.draw(this, context, shape, shadow, dark) } }
+            } else {
+                inCard { shadows.draw(this, context, shape, shadow, dark) }
+            }
+            if (art != null && slice.draw(this, path, art, coordinates, Style.Frosted.BlurRadius.toPx())) {
+                drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
+                clipPath(path) { content.drawContent() }
+                inCard { drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width) }
+            } else {
+                // Solid, and frosted with nothing to sample yet.
+                drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
+                clipPath(path) { content.drawContent() }
+                if (dark) inCard { drawInsetOutline(shape, selectionRing(true), Style.Hairline.Width) }
+            }
+        }
     }
 
     private fun ContentDrawScope.drawClippedContent(shape: Path, clip: Boolean) {

@@ -6,11 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,10 +24,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -40,18 +41,17 @@ import com.ideamtrls.androidmtrls.AMArtPanelChrome
 import com.ideamtrls.androidmtrls.AMArtRowsBackdrop
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMButton
+import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
-import com.ideamtrls.androidmtrls.AMElevation
-import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.amArtRow
+import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
-import com.ideamtrls.androidmtrls.amElevation
+import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amRowPadding
 
 // The two panels the Artists stack pushes: an artist and an album, each under the art panel bar,
@@ -64,14 +64,13 @@ import com.ideamtrls.androidmtrls.amRowPadding
  * and counts; Play and Shuffle over their songs; then their albums as art entries. The hero carries
  * the photo's color and each album its cover's (the project photo until the cover is read),
  * blending down the page as its backdrop's art, so the bar's frosted fill, Play and Shuffle, and
- * the Queue sheet blur them. The Queue sheet opens here while this page is on top.
+ * the Queue sheet blur them.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MusicArtistPage(artistId: String, model: MusicModel) {
     val catalog = model.catalog
     val artist = catalog.artist(artistId) ?: return
-    val route = MusicRoute.Artist(artistId)
     val spacing = AMTheme.tokens.spacing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val albums = catalog.albums(artist)
@@ -88,13 +87,15 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                     .verticalScroll(rememberScrollState())
                     .amArtRows()
                     .padding(padding)
-                    .padding(top = spacing.md, bottom = MusicFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(top = spacing.md),
                 verticalArrangement = Arrangement.spacedBy(spacing.xl),
             ) {
-                MusicArtistHero(artist, catalog, Modifier.amArtRow(artist.imageUrl))
+                MusicArtistHero(artist, catalog, Modifier.musicArtRow(null, artist.imageUrl))
                 MusicPlayShuffleButtons(MusicQueueTarget.Artist(artist), model, Modifier.padding(horizontal = spacing.lg))
                 Column(Modifier.padding(horizontal = spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-                    AMSectionHeader { Text("Albums", Modifier.amArtText()) }
+                    AMSectionHeader("Albums")
                     Column(verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
                         albums.forEach { album ->
                             val cover = model.cover(album.id)
@@ -115,7 +116,6 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                 }
             }
         }
-        if (model.hostsQueue(route)) MusicQueueSheet(model)
     }
 }
 
@@ -127,31 +127,22 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
 @Composable
 private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier: Modifier) {
     val spacing = AMTheme.tokens.spacing
-    val shape = MaterialTheme.shapes.large
     Column(
         modifier.fillMaxWidth().padding(horizontal = spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        AMRemoteImage(
-            artist.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(artist.imageAspectRatio)
-                .amElevation(AMElevation.Low, shape)
-                .clip(shape),
-            fallback = {},
-        )
-        Column(Modifier.fillMaxWidth().amArtText(), horizontalAlignment = Alignment.CenterHorizontally) {
+        MusicArtCard(artist.imageUrl, cover = null, Modifier.fillMaxWidth().aspectRatio(artist.imageAspectRatio))
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 artist.name,
-                Modifier.semantics { heading() },
+                Modifier.amArtText().semantics { heading() },
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
             )
             Text(
                 musicArtistSummary(artist, catalog),
+                Modifier.amArtText(secondary = true),
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                 textAlign = TextAlign.Center,
             )
@@ -162,8 +153,8 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
 /**
  * An album: its cover as an art card, Play and Shuffle, then its tracks in one frosted card, all
  * over its cover's art (the project photo's until the cover is read). The bar names the album over
- * "American Food · 3 songs · 15 min". The Queue sheet opens inside this page's art while it's the
- * stack's top, so its glass samples it.
+ * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's glass samples
+ * its art.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,7 +184,9 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.md, bottom = MusicFabClearance),
+                    .consumeWindowInsets(padding)
+                    .windowInsetsPadding(WindowInsets.amFloatingActions)
+                    .padding(start = spacing.lg, end = spacing.lg, top = spacing.md),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 MusicArtCard(album.coverUrl, cover, Modifier.fillMaxWidth().aspectRatio(1f))
@@ -201,14 +194,15 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 // Bare rows with inset dividers between them, in a frosted card that clips them,
                 // so the playing row's highlight rounds with it.
                 Column(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
-                    tracks.forEachIndexed { index, track ->
-                        if (index > 0) AMDivider(inset = spacing.lg)
-                        MusicAlbumTrackRow(track, index, tracks, model)
+                    ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                        tracks.forEachIndexed { index, track ->
+                            if (index > 0) AMDivider(inset = spacing.lg)
+                            MusicAlbumTrackRow(track, index, tracks, model)
+                        }
                     }
                 }
             }
         }
-        if (model.hostsQueue(MusicRoute.Album(albumId))) MusicQueueSheet(model)
     }
 }
 
@@ -230,7 +224,7 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
         Modifier
             .fillMaxWidth()
             .then(if (isCurrent) Modifier.background(AMTheme.Frosted.highlight) else Modifier)
-            .musicQueueMenu(MusicQueueTarget.Track(track, album), model)
+            .musicQueueMenu(MusicQueueTarget.Track(track, album), model, rememberMusicQueueIcons())
             .clickable(role = Role.Button) { model.play(album, index) }
             .clearAndSetSemantics {
                 contentDescription = description
@@ -242,12 +236,12 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
     ) {
         Box(Modifier.width(MusicTrackNumberWidth), contentAlignment = Alignment.Center) {
             if (isCurrent) {
-                MusicSpeakerMark()
+                MusicSpeakerMark(tint = AMTheme.Frosted.tint)
             } else {
                 Text(
                     "${index + 1}",
                     style = typography.bodyLarge.copy(fontFeatureSettings = "tnum"),
-                    color = AMTheme.Frosted.secondaryText,
+                    color = AMTheme.secondaryText,
                 )
             }
         }
@@ -255,14 +249,14 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
             track.title,
             Modifier.weight(1f),
             style = typography.bodyLarge,
-            color = if (isCurrent) MusicNowPlayingTint else Color.Unspecified,
+            color = if (isCurrent) AMTheme.Frosted.tint else Color.Unspecified,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
             duration,
             style = typography.bodySmall.copy(fontFeatureSettings = "tnum"),
-            color = AMTheme.Frosted.secondaryText,
+            color = AMTheme.secondaryText,
         )
     }
 }
@@ -271,45 +265,31 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
 private val MusicTrackNumberWidth = 28.dp
 
 /**
- * Play and Shuffle, frosted, side by side at equal widths: Play plays [target] from its first song
- * with shuffle off, Shuffle with it on. At the largest text sizes, where a half-width "Shuffle"
- * would break mid-word, Shuffle stacks under Play.
+ * Play and Shuffle, frosted, in an [AMButtonPair]: Play plays [target] from its first song with
+ * shuffle off, Shuffle with it on. Side by side at equal widths, or stacked when a label wouldn't
+ * fit on one line at half the width.
  */
 @Composable
 private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel, modifier: Modifier = Modifier) {
-    val spacing = AMTheme.tokens.spacing
     val play = painterResource(R.drawable.ic_play_arrow_filled)
     val shuffle = painterResource(R.drawable.ic_shuffle)
-    val playButton = @Composable { buttonModifier: Modifier ->
-        AMButton(
-            "Play",
-            onClick = { model.play(target, shuffled = false) },
-            modifier = buttonModifier,
-            icon = play,
-            style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
-        )
-    }
-    val shuffleButton = @Composable { buttonModifier: Modifier ->
-        AMButton(
-            "Shuffle",
-            onClick = { model.play(target, shuffled = true) },
-            modifier = buttonModifier,
-            icon = shuffle,
-            style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
-        )
-    }
-    if (LocalDensity.current.fontScale >= MusicStackedButtonsFontScale) {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-            playButton(Modifier.fillMaxWidth())
-            shuffleButton(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
-            playButton(Modifier.weight(1f))
-            shuffleButton(Modifier.weight(1f))
-        }
-    }
+    AMButtonPair(
+        {
+            AMButton(
+                "Play",
+                onClick = { model.play(target, shuffled = false) },
+                icon = play,
+                style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
+            )
+        },
+        {
+            AMButton(
+                "Shuffle",
+                onClick = { model.play(target, shuffled = true) },
+                icon = shuffle,
+                style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
+            )
+        },
+        modifier,
+    )
 }
-
-/** The font scale from which Play and Shuffle stack. */
-private const val MusicStackedButtonsFontScale = 1.5f

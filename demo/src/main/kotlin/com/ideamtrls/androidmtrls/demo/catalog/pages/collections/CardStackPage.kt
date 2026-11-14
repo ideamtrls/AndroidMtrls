@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMCardStack
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
@@ -46,11 +47,11 @@ private fun CardStackPage() {
 private class CollectionsAlbum(val id: Int, val title: String, val detail: String, val seed: String)
 
 private val Albums = listOf(
-    CollectionsAlbum(1, "Morning walk", "12 photos", "ramen"),
-    CollectionsAlbum(2, "Long weekend", "48 photos", "tart"),
-    CollectionsAlbum(3, "Field trip", "23 photos", "curry"),
-    CollectionsAlbum(4, "Low tide", "9 photos", "focaccia"),
-    CollectionsAlbum(5, "Night out", "31 photos", "gazpacho"),
+    CollectionsAlbum(1, "Morning walk", "12 photos", "morning-walk"),
+    CollectionsAlbum(2, "Long weekend", "48 photos", "long-weekend"),
+    CollectionsAlbum(3, "Field trip", "23 photos", "field-trip"),
+    CollectionsAlbum(4, "Low tide", "9 photos", "low-tide"),
+    CollectionsAlbum(5, "Night out", "31 photos", "night-out"),
 )
 
 /** The deck's height; every card fills it. */
@@ -87,7 +88,7 @@ private fun AlbumCard(album: CollectionsAlbum) {
                 .fillMaxWidth()
                 .background(Brush.verticalGradient(listOf(scrim.copy(alpha = 0f), scrim.copy(alpha = 0.55f))))
                 .padding(AMTheme.tokens.spacing.lg)
-                .amArtText(),
+                .amArtText(AMArtTone.Dark),
         ) {
             Text(album.title, style = MaterialTheme.typography.titleLarge)
             Text(album.detail, style = MaterialTheme.typography.bodyMedium)
