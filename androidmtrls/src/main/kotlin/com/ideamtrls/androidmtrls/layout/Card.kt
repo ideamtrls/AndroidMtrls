@@ -161,7 +161,7 @@ private class CardSurfaceNode(
             drawSurface(
                 context = requireGraphicsContext(),
                 shape = shape,
-                elevation = elevation,
+                shadow = elevation.shadowLevel,
                 fill = fill,
                 hairline = Color.Unspecified,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,

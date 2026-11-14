@@ -167,19 +167,30 @@ internal fun Modifier.amElevatedSurface(
     elevation: AMElevation = AMElevation.Low,
     fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = this then ElevatedSurfaceElement(shape, elevation, fill, hairline)
+): Modifier = amElevatedSurface(shape, elevation.shadowLevel, fill, hairline)
+
+/**
+ * [amElevatedSurface] casting a row of the shadow table that no [AMElevation] names: a shadow
+ * fitted to a tight place, such as [Style.Shadow.BarButton] inside a top app bar's clipped row.
+ */
+internal fun Modifier.amElevatedSurface(
+    shape: Shape,
+    shadow: ShadowLevel,
+    fill: AMSurfaceFill = AMSurfaceFill.Solid,
+    hairline: Color = Color.Unspecified,
+): Modifier = this then ElevatedSurfaceElement(shape, shadow, fill, hairline)
 
 private data class ElevatedSurfaceElement(
     val shape: Shape,
-    val elevation: AMElevation,
+    val shadow: ShadowLevel,
     val fill: AMSurfaceFill,
     val hairline: Color,
 ) : ModifierNodeElement<ElevatedSurfaceNode>() {
-    override fun create() = ElevatedSurfaceNode(shape, elevation, fill, hairline)
+    override fun create() = ElevatedSurfaceNode(shape, shadow, fill, hairline)
 
     override fun update(node: ElevatedSurfaceNode) {
         node.shape = shape
-        node.elevation = elevation
+        node.shadow = shadow
         node.fill = fill
         node.hairline = hairline
         node.invalidateDraw()
@@ -188,7 +199,7 @@ private data class ElevatedSurfaceElement(
     override fun InspectorInfo.inspectableProperties() {
         name = "amElevatedSurface"
         properties["shape"] = shape
-        properties["elevation"] = elevation
+        properties["shadow"] = shadow
         properties["fill"] = fill
         properties["hairline"] = hairline
     }
@@ -196,7 +207,7 @@ private data class ElevatedSurfaceElement(
 
 private class ElevatedSurfaceNode(
     var shape: Shape,
-    var elevation: AMElevation,
+    var shadow: ShadowLevel,
     var fill: AMSurfaceFill,
     var hairline: Color,
 ) : Modifier.Node(),
@@ -220,7 +231,7 @@ private class ElevatedSurfaceNode(
         drawSurface(
             context = requireGraphicsContext(),
             shape = shape,
-            elevation = elevation,
+            shadow = shadow,
             fill = fill,
             hairline = hairline,
             dark = currentValueOf(LocalAMDarkTheme) ?: false,
@@ -273,14 +284,14 @@ internal class ElevatedSurfaceDrawer {
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
         shape: Shape,
-        elevation: AMElevation,
+        shadow: ShadowLevel,
         fill: AMSurfaceFill,
         hairline: Color,
         dark: Boolean,
         backdrop: AMBackdropSource?,
         clipContent: Boolean,
     ) {
-        val level = elevation.shadowLevel
+        val level = shadow
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
 
         if (fill == AMSurfaceFill.Frosted && backdrop != null) {

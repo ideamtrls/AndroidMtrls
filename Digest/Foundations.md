@@ -2,7 +2,7 @@
 scope: The style layer's values and the theme every component reads — AMTheme (installing MaterialTheme) and its read-only style tier (the row recipe's vertical padding included), AMTokens (spacing, semantic tints), AMSemantic, the shadow table and AMElevation, hairlines and the internal elevated-surface helper, AMSurfaceStyle nesting, AMSurfaceFill and AMBackdrop (frosted sampling), the motion helpers, the status-bar edge for headerless scrolling views (Modifier.amStatusBarEdge), and the page and section headers
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/foundations/**, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/internal/BackdropSource.kt, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/internal/FrostedSlice.kt, androidmtrls/src/main/res/drawable/am_ic_info.xml, androidmtrls/src/main/res/drawable/am_ic_check_circle.xml, androidmtrls/src/main/res/drawable/am_ic_warning.xml, androidmtrls/src/main/res/drawable/am_ic_error.xml, androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/FrostedSampleRegionTest.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/foundations/**]
 keywords: [Style, Style.kt, shadow table, ShadowLevel, ShadowLayer, blur radius, sigma, AMTheme, AMTheme.Surface, primary, page, AMTheme.Frosted, fill, edge, highlight, secondaryText, blurRadius, hairlineWidth, selectionRing, selectionRingWidth, controlOutline, rowVerticalPadding, row recipe, AMTheme.Overlay, darkDimAlpha, ModalOverlay, FallbackDimLight, FallbackDimDark, PageWashAlpha, 34 dp, LocalAMOnPrimarySurface, sitsOnPrimarySurface, on a primary surface, AMTheme.ActionGrid, tileHeight, AMTheme.tokens, AMTheme.isDark, darkTheme, LocalAMDarkTheme, LocalAMTokens, MaterialTheme, MotionScheme.standard, static color scheme, baseline scheme, nested theme, AMTokens, AMSpacing, xs, sm, md, lg, xl, xxl, AMSemanticTints, AMSemanticColors, tone 40, tone 80, green, amber, AMSemantic, Info, Success, Warning, Destructive, icon, severityLabel, AMElevation, None, Low, Medium, Text, Modifier.amElevation, Modifier.amTextShadow, glyphShadow, ShapeShadows, createDropShadowPainter, Modifier.amHairline, drawInsetOutline, amElevatedSurface, ElevatedSurfaceDrawer, drawSurface, controlSurface, LocalAMEnabled, ProvideAMEnabled, resolveEnabled, AMSurfaceStyle, LocalAMSurfaceStyle, ProvideAMSurfaceStyle, SurfaceStyleOrigin, LocalAMSurfaceStyleOrigin, NestingSurfaceKey, NestingSurfaceNode, resolveSurfaceStyle, re-lift, AMSurfaceFill, Solid, Frosted, AMBackdrop, AMArtRowsBackdrop, LocalAMBackdrop, AMBackdropSource, backdropSource, FrostedSlice, SampleRegion, frostedSampleRegion, BlurEffect, solid fallback, AMPageHeader, LargeTopAppBar, title-only header, collapsedHeight, frosted header, FrostedBar, twoRowBarFill, FastOutLinearInEasing, AMSectionHeader, titleSmall, list subheader, type roles, amInstantSwitch, InstantSwitch, Modifier.amCrossfade, Remove animations, amArtText, filled glyphs, amStatusBarEdge, Modifier.amStatusBarEdge, status bar edge, scroll edge, soft edge, headerless, bar-less screen, StatusBarEdgeNode, WindowInsetsRulers, StatusBars, ruler, alpha mask, DstIn, saveLayer, fading edge, FastOutLinearInEasing]
-updated: 2026-11-10
+updated: 2026-11-13
 ---
 
 # Foundations
@@ -116,8 +116,11 @@ Tune shadows here and nowhere else: (blur, y, light alpha, dark alpha) per layer
 | `Medium` | 10 dp, 4 dp, 0.10, 0.55 | 48 dp, 18 dp, 0.08, 0.45 |
 | `Text` | 4 dp, 1 dp, 0.12, 0.12 | 16 dp, 4 dp, 0.10, 0.10 |
 | `ArtText` (internal, `amArtText`) | 1 dp, 1 dp, 0.30, 0.30 | 10 dp, 2 dp, 0.28, 0.28 |
+| `BarButton` (internal, the solid toolbar button) | 6 dp, 2 dp, 0.10, 0.55 | 8 dp, 3 dp, 0.08, 0.25 |
 
 The blur is Android's blur radius, which the platform turns into a Gaussian sigma of about `0.58 × blur + 0.5`; the values put each layer's sigma at the design's shadow softness (sigma 4 ≈ blur 6, 16 ≈ 27, 28 ≈ 48). They are tuned against rendered cards (the Elevation and Color pages).
+
+`BarButton` is `Low` fitted inside a top app bar's row. Material clips each of a bar's rows to its bounds (`clipToBounds` on the 64 dp row), which leaves 12 dp around a solid toolbar button's 40 dp circle; `Low`'s far layer would still be at about 13 % black (dark mode) at the row's edge and show as a hard-edged band behind the button. `BarButton` keeps the near layer and a far layer that has faded under 1 % (dark) and 0.3 % (light) at that edge.
 
 ## Hairlines — `Modifier.amHairline`
 
@@ -126,6 +129,9 @@ The blur is Android's blur radius, which the platform turns into a Gaussian sigm
 - Internal `DrawScope.drawInsetOutline(shape, color, width)`: rectangles and rounded rectangles are stroked on an outline inset by half the stroke (corner radii shrink with it); any other shape is stroked twice as wide, clipped to the shape.
 
 ### The elevated surface — internal `Modifier.amElevatedSurface(shape, elevation = Low, fill = Solid, hairline = Unspecified)`
+
+A second form takes a shadow-table row instead of an `AMElevation`, `amElevatedSurface(shape, shadow: ShadowLevel, fill, hairline)`, for a shadow fitted to a tight place (the solid toolbar button's `Style.Shadow.BarButton`); the `AMElevation` form delegates to it with `elevation.shadowLevel`, and `ElevatedSurfaceDrawer.drawSurface` takes the `ShadowLevel`.
+
 
 The recipe every floating surface wears (cards, filled buttons, toolbar buttons, tiles, sheets), drawn around the content in one node so it never drifts. It doesn't clip the content; whatever the content draws in its own background sits above the fill. The drawing lives in internal `ElevatedSurfaceDrawer` (shadows, frosted slice, position; `attach`/`detach`, `position`, `ContentDrawScope.drawSurface(…, clipContent)`), which this node, the card's node (`Modifier.amCard`, `Layout.md`) and the filled buttons' private `controlSurface` (`Actions.md`) each own one of; the card draws with `clipContent = true`.
 

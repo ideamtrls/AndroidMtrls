@@ -199,8 +199,9 @@ public fun AMToolbar(
 /**
  * A toolbar's button: Material's icon button, with a long-press tooltip naming it and a 48 dp
  * touch target. On a picture (inside an [AMBackdrop]) it's solid, a crucial control: a circle the
- * size of Material's icon button container wearing the floating surface, its shadow and its
- * dark-mode hairline, the glyph in `onSurface`, so it stays the clearest thing over any art.
+ * size of Material's icon button container wearing the floating surface, a shadow fitted inside
+ * the bar's row (the bar clips its row, so a wider one would show a hard edge) and its dark-mode
+ * hairline, the glyph in `onSurface`, so it stays the clearest thing over any art.
  * Everywhere else it's a bare glyph in the bar's content color.
  *
  * ```kotlin
@@ -255,11 +256,12 @@ internal fun ToolbarButton(
         }
     } else {
         // The 48 dp target is reserved outside the circle, so the surface hugs Material's 40 dp
-        // button inside it and taps still land across the whole target.
+        // button inside it and taps still land across the whole target. A bar clips its row, so
+        // the shadow is the one fitted inside it.
         Box(
             modifier
                 .minimumInteractiveComponentSize()
-                .amElevatedSurface(CircleShape, if (isEnabled) AMElevation.Low else AMElevation.None),
+                .amElevatedSurface(CircleShape, if (isEnabled) Style.Shadow.BarButton else Style.Shadow.None),
             propagateMinConstraints = true,
         ) {
             CompositionLocalProvider(

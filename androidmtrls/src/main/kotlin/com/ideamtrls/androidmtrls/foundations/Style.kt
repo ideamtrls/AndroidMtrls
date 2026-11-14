@@ -55,10 +55,21 @@ internal object Style {
             far = ShadowLayer(0.dp, 0.dp, 0f, 0f),
         )
 
-        /** The default lift: cards, filled buttons, toolbar buttons, tiles, the toast. */
+        /** The default lift: cards, filled buttons, tiles, the toast. */
         val Low = ShadowLevel(
             near = ShadowLayer(6.dp, 2.dp, 0.10f, 0.55f),
             far = ShadowLayer(27.dp, 10.dp, 0.08f, 0.45f),
+        )
+
+        /**
+         * A solid toolbar button: [Low] fitted inside a top app bar's row. Material clips each of
+         * a bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
+         * circle, where [Low]'s far layer would be cut into a hard edge. So the near layer stays
+         * and the far layer is tight enough to have faded out (under 1 %) at the row's edge.
+         */
+        val BarButton = ShadowLevel(
+            near = ShadowLayer(6.dp, 2.dp, 0.10f, 0.55f),
+            far = ShadowLayer(8.dp, 3.dp, 0.08f, 0.25f),
         )
 
         /** The deeper lift of a sheet, which sits higher off the page than a card. */

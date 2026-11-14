@@ -364,7 +364,7 @@ private class ControlSurfaceNode(
             drawSurface(
                 context = requireGraphicsContext(),
                 shape = shape,
-                elevation = elevation,
+                shadow = elevation.shadowLevel,
                 fill = fill,
                 hairline = if (onPrimary) Style.ControlOutline.Dark else Color.Unspecified,
                 dark = dark,
