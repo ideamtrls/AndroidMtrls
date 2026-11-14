@@ -202,7 +202,7 @@ internal object Style {
         /**
          * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode.
          * Over sharp black art, `onSurface` (the spotlight's title) holds 5.99:1 in light mode;
-         * over sharp white art, 5.32:1 in dark mode. The blur only evens the screen out, so the
+         * over sharp white art, 5.38:1 in dark mode. The blur only evens the screen out, so the
          * wash holds alone where the system has cross-window blur off.
          */
         val WashLight = Color.White.copy(alpha = 0.6f)
