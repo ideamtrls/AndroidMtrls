@@ -106,7 +106,7 @@ AMReorderableRowList(queue, key = { it.id }, onMove = { from, to -> queue.add(to
 A container's custom actions (the swipe actions, the move actions) belong on the row's own focusable node, the one reading its text, so the row stays one stop with its actions one step away. The container can't reach that node, so it hands them down:
 
 - `RowActionsContainer(actions, modifier, content)` provides `LocalAMRowActions` = `RowActions(actions, claims)`. Nested in another container it takes the outer actions first and claims them. While no row has claimed its list, it carries the actions itself, `semantics(mergeDescendants = true)` around its content.
-- `claimRowActions()`, called by `AMListRow`, `AMListCard` and `AMLabeledContent`, counts a claim (a `DisposableEffect`) and returns `Modifier.semantics { customActions = … }` for the list item, joining its merged node.
+- `claimRowActions()`, called by `AMListRow`, `AMListCard`, `AMLabeledContent` and the bar form of `AMProgressView` (`Feedback.md`), counts a claim (a `DisposableEffect`) and returns `Modifier.semantics { customActions = … }` for the list item, joining its merged node.
 
 ## Catalog pages
 

@@ -11,11 +11,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * How an [AMProgressView] shows its progress. Sealed, so only these two exist:
@@ -47,10 +49,12 @@ public sealed interface AMProgressViewStyle {
 
     /**
      * Material's linear progress indicator, full width, under a row of the label (`bodyLarge` in
-     * `onSurface`) and the value label at its end (`bodyMedium` in `onSurfaceVariant`),
-     * `spacing.sm` apart, on the row recipe. Like a flat row, it paints the floating surface when it
-     * stands on the page and nothing inside a card, so it stacks with other rows in one, divided
-     * by [AMDivider].
+     * `onSurface`, up to two lines, ellipsized) and the value label at its end (`bodyMedium` in
+     * `onSurfaceVariant`, one line), `spacing.sm` apart, on the row recipe. Like a flat row, it
+     * paints the floating surface when it stands on the page and nothing inside a card, so it
+     * stacks with other rows in one, divided by [AMDivider]. In a row container (an
+     * [AMSwipeableRow], a reorderable list) it's the row: TalkBack finds the container's actions
+     * on it, one stop.
      */
     @Immutable
     public data object Bar : AMProgressViewStyle
@@ -123,42 +127,53 @@ private fun SpinnerProgress(label: String, modifier: Modifier, progress: (() -> 
     }
 }
 
-/** The title and its value over the linear indicator, on the row recipe and a flat surface. */
+/**
+ * The title and its value over the linear indicator, on the row recipe and a flat surface. It's a
+ * row, so it claims a row container's actions onto its own merged node.
+ */
 @Composable
 private fun BarProgress(label: String, modifier: Modifier, progress: (() -> Float)?, valueLabel: String?) {
     val spacing = AMTheme.tokens.spacing
-    Column(
-        modifier
-            .fillMaxWidth()
-            .amFlatSurface()
-            .amRowPadding()
-            .semantics(mergeDescendants = true) {},
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        Row(Modifier.fillMaxWidth()) {
-            Text(
-                label,
-                Modifier
-                    .weight(1f)
-                    .alignByBaseline(),
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            if (valueLabel != null) {
+    val barModifier = modifier
+        .fillMaxWidth()
+        .amFlatSurface()
+        .then(claimRowActions())
+        .amRowPadding()
+        .semantics(mergeDescendants = true) {}
+    CompositionLocalProvider(LocalAMRowActions provides null) {
+        Column(barModifier, verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+            Row(Modifier.fillMaxWidth()) {
                 Text(
-                    valueLabel,
+                    label,
                     Modifier
-                        .padding(start = spacing.md)
+                        .weight(1f)
                         .alignByBaseline(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = BarLabelMaxLines,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
+                if (valueLabel != null) {
+                    Text(
+                        valueLabel,
+                        Modifier
+                            .padding(start = spacing.md)
+                            .alignByBaseline(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
-        }
-        if (progress != null) {
-            LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth())
-        } else {
-            LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (progress != null) {
+                LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth())
+            } else {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
         }
     }
 }
+
+/** How many lines the bar's label takes before it ellipsizes, so a long title keeps rows even. */
+private const val BarLabelMaxLines = 2
