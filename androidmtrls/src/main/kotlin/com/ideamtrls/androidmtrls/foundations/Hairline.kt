@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
@@ -311,6 +313,49 @@ internal class ElevatedSurfaceDrawer {
         drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
         drawClippedContent(path, clipContent)
         if (dark) drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(true), Style.Hairline.Width)
+    }
+
+    /**
+     * Draws one row's [frame] of a card around the content, for a card a lazy list draws a row at
+     * a time: the card at `frame.card`, drawn as [drawSurface] draws it with the content clipped
+     * to its shape, and shown only inside `frame.band`, so slices laid edge to edge make one card.
+     */
+    fun ContentDrawScope.drawSurfaceSlice(
+        context: GraphicsContext,
+        frame: CardSlice,
+        shape: Shape,
+        shadow: ShadowLevel,
+        fill: AMSurfaceFill,
+        dark: Boolean,
+        backdrop: AMBackdropSource?,
+    ) {
+        val card = frame.card
+        val path = Path().apply {
+            addOutline(shape.createOutline(card.size, layoutDirection, this@drawSurfaceSlice))
+            translate(card.topLeft)
+        }
+        val content = this
+        // Draws in the card's own frame, at the card's size, so its shadows and edges are the card's.
+        fun DrawScope.inCard(block: DrawScope.() -> Unit) =
+            inset(card.left, card.top, size.width - card.right, size.height - card.bottom, block)
+        val art = backdrop?.takeIf { fill == AMSurfaceFill.Frosted }
+        clipRect(frame.band.left, frame.band.top, frame.band.right, frame.band.bottom) {
+            if (art != null) {
+                clipPath(path, ClipOp.Difference) { inCard { shadows.draw(this, context, shape, shadow, dark) } }
+            } else {
+                inCard { shadows.draw(this, context, shape, shadow, dark) }
+            }
+            if (art != null && slice.draw(this, path, art, coordinates, Style.Frosted.BlurRadius.toPx())) {
+                drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
+                clipPath(path) { content.drawContent() }
+                inCard { drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width) }
+            } else {
+                // Solid, and frosted with nothing to sample yet.
+                drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
+                clipPath(path) { content.drawContent() }
+                if (dark) inCard { drawInsetOutline(shape, selectionRing(true), Style.Hairline.Width) }
+            }
+        }
     }
 
     private fun ContentDrawScope.drawClippedContent(shape: Path, clip: Boolean) {

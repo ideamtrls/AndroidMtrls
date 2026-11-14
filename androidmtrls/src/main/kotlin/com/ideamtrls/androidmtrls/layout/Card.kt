@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
@@ -29,6 +31,7 @@ import androidx.compose.ui.node.invalidateMeasurement
 import androidx.compose.ui.node.requireGraphicsContext
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
@@ -211,6 +214,132 @@ private class CardPaddingNode(var padding: PaddingValues) : Modifier.Node(), Lay
 }
 
 private val NoPadding = PaddingValues(0.dp)
+
+/**
+ * One row's slice of a card that a lazy list draws a row at a time ([amSection]): the whole card's
+ * surface (its shadow, fill, frosted glass and edge, as [amCard] draws them) cut to this row's band,
+ * so rows laid edge to edge make one card. The [first] row takes the top corners and lets the
+ * shadow out above it, the [last] the bottom corners and below; between them the sides run on into
+ * the neighbors' slices. The content is clipped to the card's shape, and the slice is a card for
+ * nesting: a card inside it is flat, and inside another card it draws nothing of its own.
+ */
+internal fun Modifier.amCardSlice(
+    fill: AMSurfaceFill,
+    elevation: AMElevation,
+    shape: Shape,
+    first: Boolean,
+    last: Boolean,
+): Modifier = this then CardSliceElement(fill, elevation, shape, first, last)
+
+private data class CardSliceElement(
+    val fill: AMSurfaceFill,
+    val elevation: AMElevation,
+    val shape: Shape,
+    val first: Boolean,
+    val last: Boolean,
+) : ModifierNodeElement<CardSliceNode>() {
+    override fun create() = CardSliceNode(fill, elevation, shape, first, last)
+
+    override fun update(node: CardSliceNode) {
+        node.fill = fill
+        node.elevation = elevation
+        node.shape = shape
+        node.first = first
+        node.last = last
+        node.invalidateDraw()
+    }
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "amCardSlice"
+        properties["fill"] = fill
+        properties["elevation"] = elevation
+        properties["shape"] = shape
+        properties["first"] = first
+        properties["last"] = last
+    }
+}
+
+private class CardSliceNode(
+    var fill: AMSurfaceFill,
+    var elevation: AMElevation,
+    var shape: Shape,
+    var first: Boolean,
+    var last: Boolean,
+) : Modifier.Node(),
+    DrawModifierNode,
+    GlobalPositionAwareModifierNode,
+    NestingSurfaceNode {
+
+    private val surface = ElevatedSurfaceDrawer()
+
+    override fun onAttach() = surface.attach(requireGraphicsContext())
+
+    override fun onDetach() = surface.detach(requireGraphicsContext())
+
+    // A frosted slice that moves over its art (a scroll) samples a different part of it, so it redraws.
+    override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
+        if (surface.position(coordinates, backdrop())) invalidateDraw()
+    }
+
+    override fun ContentDrawScope.draw() {
+        if (resolveSurfaceStyle() == AMSurfaceStyle.Flat) {
+            drawContent()
+            return
+        }
+        val level = elevation.shadowLevel
+        with(surface) {
+            drawSurfaceSlice(
+                context = requireGraphicsContext(),
+                frame = cardSlice(size, first, last, cardSliceReach(level).toPx()),
+                shape = shape,
+                shadow = level,
+                fill = fill,
+                dark = currentValueOf(LocalAMDarkTheme) ?: false,
+                backdrop = backdrop(),
+            )
+        }
+    }
+
+    private fun backdrop(): AMBackdropSource? =
+        if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null
+}
+
+/**
+ * Where a row's slice draws its card, in the row's own frame: [card] is the part of the whole card
+ * the slice stands for, and [band] the part of the drawing it shows.
+ */
+internal data class CardSlice(val card: Rect, val band: Rect)
+
+/**
+ * The slice of a card a row of [size] draws, [first] and [last] saying where it sits. The card
+ * runs [reach] past each inner edge, so its far corners and the shadow they cast stay out of the
+ * band; the band is the row's own rect, open by [reach] at the sides and at an outer edge, where
+ * the shadow falls past the row.
+ */
+internal fun cardSlice(size: Size, first: Boolean, last: Boolean, reach: Float): CardSlice = CardSlice(
+    card = Rect(
+        left = 0f,
+        top = if (first) 0f else -reach,
+        right = size.width,
+        bottom = if (last) size.height else size.height + reach,
+    ),
+    band = Rect(
+        left = -reach,
+        top = if (first) -reach else 0f,
+        right = size.width + reach,
+        bottom = if (last) size.height + reach else size.height,
+    ),
+)
+
+/**
+ * How far a slice's card runs past its row: [level]'s farthest shadow (a blur reaches about twice
+ * its radius, plus its offset) and room for the card's corners beyond that.
+ */
+internal fun cardSliceReach(level: ShadowLevel): Dp =
+    maxOf(level.near.blur * 2 + level.near.offsetY, level.far.blur * 2 + level.far.offsetY) + SliceCornerRoom
+
+/** Room past the shadow for the corners of a slice's card: more than any shape scale's corner. */
+private val SliceCornerRoom = 48.dp
 
 /**
  * Pads a hand-built row to the row recipe, the one rhythm every row shares, so it lines up with
