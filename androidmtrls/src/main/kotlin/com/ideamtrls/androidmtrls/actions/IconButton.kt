@@ -2,11 +2,13 @@ package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -16,8 +18,15 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 
 /**
  * How large an [AMIconButton] draws. Every size takes taps across at least 48 dp.
@@ -147,6 +156,81 @@ public fun AMIconButton(
         }
     }
 }
+
+/**
+ * A short value you tap, in an icon button's place: a playback speed ("1.25×"), a count, a short
+ * code. The same button as the glyph form: Material's `IconButton`, no fill or outline, in the
+ * content color around it, Material's ripple, a 48 dp touch target and the long-press tooltip.
+ *
+ * ```kotlin
+ * AMIconButton("1.25×", "Playback speed, 1.25 times", onClick = ::pickSpeed)
+ * ```
+ *
+ * - **One line, never wrapping**, in tabular figures, so "1.0×" turning into "1.25×" changes the
+ *   width without the digits jittering. The button is the glyph form's size, wider when the text
+ *   needs it: then its ripple is a rounded rectangle in the medium shape, like every AM button.
+ * - **A spoken name of its own.** [contentDescription] is what TalkBack says and the tooltip
+ *   shows; the visible text is then left out of what TalkBack reads, so "1.25×" can be heard as
+ *   "Playback speed, 1.25 times". Null reads the text itself and shows no tooltip.
+ *
+ * @param text the value, a few characters.
+ * @param contentDescription what a screen reader says for the button, and what its tooltip shows.
+ *   Null reads [text] and shows no tooltip.
+ * @param onClick called when the button is tapped.
+ * @param modifier the button's placement.
+ * @param size the button's height and the text's type: `labelMedium`, `labelLarge` (Material's
+ *   label for buttons) or `titleMedium` on a 56 dp button.
+ * @param enabled whether the button takes taps.
+ */
+@Composable
+public fun AMIconButton(
+    text: String,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: AMIconButtonSize = AMIconButtonSize.Medium,
+    enabled: Boolean = true,
+) {
+    val isEnabled = resolveEnabled(enabled)
+    val style = size.textStyle().copy(fontFeatureSettings = "tnum")
+    val measurer = rememberTextMeasurer()
+    val textWidth = with(LocalDensity.current) {
+        measurer.measure(text, style, maxLines = 1, softWrap = false).size.width.toDp()
+    }
+    val height = size.container ?: IconButtonHeight
+    val width = max(height, textWidth + TextButtonInset * 2)
+    val spoken = if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier
+    IconButtonTooltip(contentDescription, modifier) { buttonModifier ->
+        IconButton(
+            onClick = onClick,
+            modifier = buttonModifier.size(width, height).then(spoken),
+            enabled = isEnabled,
+            shape = if (width > height) MaterialTheme.shapes.medium else CircleShape,
+        ) {
+            Text(
+                text,
+                if (contentDescription != null) Modifier.clearAndSetSemantics {} else Modifier,
+                style = style,
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
+    }
+}
+
+/** The text form's type for this size. */
+@Composable
+private fun AMIconButtonSize.textStyle(): TextStyle = when (this) {
+    AMIconButtonSize.Small -> MaterialTheme.typography.labelMedium
+    AMIconButtonSize.Medium -> MaterialTheme.typography.labelLarge
+    AMIconButtonSize.Large -> MaterialTheme.typography.titleMedium
+}
+
+/** Material's icon button: 40 dp. */
+private val IconButtonHeight = 40.dp
+
+/** The room the text form keeps on each side of its text. */
+private val TextButtonInset = 8.dp
 
 /** [modifier] at the button's size when it's larger than Material's own. */
 private fun AMIconButtonSize.sized(modifier: Modifier): Modifier = container?.let { modifier.size(it) } ?: modifier

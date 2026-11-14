@@ -74,14 +74,19 @@ private fun PreviewControls() {
     }
 }
 
+/** The playback speeds the speed button steps through. */
+private val Speeds = listOf(1f, 1.25f, 1.5f, 2f, 0.75f)
+
 /**
- * A now-playing card: the track over its artist with casting unavailable, then shuffle (toggling),
- * the transport and repeat-one marked with a badge.
+ * A now-playing card: the track over its artist with the playback speed (the text form, stepping
+ * through [Speeds]) and casting unavailable, then shuffle (toggling), the transport and repeat-one
+ * marked with a badge.
  */
 @Composable
 private fun NowPlaying() {
     val spacing = AMTheme.tokens.spacing
     var shuffles by rememberSaveable { mutableStateOf(false) }
+    var speed by rememberSaveable { mutableStateOf(1f) }
     Column(
         Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
@@ -95,6 +100,12 @@ private fun NowPlaying() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            val speedText = if (speed == speed.toInt().toFloat()) "${speed.toInt()}.0" else "$speed"
+            AMIconButton(
+                "$speedText×",
+                "Playback speed, $speedText times",
+                onClick = { speed = Speeds[(Speeds.indexOf(speed) + 1) % Speeds.size] },
+            )
             AMIconButton(painterResource(R.drawable.ic_cast), "Cast unavailable", onClick = ::cast, enabled = false)
         }
         Row(
