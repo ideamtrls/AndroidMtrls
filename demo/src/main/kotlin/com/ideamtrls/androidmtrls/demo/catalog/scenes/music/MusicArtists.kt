@@ -101,7 +101,6 @@ internal fun MusicArtistsView(model: MusicModel) {
                 }
             }
         }
-        if (model.hostsQueue(MusicRoute.Artists)) MusicQueueSheet(model)
     }
 }
 

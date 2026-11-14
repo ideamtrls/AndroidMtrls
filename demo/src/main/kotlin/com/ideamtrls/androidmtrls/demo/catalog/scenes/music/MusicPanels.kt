@@ -64,14 +64,13 @@ import com.ideamtrls.androidmtrls.amRowPadding
  * and counts; Play and Shuffle over their songs; then their albums as art entries. The hero carries
  * the photo's color and each album its cover's (the project photo until the cover is read),
  * blending down the page as its backdrop's art, so the bar's frosted fill, Play and Shuffle, and
- * the Queue sheet blur them. The Queue sheet opens here while this page is on top.
+ * the Queue sheet blur them.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MusicArtistPage(artistId: String, model: MusicModel) {
     val catalog = model.catalog
     val artist = catalog.artist(artistId) ?: return
-    val route = MusicRoute.Artist(artistId)
     val spacing = AMTheme.tokens.spacing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val albums = catalog.albums(artist)
@@ -117,7 +116,6 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                 }
             }
         }
-        if (model.hostsQueue(route)) MusicQueueSheet(model)
     }
 }
 
@@ -155,8 +153,8 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
 /**
  * An album: its cover as an art card, Play and Shuffle, then its tracks in one frosted card, all
  * over its cover's art (the project photo's until the cover is read). The bar names the album over
- * "American Food · 3 songs · 15 min". The Queue sheet opens inside this page's art while it's the
- * stack's top, so its glass samples it.
+ * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's glass samples
+ * its art.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,7 +203,6 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 }
             }
         }
-        if (model.hostsQueue(MusicRoute.Album(albumId))) MusicQueueSheet(model)
     }
 }
 

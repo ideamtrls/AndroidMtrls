@@ -21,8 +21,8 @@ import com.ideamtrls.androidmtrls.amCrossfade
  * art card, centered in the room between the status bar and the controls and shrinking to fit on
  * short screens. Until the cover is read both show the album's project photo. The art and the card
  * dissolve when the album changes; songs on one album share them. The art is washed toward the
- * mode, so the status bar's icons are the appearance's. The Queue sheet opens inside this art, so
- * its glass samples it.
+ * mode, so the status bar's icons are the appearance's. While it shows, the Queue sheet's glass
+ * samples this art.
  */
 @Composable
 internal fun MusicPlayerView(model: MusicModel) {
@@ -42,6 +42,5 @@ internal fun MusicPlayerView(model: MusicModel) {
             }
             MusicControlsCard(model)
         }
-        MusicQueueSheet(model)
     }
 }

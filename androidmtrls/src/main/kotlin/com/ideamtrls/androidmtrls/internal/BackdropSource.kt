@@ -2,13 +2,16 @@ package com.ideamtrls.androidmtrls
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -85,6 +88,49 @@ internal fun ReportTopCover(source: AMBackdropSource?, covers: Boolean) {
  * art beats the page's. Dynamic, so a surface reading it while drawing redraws when it changes.
  */
 internal val LocalAMBackdrop = compositionLocalOf<AMBackdropSource?> { null }
+
+/**
+ * The page backdrops a scene's root views draw, for what the scene presents over them: a root's
+ * outermost [AMBackdrop] or [AMArtRowsBackdrop] reports itself here while it's composed. The last
+ * one composed is the showing one: the showing root's, or, while Navigation 3 moves between panels,
+ * the one it brings to the top (only the visible entries are composed). Snapshot state, so a
+ * reader recomposes when it changes.
+ */
+@Stable
+internal class AMSceneBackdrops {
+    private val sources = mutableStateListOf<AMBackdropSource>()
+
+    /** The backdrop the showing root, or the panel on top of it, draws; null while it draws none. */
+    val showing: AMBackdropSource?
+        get() = sources.lastOrNull()
+
+    fun add(source: AMBackdropSource) {
+        sources += source
+    }
+
+    fun remove(source: AMBackdropSource) {
+        sources -= source
+    }
+}
+
+/** The scene's page backdrops, around its root views; null elsewhere, and inside a backdrop. */
+internal val LocalAMSceneBackdrops = staticCompositionLocalOf<AMSceneBackdrops?> { null }
+
+/**
+ * Reports [source] to the scene around it while composed, when it's a root view's outermost
+ * backdrop, and returns what to provide to its content, so the backdrops inside it (a row's own
+ * art) don't report.
+ */
+@Composable
+internal fun sceneBackdrop(source: AMBackdropSource): ProvidedValue<AMSceneBackdrops?> {
+    val scene = LocalAMSceneBackdrops.current
+    DisposableEffect(scene, source) {
+        if (scene == null) return@DisposableEffect onDispose {}
+        scene.add(source)
+        onDispose { scene.remove(source) }
+    }
+    return LocalAMSceneBackdrops provides null
+}
 
 /**
  * Records what this draws into [source]'s layer, then draws the layer, so the art shows as usual

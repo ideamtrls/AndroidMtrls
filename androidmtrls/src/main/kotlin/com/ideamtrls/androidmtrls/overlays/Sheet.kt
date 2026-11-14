@@ -54,8 +54,9 @@ public enum class AMSheetSurface {
 
     /**
      * Glass, for an app whose pages use frosted cards: the art of the [AMBackdrop] the sheet is
-     * presented from, blurred under the frosted fill, with the frosted edge. What the sheet holds
-     * stays solid. With no backdrop to sample, it draws [Primary].
+     * presented from (in an [AMScene]'s overlays, the backdrop the showing root draws), blurred
+     * under the frosted fill, with the frosted edge. What the sheet holds stays solid. With no
+     * backdrop to sample, it draws [Primary].
      */
     Frosted,
 }

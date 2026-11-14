@@ -50,6 +50,7 @@ public fun AMBackdrop(
         CompositionLocalProvider(
             LocalAMBackdrop provides source,
             LocalAMArtTone provides artTone,
+            sceneBackdrop(source),
         ) { scope.content() }
     }
 }

@@ -282,6 +282,7 @@ public fun AMArtRowsBackdrop(
             LocalAMBackdrop provides source,
             LocalArtRowsArt provides art,
             LocalAMArtTone provides artTone,
+            sceneBackdrop(source),
         ) { scope.content() }
     }
 }
