@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -166,7 +165,10 @@ internal fun <T> ReorderableColumn(
 ) {
     val layout = remember(listState) { LazyReorderLayout(listState) }
     val state = rememberReorderState(layout, onMove, enabled, handleZone)
-    val currentOnMove by rememberUpdatedState(onMove)
+    val keys = items.map(key)
+    val shownKeys = state.shown(keys)
+    val shown = shownItems(items, keys, shownKeys)
+    SideEffect { state.observe(keys) }
     val motion = MaterialTheme.motionScheme
     val placementSpec = motion.defaultSpatialSpec<IntOffset>()
     val fadeSpec = motion.defaultEffectsSpec<Float>()
@@ -175,12 +177,12 @@ internal fun <T> ReorderableColumn(
         state = listState,
         contentPadding = contentPadding,
     ) {
-        itemsIndexed(items, key = { _, item -> key(item) }) { index, item ->
-            val itemKey = key(item)
+        itemsIndexed(shown, key = { index, _ -> shownKeys[index] }) { index, item ->
+            val itemKey = shownKeys[index]
             val placement = Modifier.reorderPlacement(state, itemKey)
                 ?: Modifier.animateItem(fadeInSpec = fadeSpec, placementSpec = placementSpec, fadeOutSpec = fadeSpec)
-            val moveActions = reorderAccessibilityActions(index, items.lastIndex, enabled) { from, to ->
-                currentOnMove(from, to)
+            val moveActions = reorderAccessibilityActions(index, shown.lastIndex, enabled) { from, to ->
+                state.move(from, to)
             }
             Box(placement) {
                 cell(item, state.isLifted(itemKey), moveActions)
@@ -210,17 +212,21 @@ internal fun <T> ReorderablePageColumn(
     val scope = rememberCoroutineScope()
     val pageLayout = remember(dispatcher, scope) { PageReorderLayout(dispatcher, scope) }
     val state = rememberReorderState(pageLayout, onMove, enabled, handleZone)
-    val currentOnMove by rememberUpdatedState(onMove)
     val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
-    SideEffect { pageLayout.slideSpec = slideSpec }
     val keys = items.map(key)
+    val shownKeys = state.shown(keys)
+    val shown = shownItems(items, keys, shownKeys)
+    SideEffect {
+        pageLayout.slideSpec = slideSpec
+        state.observe(keys)
+    }
     Layout(
         content = {
-            items.forEachIndexed { index, item ->
-                val itemKey = keys[index]
+            shown.forEachIndexed { index, item ->
+                val itemKey = shownKeys[index]
                 androidx.compose.runtime.key(itemKey) {
-                    val moveActions = reorderAccessibilityActions(index, items.lastIndex, enabled) { from, to ->
-                        currentOnMove(from, to)
+                    val moveActions = reorderAccessibilityActions(index, shown.lastIndex, enabled) { from, to ->
+                        state.move(from, to)
                     }
                     Box(Modifier.reorderPlacement(state, itemKey) ?: Modifier) {
                         cell(item, state.isLifted(itemKey), moveActions)
@@ -237,16 +243,24 @@ internal fun <T> ReorderablePageColumn(
         val placeables = measurables.map { it.measure(itemConstraints) }
         var top = 0
         val placed = placeables.mapIndexed { index, placeable ->
-            ReorderItem(keys[index], index, top, placeable.height).also { top += placeable.height }
+            ReorderItem(shownKeys[index], index, top, placeable.height).also { top += placeable.height }
         }
         pageLayout.place(placed, state)
         val width = constraints.constrainWidth(placeables.maxOfOrNull { it.width } ?: 0)
         layout(width, constraints.constrainHeight(top)) {
             placeables.forEachIndexed { index, placeable ->
-                placeable.place(0, placed[index].offset + pageLayout.slideOffset(keys[index]).roundToInt())
+                placeable.place(0, placed[index].offset + pageLayout.slideOffset(shownKeys[index]).roundToInt())
             }
         }
     }
+}
+
+/** [items], whose keys are [keys], in the order of [shownKeys]: [items] itself when that's their own order. */
+private fun <T> shownItems(items: List<T>, keys: List<Any>, shownKeys: List<Any>): List<T> {
+    if (shownKeys === keys) return items
+    val byKey = HashMap<Any, T>(items.size)
+    items.forEachIndexed { index, item -> byKey[keys[index]] = item }
+    return shownKeys.map { byKey.getValue(it) }
 }
 
 /** A nested-scroll connection that takes nothing: the page column only dispatches to its parents. */
@@ -522,13 +536,36 @@ internal class ReorderState(
     private var pointerStart = 0f
     private var liftedStart = 0f
     private var lastOffset = 0f
-    private var expectedIndex = -1
     private val settle = Animatable(0f)
     private var autoScroll: Job? = null
     private var settleJob: Job? = null
 
+    /** The order shown, while the caller's catches up with the steps; [orderVersion] tells readers it changed. */
+    private val order = ReorderOrder()
+    private var orderVersion by mutableIntStateOf(0)
+
     /** The settling item's offset from its slot. */
     val settleOffset: Float get() = settle.value
+
+    /** The order the list shows for the caller's [keys]: theirs, or the steps' while theirs is behind. Reads the steps. */
+    fun shown(keys: List<Any>): List<Any> {
+        orderVersion
+        return order.shownFor(keys)
+    }
+
+    /** The caller's order as it comes in, after every composition. */
+    fun observe(keys: List<Any>) = order.observe(keys)
+
+    /**
+     * Moves the item at [from] to [to] in the order shown, at once, and asks the caller to do the
+     * same. False for a step that moves nothing.
+     */
+    fun move(from: Int, to: Int): Boolean {
+        if (!order.move(from, to)) return false
+        orderVersion += 1
+        onMove(from, to)
+        return true
+    }
 
     /** Whether [key]'s item is lifted or still settling. */
     fun isLifted(key: Any): Boolean = key == liftedKey || key == settlingKey
@@ -567,7 +604,6 @@ internal class ReorderState(
             settlingKey = null
         }
         liftedKey = key
-        expectedIndex = item.index
         pointerStart = pointerY
         pointer = pointerY
         layout.pointerSynced()
@@ -614,7 +650,7 @@ internal class ReorderState(
         val key = liftedKey ?: return
         val lifted = layout.item(key) ?: return
         // The last move hasn't reached the layout yet.
-        if (lifted.index != expectedIndex) return
+        if (lifted.index != order.shown.indexOf(key)) return
         val top = lifted.offset + liftedOffset()
         val step = reorderStep(
             liftedTop = top,
@@ -625,9 +661,7 @@ internal class ReorderState(
         if (step == 0) return
         val target = lifted.index + step
         layout.beforeMove(lifted.index, target)
-        expectedIndex = target
-        onMove(lifted.index, target)
-        haptics?.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        if (move(lifted.index, target)) haptics?.performHapticFeedback(HapticFeedbackType.SegmentTick)
     }
 
     /** Scrolls the list each frame while the lifted item is pressed into its top or bottom edge. */
@@ -728,6 +762,85 @@ private suspend fun AwaitPointerEventScope.awaitLetGo(down: PointerInputChange, 
         if (change.changedToUpIgnoreConsumed() || change.isConsumed) return true
         if ((change.position - down.position).getDistance() > touchSlop) return true
     }
+}
+
+/**
+ * The order a list shows while the caller's own catches up with the drag's steps. Each step shows
+ * at once; the caller's order shows again once it has taken the last step, or once it changes to
+ * an order none of the steps left (it moved on). The caller takes the steps in order, so its order
+ * only ever moves forward through them. Orders are compared on the keys they share: an item the
+ * caller adds or removes meanwhile doesn't break the match, and keeps its place ([reorderArrange]).
+ * Plain, not state: [ReorderState] tells composition when it changes.
+ */
+internal class ReorderOrder {
+    /** The caller's order, as last seen. */
+    private var keys: List<Any> = emptyList()
+
+    /** The order before the first step, then after each step, while the caller's is behind; else empty. */
+    private val steps = ArrayList<List<Any>>()
+
+    /** The step the caller's order has reached: the index in [steps] it last matched. */
+    private var reached = 0
+
+    /** The order shown for the caller's order as last seen, after every step so far. */
+    var shown: List<Any> = emptyList()
+        private set
+
+    /** The order to show for the caller's [keys]: [keys] itself, or the last step's while they're behind it. */
+    fun shownFor(keys: List<Any>): List<Any> {
+        if (steps.isEmpty()) return keys
+        if (keys == this.keys) return shown
+        val at = reachedBy(keys)
+        return if (at == null || at == steps.lastIndex) keys else reorderArrange(keys, steps.last())
+    }
+
+    /** The caller's order as it comes in. The steps go once it has caught up with them or moved on. */
+    fun observe(keys: List<Any>) {
+        if (keys == this.keys) return
+        val shown = shownFor(keys)
+        val at = if (steps.isEmpty()) null else reachedBy(keys)
+        if (at == null || at == steps.lastIndex) {
+            steps.clear()
+            reached = 0
+        } else {
+            reached = at
+        }
+        this.keys = keys
+        this.shown = shown
+    }
+
+    /** Moves the item at [from] to [to] in the order shown. False for a step that moves nothing. */
+    fun move(from: Int, to: Int): Boolean {
+        val current = shown
+        if (from !in current.indices || to !in current.indices || from == to) return false
+        val next = current.toMutableList().apply { add(to, removeAt(from)) }
+        if (steps.isEmpty()) steps += current
+        steps += next
+        shown = next
+        return true
+    }
+
+    /** The first of the steps from [reached] on that [keys] matches on the keys they share, or null. */
+    private fun reachedBy(keys: List<Any>): Int? {
+        val present = keys.toHashSet()
+        for (index in reached..steps.lastIndex) {
+            val step = steps[index]
+            val inStep = step.toHashSet()
+            if (keys.filter { it in inStep } == step.filter { it in present }) return index
+        }
+        return null
+    }
+}
+
+/**
+ * [keys] in [order]'s order: the keys both hold take the places they fill in [keys], in [order]'s
+ * order; every other key keeps its place.
+ */
+internal fun <K> reorderArrange(keys: List<K>, order: List<K>): List<K> {
+    val present = keys.toHashSet()
+    val ordered = order.toHashSet()
+    val next = order.filter { it in present }.iterator()
+    return keys.map { if (it in ordered) next.next() else it }
 }
 
 /** One item's span along the list, start to end, in pixels. */

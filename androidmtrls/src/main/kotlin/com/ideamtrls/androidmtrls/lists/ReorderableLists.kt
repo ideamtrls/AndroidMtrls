@@ -35,13 +35,16 @@ import androidx.compose.ui.draw.clip
  * - **Dragging.** A drag on a row's handle lifts it at once; a press and hold anywhere on the row
  *   lifts it too, with the long-press haptic. The lifted row comes up as a floating surface, in
  *   `shapes.large` with a higher shadow, and follows the finger; its neighbors slide out of its
- *   way with Material's motion, a light tick marking each place it passes, and [onMove] reports
- *   each step as it happens, so the caller's list is always in the order on screen. Near the
- *   list's top or bottom edge the list scrolls under it. On release it settles into its slot. The
- *   order is never hidden behind an edit mode: the handle is always there.
- * - **The order is the caller's.** [onMove] asks to move the item at `from` to `to` (one place at
- *   a time); move it in [items] there. [key] must be stable across moves and saveable in a
- *   `Bundle`, as for any `LazyColumn`.
+ *   way with Material's motion, a light tick marking each place it passes. Each step shows at
+ *   once and [onMove] reports it. Near the list's top or bottom edge the list scrolls under it. On
+ *   release it settles into its slot. The order is never hidden behind an edit mode: the handle is
+ *   always there.
+ * - **The order is the caller's.** [onMove] asks to move the item at `from` to `to`, one place at
+ *   a time, each step from the order the step before left; make the same moves in [items], in
+ *   order, at once or later. The list keeps its own order until [items] has taken the last step
+ *   (or changes to an order none of the steps left), so the steps can go to a database and come
+ *   back through its updates without holding up the drag. [key] must be stable across moves and
+ *   saveable in a `Bundle`, as for any `LazyColumn`.
  * - **Swipes.** [startAction] and [endAction] give a row an action per swipe direction, as
  *   [AMSwipeableRow] does; the handle moves with the swiping row. An action that removes its item
  *   from [items] fades the row out as the rows below close up.
@@ -54,7 +57,8 @@ import androidx.compose.ui.draw.clip
  *
  * @param items the rows' items, in order.
  * @param key a stable, unique key per item.
- * @param onMove called as the user moves the item at `from` to `to`.
+ * @param onMove called as the user moves the item at `from` to `to`, a place in the order the last
+ *   step left.
  * @param modifier the list's placement and size.
  * @param state the list's scroll state.
  * @param startAction the action a swipe toward the end performs on an item's row, or null for
@@ -119,8 +123,9 @@ public fun <T> AMReorderableRowList(
  * ```
  *
  * - **Dragging** works as in [AMReorderableRowList]: the handle lifts a card at once, a press
- *   and hold anywhere on it lifts it too, [onMove] reports each step, the list scrolls near its
- *   edges, and the card settles into its slot on release. A lifted [AMListCard] casts a higher
+ *   and hold anywhere on it lifts it too, each step shows at once and [onMove] reports it (the
+ *   order is the caller's, taken in order, at once or later), the list scrolls near its edges, and
+ *   the card settles into its slot on release. A lifted [AMListCard] casts a higher
  *   shadow; any card follows the finger above its neighbors.
  * - **Layout.** Each card carries the page gutter (`spacing.lg`) at its sides and `spacing.xs`
  *   above and below, so the list runs edge to edge of its container and its cards land on the
@@ -146,7 +151,8 @@ public fun <T> AMReorderableRowList(
  *
  * @param items the cards' items, in order.
  * @param key a stable, unique key per item, saveable in a `Bundle`.
- * @param onMove called as the user moves the item at `from` to `to`.
+ * @param onMove called as the user moves the item at `from` to `to`, a place in the order the last
+ *   step left.
  * @param modifier the list's placement and size.
  * @param state the list's scroll state while it scrolls on its own.
  * @param enabled whether cards can be moved. A disabled list keeps its cards and dims its handles.
