@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -34,6 +36,8 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.requireGraphicsContext
 import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -152,10 +156,14 @@ public val LocalAMButtonStyle: ProvidableCompositionLocal<AMButtonStyle> =
  * Disabled (its own [enabled], or a disabling container around it), the label greys to Material's
  * disabled color and a filled button drops its shadow, keeping its place, size and fill.
  *
+ * TalkBack reads the label, or [contentDescription] when the label alone doesn't name the action.
+ *
  * @param text the label.
  * @param onClick called when the button is tapped.
  * @param modifier the button's placement and size.
  * @param icon a glyph before the label, at the style's Material glyph size. Null shows none.
+ * @param contentDescription what TalkBack reads in place of the label, when the label is short of
+ *   a full name ("Remove" on a download reads "Remove download"). Null reads the label.
  * @param style the look: [LocalAMButtonStyle] unless given, so a container can style its buttons.
  * @param destructive whether the action removes something: the label takes [AMSemantic.Destructive].
  * @param enabled whether the button takes taps.
@@ -166,20 +174,12 @@ public fun AMButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: Painter? = null,
+    contentDescription: String? = null,
     style: AMButtonStyle = LocalAMButtonStyle.current,
     destructive: Boolean = false,
     enabled: Boolean = true,
 ) {
-    val filled = style != AMButtonStyle.Ghost
-    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = icon != null) {
-        if (icon != null) {
-            val glyph = if (filled) ButtonDefaults.iconSizeFor(FilledHeight) else ButtonDefaults.IconSize
-            val gap = if (filled) ButtonDefaults.iconSpacingFor(FilledHeight) else ButtonDefaults.IconSpacing
-            Icon(icon, contentDescription = null, modifier = Modifier.size(glyph))
-            Spacer(Modifier.size(gap))
-        }
-        Text(text)
-    }
+    AMButton(onClick, modifier, icon, contentDescription, style, destructive, enabled) { Text(text) }
 }
 
 /** The filled styles' height: Material's medium button. */
@@ -187,11 +187,29 @@ private val FilledHeight = ButtonDefaults.MediumContainerHeight
 
 /**
  * A button with custom content: [content] laid out in a row, taking the style's label type and
- * color, so a custom label (a glyph after the text, two weights) stays on-system. Otherwise the same
- * button as the string form.
+ * color, so a custom label (a glyph after the text, two weights, a figure beside the label) stays
+ * on-system. Otherwise the same button as the string form, led by [icon] at the style's glyph size
+ * and spacing, with the padding Material gives a button that leads with a glyph.
+ *
+ * ```kotlin
+ * // Shows "Cancel · 62%", reads "Cancel download, 62%".
+ * AMButton(
+ *     onClick = ::cancelDownload,
+ *     icon = painterResource(R.drawable.ic_close),
+ *     contentDescription = "Cancel download, $percent%",
+ *     style = AMButtonStyle.Secondary(),
+ * ) {
+ *     Text("Cancel")
+ *     Text(" · $percent%", style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum"))
+ * }
+ * ```
  *
  * @param onClick called when the button is tapped.
  * @param modifier the button's placement and size.
+ * @param icon a glyph before [content], at the style's Material glyph size. Null shows none.
+ * @param contentDescription what TalkBack reads in place of [content] (the glyph and the custom
+ *   label are hidden from it), when what the button shows is short of a full name. Null reads
+ *   [content].
  * @param style the look: [LocalAMButtonStyle] unless given, so a container can style its buttons.
  * @param destructive whether the action removes something: the content takes
  *   [AMSemantic.Destructive].
@@ -202,12 +220,35 @@ private val FilledHeight = ButtonDefaults.MediumContainerHeight
 public fun AMButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: Painter? = null,
+    contentDescription: String? = null,
     style: AMButtonStyle = LocalAMButtonStyle.current,
     destructive: Boolean = false,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
-    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = false, content = content)
+    val filled = style != AMButtonStyle.Ghost
+    val face: @Composable RowScope.() -> Unit = {
+        if (icon != null) {
+            val glyph = if (filled) ButtonDefaults.iconSizeFor(FilledHeight) else ButtonDefaults.IconSize
+            val gap = if (filled) ButtonDefaults.iconSpacingFor(FilledHeight) else ButtonDefaults.IconSpacing
+            Icon(icon, contentDescription = null, modifier = Modifier.size(glyph))
+            Spacer(Modifier.size(gap))
+        }
+        content()
+    }
+    ButtonBody(onClick, modifier, style, destructive, enabled, leadingIcon = icon != null) {
+        if (contentDescription != null) {
+            // The spoken name stands in for the face: the button merges it, the face is hidden.
+            Row(
+                Modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
+                verticalAlignment = Alignment.CenterVertically,
+                content = face,
+            )
+        } else {
+            face()
+        }
+    }
 }
 
 /** Both forms of [AMButton]: picks the Material button and size for [style], and its padding. */
