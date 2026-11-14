@@ -188,7 +188,8 @@ internal object Style {
 
     /**
      * The overlay behind the remote, the spotlight and other modal layers: the screen blurs, and
-     * in dark mode only, a black dim lies over the blur. The same blur stills a picture in place
+     * the mode's wash lies over it, white in light mode and black in dark mode, so the spotlight's
+     * title holds over any screen, sharp art included. The same blur stills a picture in place
      * (`AMBackdropBlur`, `amPausedBackdrop`).
      */
     object ModalOverlay {
@@ -198,15 +199,14 @@ internal object Style {
          */
         val BlurRadius = 34.dp
 
-        /** The black dim over the blur, in dark mode only. */
-        const val DarkDimAlpha = 0.4f
-
         /**
-         * The dim that stands in for the blur while the system has cross-window blur off: Material's
-         * scrim strength in light mode, the platform's dialog dim in dark mode.
+         * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode.
+         * Over sharp black art, `onSurface` (the spotlight's title) holds 5.99:1 in light mode;
+         * over sharp white art, 5.32:1 in dark mode. The blur only evens the screen out, so the
+         * wash holds alone where the system has cross-window blur off.
          */
-        const val FallbackDimLight = 0.32f
-        const val FallbackDimDark = 0.6f
+        val WashLight = Color.White.copy(alpha = 0.6f)
+        val WashDark = Color.Black.copy(alpha = 0.65f)
 
         /**
          * The page wash over a paused picture (`AMPausedScrim.Page`), in both modes: enough to demote

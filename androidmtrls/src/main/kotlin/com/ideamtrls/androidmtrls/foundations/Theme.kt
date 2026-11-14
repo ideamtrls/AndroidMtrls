@@ -189,7 +189,7 @@ public object AMTheme {
 
     /**
      * The modal overlay recipe behind the remote and the spotlight: the screen behind blurs, and
-     * in dark mode only, a black dim lies over the blur.
+     * the mode's [wash] lies over it.
      */
     public object Overlay {
         /**
@@ -199,8 +199,13 @@ public object AMTheme {
          */
         public val blurRadius: Dp = Style.ModalOverlay.BlurRadius
 
-        /** The black dim over the blur in dark mode. Light mode has none. */
-        public const val darkDimAlpha: Float = Style.ModalOverlay.DarkDimAlpha
+        /**
+         * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode,
+         * enough for the spotlight's title, in `onSurface`, to hold 4.5:1 over any screen behind
+         * it, sharp art included, with the blur or without it.
+         */
+        public val wash: Color
+            @Composable @ReadOnlyComposable get() = if (isDark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight
     }
 
     /** The remote's grid of tiles. */

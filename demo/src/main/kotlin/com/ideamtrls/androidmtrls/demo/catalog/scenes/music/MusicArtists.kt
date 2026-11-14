@@ -39,7 +39,6 @@ import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amArtRow
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
-import com.ideamtrls.androidmtrls.amCrossfade
 
 // The Artists root, and the art entry it shares with the artist page: an art card over its name,
 // and an album's counts, in white art text. On both pages each entry carries its own color (an art
@@ -49,10 +48,9 @@ import com.ideamtrls.androidmtrls.amCrossfade
 /**
  * The Artists root, the scene's landing view: the "Artists" header with the light/dark chip at its
  * end, over one art entry per artist, each on its photo's art row. A tap opens the artist; press
- * and hold opens the queue menu. While the header lies on the art its title is white art text and
- * the status bar's icons are light; as it collapses it fades in the frosted fill over the rows
- * under it, and once that's in far enough for the bar's own title color to read, the title and the
- * icons turn to the appearance's.
+ * and hold opens the queue menu. The header's title reads on the art at rest and on its frosted
+ * fill as it collapses (the library's page header does both). While the header lies on the art
+ * the status bar's icons are light; once its fill is in far enough, they turn to the appearance's.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,9 +66,7 @@ internal fun MusicArtistsView(model: MusicModel) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                AMPageHeader(actions = { SceneAppearanceButton() }, scrollBehavior = scrollBehavior) {
-                    Text("Artists", Modifier.amCrossfade(overArt).then(if (overArt) Modifier.amArtText() else Modifier))
-                }
+                AMPageHeader("Artists", actions = { SceneAppearanceButton() }, scrollBehavior = scrollBehavior)
             },
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -114,9 +110,8 @@ internal fun MusicArtistsView(model: MusicModel) {
 
 /**
  * How far in the header's frosted fill comes (it follows the collapse as Material eases a large
- * bar's color, fast out and linear in) before the bar's own title reads on it: from 0.9, the
- * title has 4.5:1 even where the rows under it are black. The title stays white art text until
- * then, and the status bar's icons light.
+ * bar's color, fast out and linear in) before the status bar's icons follow the appearance: from
+ * 0.9 the fill, not the rows under it, is what lies under them.
  */
 private const val MusicHeaderFrostedEnough = 0.9f
 

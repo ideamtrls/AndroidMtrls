@@ -51,13 +51,14 @@ public enum class AMSectionStyle {
  * Rows go in [AMSectionStyle.Rows], not [AMSectionStyle.Card]: the card style pads its content, so
  * a row in it would sit inset twice.
  *
- * Over a picture (inside an [AMBackdrop]) the header and the footer both take `onSurface` and the
- * text legibility shadow, so they hold over the art.
+ * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) the header and the footer lie on the art
+ * as art text for its tone ([amArtText]): the header in `onSurface`, the footer in
+ * `onSurfaceVariant`, which the art's wash holds them over.
  *
  * @param title the header, in the section header's look ([AMSectionHeader]).
  * @param modifier the section's placement.
- * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (over a
- *   picture, `onSurface` with the text shadow). Null shows none.
+ * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, art
+ *   text in the secondary ink). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
  * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow; [AMElevation.None] keeps the fill and corners but casts
@@ -105,13 +106,13 @@ public fun AMSection(
  * ) { MemberRows() }
  * ```
  *
- * Over a picture (inside an [AMBackdrop]) the header and the footer both take `onSurface` and the
- * text legibility shadow.
+ * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) the header and the footer are art text
+ * for the art's tone, as in the string form.
  *
  * @param header the header's parts, in a row, in `titleSmall` and `primary`.
  * @param modifier the section's placement.
- * @param footer the caption under the content, given `bodySmall` and `onSurfaceVariant` (over a
- *   picture, `onSurface` with the text shadow). Null shows none.
+ * @param footer the caption under the content, given `bodySmall` and `onSurfaceVariant` (on art,
+ *   art text in the secondary ink). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
  * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow. The flat style ignores it.
@@ -130,10 +131,57 @@ public fun AMSection(
     inset: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    SectionLayout(header, modifier, footer, style, fill, elevation, inset, content)
+}
+
+/**
+ * A group with no header: the content in a card or on a flat strip, and an optional footer under
+ * it, for a group that follows a header of its own (a page's first group under its title) or needs
+ * none. Otherwise the same section as the titled forms: the footer in the caption look, art text
+ * on art.
+ *
+ * ```kotlin
+ * AMSection(footer = "Downloads play offline.", style = AMSectionStyle.Rows) { DownloadRows() }
+ * ```
+ *
+ * @param modifier the section's placement.
+ * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, art
+ *   text in the secondary ink). Null shows none.
+ * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
+ * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
+ * @param elevation the card's shadow. The flat style ignores it.
+ * @param inset whether the footer and card stand in from the section's edges by `spacing.lg`.
+ * @param content the section's content, in a column.
+ */
+@Composable
+public fun AMSection(
+    modifier: Modifier = Modifier,
+    footer: String? = null,
+    style: AMSectionStyle = AMSectionStyle.Card,
+    fill: AMSurfaceFill = AMSurfaceFill.Solid,
+    elevation: AMElevation = AMElevation.Low,
+    inset: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    SectionLayout(null, modifier, footer?.let { text -> { Text(text) } }, style, fill, elevation, inset, content)
+}
+
+/** Every form of [AMSection]: the header when there is one, the content in its style, the footer. */
+@Composable
+private fun SectionLayout(
+    header: (@Composable RowScope.() -> Unit)?,
+    modifier: Modifier,
+    footer: (@Composable () -> Unit)?,
+    style: AMSectionStyle,
+    fill: AMSurfaceFill,
+    elevation: AMElevation,
+    inset: Boolean,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val spacing = AMTheme.tokens.spacing
     val side = if (inset) spacing.lg else 0.dp
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-        AMSectionHeader(Modifier.padding(horizontal = side), content = header)
+        if (header != null) AMSectionHeader(Modifier.padding(horizontal = side), content = header)
         when (style) {
             AMSectionStyle.Rows -> SectionCard(
                 Modifier.padding(horizontal = side).fillMaxWidth().amCard(fill, elevation),
@@ -150,13 +198,13 @@ public fun AMSection(
             )
         }
         if (footer != null) {
-            // Over a picture the footer reads as the header does: onSurface with the text shadow.
-            val overArt = LocalAMBackdrop.current != null
-            val color = if (overArt) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+            // On art the footer is art text in the secondary ink.
+            val onArt = LocalAMArtTone.current != null
+            val color = if (onArt) artInk(secondary = true) else MaterialTheme.colorScheme.onSurfaceVariant
             Box(
                 Modifier
                     .padding(horizontal = side)
-                    .then(if (overArt) Modifier.glyphShadow(Style.Shadow.Text) else Modifier),
+                    .then(if (onArt) Modifier.amArtText(secondary = true) else Modifier),
             ) {
                 CompositionLocalProvider(LocalContentColor provides color) {
                     ProvideTextStyle(MaterialTheme.typography.bodySmall, footer)

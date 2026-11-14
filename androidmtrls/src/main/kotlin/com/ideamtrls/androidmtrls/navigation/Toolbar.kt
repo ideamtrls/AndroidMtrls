@@ -40,10 +40,12 @@ import androidx.compose.ui.unit.dp
  *
  * Fill its slots with [AMToolbarButton]s. Visual only: taps stay with the buttons in the slots.
  * The title and subtitle each take one line, ellipsized, in the bar's own type; the title stays
- * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn solid;
- * give the picture a wash light or dark enough for the title to read on it. Scrolled over the
- * picture, the bar fades in the picture under it blurred under [AMTheme.Frosted.fill], with the
- * frosted edge along its bottom (the solid surface until the art is placed), never a page band.
+ * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn solid
+ * and the title takes the ink of the art's tone at rest (`onSurface` on the library's art, washed
+ * toward the mode); give a picture of your own the tone it has. Scrolled over the picture, the bar
+ * fades in the picture under it blurred under [AMTheme.Frosted.fill], with the frosted edge along
+ * its bottom (the solid surface until the art is placed), never a page band, and the title takes
+ * the bar's own color.
  *
  * @param title the toolbar's title, one line.
  * @param modifier the toolbar's placement.
@@ -92,8 +94,8 @@ public fun AMToolbar(
  *
  * The bar sets the title's and the subtitle's type and color around what the slots emit, so
  * custom content stays on-system. Visual only: taps stay with the content in the slots. On a
- * picture ([AMBackdrop]) the toolbar's buttons turn solid, and scrolled content brings in the
- * frosted fill.
+ * picture ([AMBackdrop]) the toolbar's buttons turn solid, the title takes the ink of the art's
+ * tone at rest, and scrolled content brings in the frosted fill.
  *
  * @param modifier the toolbar's placement.
  * @param subtitle a line under the title. Null shows none.
@@ -116,9 +118,12 @@ public fun AMToolbar(
 ) {
     // Over art, content scrolling under the bar brings in the frosted fill, never a page band.
     val frosted = LocalAMBackdrop.current != null && scrollBehavior != null
+    // On art the title is the art tone's ink until content scrolls under the bar.
+    val scrolled by barScrolledState(scrollBehavior)
     val colors = TopAppBarDefaults.topAppBarColors(
         containerColor = Color.Transparent,
         scrolledContainerColor = if (frosted) Color.Transparent else AMTheme.Surface.page,
+        titleContentColor = barLineColor(scrolled, MaterialTheme.colorScheme.onSurface),
     )
     val bar = @Composable { barModifier: Modifier ->
         if (subtitle == null) {

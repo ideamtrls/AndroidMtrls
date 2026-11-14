@@ -94,7 +94,7 @@ internal fun MusicArtistPage(artistId: String, model: MusicModel) {
                 MusicArtistHero(artist, catalog, Modifier.amArtRow(artist.imageUrl))
                 MusicPlayShuffleButtons(MusicQueueTarget.Artist(artist), model, Modifier.padding(horizontal = spacing.lg))
                 Column(Modifier.padding(horizontal = spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-                    AMSectionHeader { Text("Albums", Modifier.amArtText()) }
+                    AMSectionHeader("Albums")
                     Column(verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
                         albums.forEach { album ->
                             val cover = model.cover(album.id)

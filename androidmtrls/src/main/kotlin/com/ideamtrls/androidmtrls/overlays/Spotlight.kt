@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +33,8 @@ import androidx.compose.ui.Modifier
  * For a held item, the item form ([AMSpotlight] taking `item`) is usually handier.
  *
  * - **Where it sits**: low on the screen, where the remote's tiles sit. [content] lies on one solid
- *   card at the page gutters, an optional [title] above it in the section header's look, and an
+ *   card at the page gutters, an optional [title] above it in the section header's look over art
+ *   (`onSurface`, which holds over the window's wash), and an
  *   optional row of tiles ([actions]) below it at the action grid's insets. When the card is taller
  *   than the room above the tiles (large text, a long list), it scrolls.
  * - **Always solid**: the card and the tiles are opaque whatever the screen behind uses, so a
@@ -165,7 +167,12 @@ private fun SpotlightLayout(
             .padding(top = spacing.xxl, bottom = spacing.xxl),
         verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.Bottom),
     ) {
-        if (title != null) AMSectionHeader(title, Modifier.padding(horizontal = spacing.lg))
+        // The title lies on the paused screen under the mode's wash: art in the mode's tone.
+        if (title != null) {
+            CompositionLocalProvider(LocalAMArtTone provides modeArtTone()) {
+                AMSectionHeader(title, Modifier.padding(horizontal = spacing.lg))
+            }
+        }
         Box(
             Modifier
                 .weight(1f, fill = false)

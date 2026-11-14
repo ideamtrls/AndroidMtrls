@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -32,9 +34,11 @@ import androidx.compose.ui.unit.dp
  * rest, and as it collapses it fades in the frosted fill instead of the page color, at the rate
  * Material fades its color: the art under the bar blurred under [AMTheme.Frosted.fill], with the
  * frosted edge along its bottom, reaching behind the status bar (the solid surface until the art
- * is placed, never unblurred translucency). The title keeps the bar's own color, which reads on
- * the frosted fill; a screen over dark art gives its title the art text look itself, through the
- * slot form, while the bar is expanded.
+ * is placed, never unblurred translucency). On art (an [AMBackdrop], an [AMArtRowsBackdrop]) the
+ * title is the ink of the art's tone until the fill has come in, then the bar's own color: on the
+ * library's art, washed toward the mode, they're the same `onSurface`, so it reads throughout; on
+ * art given the other tone (white text on dark art in light mode) it fades over as the fill comes
+ * in.
  *
  * The bar's top row holds the navigation icon, the actions and, once the bar collapses, the small
  * title. A header with none of them (no icon, no actions, no [scrollBehavior]) would keep that row
@@ -96,6 +100,9 @@ public fun AMPageHeader(
     val expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight
     // Over art, the bar collapsing brings in the frosted fill, never a page band.
     val frosted = LocalAMBackdrop.current != null && scrollBehavior != null
+    // On art the title is the art tone's ink until the fill under it has come in.
+    val filled by twoRowBarFilledState(scrollBehavior)
+    val titleColor = barLineColor(filled, MaterialTheme.colorScheme.onSurface)
     val bar = @Composable { barModifier: Modifier ->
         LargeTopAppBar(
             title = title,
@@ -108,6 +115,7 @@ public fun AMPageHeader(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = if (frosted) Color.Transparent else AMTheme.Surface.page,
+                titleContentColor = titleColor,
             ),
             scrollBehavior = scrollBehavior,
         )

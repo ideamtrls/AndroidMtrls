@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,9 +38,9 @@ import androidx.compose.ui.text.style.TextOverflow
  * }
  * ```
  *
- * - **At rest** the bar lies on the art: the title and subtitle are white art text
- *   ([amArtText]), and the status bar's icons turn light, edge to edge, so they read over the
- *   darkened picture.
+ * - **At rest** the bar lies on the art: the title and subtitle take the ink of the art's tone
+ *   ([AMTheme.artTone]), the subtitle the secondary one: on the library's art, washed toward the
+ *   mode, `onSurface` and `onSurfaceVariant`. The status bar's icons turn light, edge to edge.
  * - **Once content scrolls under it** the bar fades in the frosted fill: the art under the bar,
  *   blurred, under [AMTheme.Frosted.fill], with a frosted edge along its bottom, reaching up
  *   behind the status bar. The title and subtitle fade over to the on-surface text and
@@ -89,7 +90,7 @@ public fun AMArtPanelChrome(
         scrolledContainerColor = Color.Transparent,
     )
     val titleContent: @Composable () -> Unit = {
-        if (title != null) ArtBarText(title, overArt, Color.Unspecified, Modifier.semantics { heading() })
+        if (title != null) ArtBarText(title, scrolled, MaterialTheme.colorScheme.onSurface, secondary = false, Modifier.semantics { heading() })
     }
     // Solid wherever the bar sits: a crucial control over any picture.
     val backButton: @Composable () -> Unit = {
@@ -108,7 +109,7 @@ public fun AMArtPanelChrome(
         } else {
             TopAppBar(
                 title = titleContent,
-                subtitle = { ArtBarText(subtitle, overArt, AMTheme.Frosted.secondaryText) },
+                subtitle = { ArtBarText(subtitle, scrolled, AMTheme.Frosted.secondaryText, secondary = true) },
                 navigationIcon = backButton,
                 windowInsets = windowInsets,
                 colors = colors,
@@ -119,15 +120,15 @@ public fun AMArtPanelChrome(
 }
 
 /**
- * One line of the bar: white art text over the art, [frostedColor] on the frosted fill, fading
- * between the two with the fill.
+ * One line of the bar: the ink of the art's tone over the art ([secondary] for the subtitle),
+ * [frostedColor] once [scrolled] puts the frosted fill under it, fading between the two.
  */
 @Composable
-private fun ArtBarText(text: String, overArt: Boolean, frostedColor: Color, modifier: Modifier = Modifier) {
+private fun ArtBarText(text: String, scrolled: Boolean, frostedColor: Color, secondary: Boolean, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        modifier = modifier.amCrossfade(overArt).then(if (overArt) Modifier.amArtText() else Modifier),
-        color = if (overArt) Color.Unspecified else frostedColor,
+        modifier = modifier,
+        color = barLineColor(scrolled, frostedColor, secondary),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )

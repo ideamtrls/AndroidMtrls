@@ -4,6 +4,7 @@ import android.view.WindowManager
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,9 +40,9 @@ import java.util.function.Consumer
 import kotlin.math.roundToInt
 
 // The paused-world window the remote and the spotlight present in: a full-screen dialog window
-// that blurs everything behind it with the platform's blur-behind, sheets included, with a black
-// dim over the blur in dark mode only. Where the system has cross-window blur off (battery saver,
-// some devices), it dims instead, the platform's own fallback.
+// that blurs everything behind it with the platform's blur-behind, sheets included, under the
+// mode's wash, white in light mode and black in dark mode. Where the system has cross-window blur
+// off (battery saver, some devices), the wash alone stills the screen.
 
 /** What a screen reader says for the blurred area around the content, which closes the window. */
 internal const val OverlayCloseLabel: String = "Close"
@@ -51,10 +52,11 @@ internal const val OverlayCloseLabel: String = "Close"
  * a moment longer while it fades away.
  *
  * - **The window**: a full-screen dialog window, edge to edge, so it sits above the app and above
- *   any sheet, and takes back first. It blurs what's behind it ([AMTheme.Overlay.blurRadius]) with
- *   [AMTheme.Overlay.darkDimAlpha] of black over the blur in dark mode only; while the system has
- *   cross-window blur off it dims instead, switching live when the setting changes.
- * - **Motion**: the blur, the dim and the content fade in together with Material's default effects
+ *   any sheet, and takes back first. It blurs what's behind it ([AMTheme.Overlay.blurRadius]) and
+ *   lays the mode's wash ([AMTheme.Overlay.wash]) over it, so a title over it holds over any screen;
+ *   while the system has cross-window blur off the wash alone stills it, switching live when the
+ *   setting changes.
+ * - **Motion**: the blur, the wash and the content fade in together with Material's default effects
  *   spec and out with its fast effects spec. Input is ignored while it fades out.
  * - **Dismissal**: back, and a tap anywhere the content doesn't take, call [onDismissRequest].
  *   The area around the content is one "Close" button for TalkBack, after the content.
@@ -92,7 +94,7 @@ internal fun AMOverlayWindow(
     ) {
         BlurBehind(progress)
         ProvideOverlayWindowLocals {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = progress.value }) {
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = progress.value }.background(AMTheme.Overlay.wash)) {
                 DismissCatcher(onDismiss = { if (visible) dismiss() })
                 content()
                 // Fading out, the window takes no more input.
@@ -122,8 +124,8 @@ internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
 }
 
 /**
- * The window's blur-behind and dim, following [progress] (0 hidden, 1 shown) and the system's
- * cross-window blur setting, and its bar icons for the appearance.
+ * The window's blur-behind, following [progress] (0 hidden, 1 shown) and the system's cross-window
+ * blur setting, and its bar icons for the appearance. The wash over it is the window's content.
  */
 @Composable
 private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>) {
@@ -134,7 +136,7 @@ private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>) {
     val blurPx = with(LocalDensity.current) { Style.ModalOverlay.BlurRadius.roundToPx() }
 
     DisposableEffect(window, view, dark) {
-        // In light mode the blurred page behind is light (or lightly dimmed); in dark mode, dark.
+        // Under the wash the paused screen is light in light mode and dark in dark mode.
         WindowCompat.getInsetsController(window, view).apply {
             isAppearanceLightStatusBars = !dark
             isAppearanceLightNavigationBars = !dark
@@ -142,24 +144,19 @@ private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>) {
         onDispose {}
     }
 
-    LaunchedEffect(window, blurEnabled, dark, blurPx) {
-        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-        val dim = if (blurEnabled) {
-            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-            if (dark) Style.ModalOverlay.DarkDimAlpha else 0f
-        } else {
+    LaunchedEffect(window, blurEnabled, blurPx) {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        if (!blurEnabled) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-            if (dark) Style.ModalOverlay.FallbackDimDark else Style.ModalOverlay.FallbackDimLight
+            return@LaunchedEffect
         }
+        window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
         // The blur radius isn't animated by the window itself, so it follows the fade here, the
         // platform's documented way to fade a blur in and out.
         snapshotFlow { progress.value }.collect { shown ->
-            window.setDimAmount(dim * shown)
-            if (blurEnabled) {
-                val radius = (blurPx * shown).roundToInt()
-                if (window.attributes.blurBehindRadius != radius) {
-                    window.attributes = window.attributes.apply { blurBehindRadius = radius }
-                }
+            val radius = (blurPx * shown).roundToInt()
+            if (window.attributes.blurBehindRadius != radius) {
+                window.attributes = window.attributes.apply { blurBehindRadius = radius }
             }
         }
     }

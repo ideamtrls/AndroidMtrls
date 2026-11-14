@@ -2,7 +2,7 @@
 scope: Transient and status feedback — banners and their host, toasts and their host, the loading overlay, empty states, progress indicators, and skeletons and shimmer
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/feedback/**, androidmtrls/src/androidTest/kotlin/com/ideamtrls/androidmtrls/TransientOverSheetTest.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/feedback/**, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ScreenHost.kt]
 keywords: [AMBanner, AMBannerItem, AMBannerHost, LocalAMBannerHost, AMToast, AMToastItem, AMToastHost, LocalAMToastHost, ToastHost, bottomClearance, scene root, AMScene, sheet toast host, Snackbar, SnackbarHost, SnackbarHostState, SnackbarVisuals, Indefinite, TransientHost, TransientCaller, TransientPosting, PostTransient, transientTimeout, calculateRecommendedTimeoutMillis, Time to take action, auto-dismiss, swipe up, draggable, scrim, live region, LiveRegionMode.Polite, dismiss action, severityLabel, window host, nearest host, AMLoadingOverlay, Dialog, DialogProperties, dismissOnBackPress, back consumed, CircularProgressIndicator, ReportOverlayUp, AMEmptyState, AMEmptyStateAction, empty state, on the page, heading, AMSkeleton, Rect, Circle, Text, text placeholder, redacted text, TextLayoutResult, drawTextBars, TextBarInset, placeholder, surfaceContainerHighest, Modifier.amShimmer, shimmer, ShimmerNode, MotionDurationScale, withInfiniteAnimationFrameNanos, CompositingStrategy.Offscreen, BlendMode.SrcAtop, AMProgressView, AMProgressViewStyle, Spinner, Bar, LinearProgressIndicator, valueLabel, amFlatSurface, CatalogScreenHost, BannerPage, ToastPage, LoadingOverlayPage, ProgressPage, SkeletonPage, EmptyStatePage, FeedbackPages]
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # Feedback
@@ -101,6 +101,7 @@ AMEmptyState(painterResource(R.drawable.ic_group), "No contacts", description = 
 - **`AMEmptyStateAction(label, icon: Painter? = null, onClick)`**: an `@Immutable` action payload, like `AMSwipeAction`.
 - **Look.** A column filling the width, padded `spacing.xl` above and below (no side padding: the caller places it), everything centered: the glyph at 48 dp in `onSurfaceVariant`, `spacing.md`, the title (`titleLarge`, `onSurface`), `spacing.xs`, the description (`bodyMedium`, `onSurfaceVariant`), all text centered; then `spacing.lg` and the actions in a centered column `spacing.sm` apart.
 - **On the page, never on a card.** It draws no surface: the glyph and text lie on whatever is behind them (the page color, the app's backdrop, a search window), and only its buttons float. Put it where the content would have been, not in a card.
+- **On art** (an art tone around it, `LocalAMArtTone` non-null) the glyph, title and description are art text for the tone: the title `amArtText()`, the glyph and description `amArtText(secondary = true)` (the scheme's own colors on the library's art). The buttons keep their own looks: filled ones are surfaces, a ghost one reads the tone itself (`Actions.md`).
 - **Accessibility.** The glyph is decorative (no description). The glyph, title and description merge into one element whose title carries heading semantics, so TalkBack reads the title and description together as a heading; each button is its own element.
 
 ## `AMSkeleton` and `Modifier.amShimmer()` (`Skeleton.kt`)

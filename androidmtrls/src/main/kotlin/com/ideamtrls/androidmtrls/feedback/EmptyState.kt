@@ -128,6 +128,10 @@ private fun EmptyStateLayout(
 ) {
     val spacing = AMTheme.tokens.spacing
     val colors = MaterialTheme.colorScheme
+    // On art the glyph and text are art text for its tone; the buttons keep their own looks.
+    val onArt = LocalAMArtTone.current != null
+    val primaryText = if (onArt) Modifier.amArtText() else Modifier
+    val secondaryText = if (onArt) Modifier.amArtText(secondary = true) else Modifier
     Column(
         modifier
             .fillMaxWidth()
@@ -138,11 +142,11 @@ private fun EmptyStateLayout(
             Modifier.semantics(mergeDescendants = true) {},
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(icon, contentDescription = null, Modifier.size(EmptyStateGlyphSize), tint = colors.onSurfaceVariant)
+            Icon(icon, contentDescription = null, Modifier.size(EmptyStateGlyphSize).then(secondaryText), tint = colors.onSurfaceVariant)
             Spacer(Modifier.height(spacing.md))
             Text(
                 title,
-                Modifier.semantics { heading() },
+                primaryText.semantics { heading() },
                 color = colors.onSurface,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
@@ -151,6 +155,7 @@ private fun EmptyStateLayout(
                 Spacer(Modifier.height(spacing.xs))
                 Text(
                     description,
+                    secondaryText,
                     color = colors.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,

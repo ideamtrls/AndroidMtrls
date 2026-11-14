@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -107,7 +108,9 @@ public sealed interface AMButtonStyle {
     /**
      * Material's text button: no surface, no shadow, its label in the color scheme's primary, its
      * ripple in the theme's medium shape like the filled styles. For actions that recede, in
-     * dialogs and panels or beside a filled button.
+     * dialogs and panels or beside a filled button. On art (inside an [AMBackdrop] or
+     * [AMArtRowsBackdrop]) its label takes the ink of the art's tone (`onSurface` on the library's
+     * art), and a destructive one a red moved to hold 4.5:1 on that tone.
      */
     @Immutable
     public data object Ghost : AMButtonStyle
@@ -229,11 +232,7 @@ private fun ButtonBody(
             modifier = modifier,
             enabled = isEnabled,
             shape = MaterialTheme.shapes.medium,
-            colors = if (destructive) {
-                ButtonDefaults.textButtonColors(contentColor = AMSemantic.Destructive.color)
-            } else {
-                ButtonDefaults.textButtonColors()
-            },
+            colors = ButtonDefaults.textButtonColors(contentColor = ghostLabelColor(destructive)),
             contentPadding = if (leadingIcon) {
                 ButtonDefaults.TextButtonWithIconContentPadding
             } else {
@@ -241,6 +240,23 @@ private fun ButtonBody(
             },
             content = content,
         )
+    }
+}
+
+/**
+ * A ghost button's label: Material's `primary` on the page, and on art the ink of the art's tone,
+ * since `primary` falls short over light art (3.51:1 on the light wash's floor). Destructive, the
+ * scheme's error: moved on art just far enough to hold 4.5:1 on the art's tone.
+ */
+@Composable
+@ReadOnlyComposable
+private fun ghostLabelColor(destructive: Boolean): Color {
+    val tone = LocalAMArtTone.current
+    return when {
+        destructive && tone != null -> artInkHolding(AMSemantic.Destructive.color, tone)
+        destructive -> AMSemantic.Destructive.color
+        tone != null -> artInk(tone = tone)
+        else -> MaterialTheme.colorScheme.primary
     }
 }
 

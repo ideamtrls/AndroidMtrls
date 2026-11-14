@@ -1,8 +1,8 @@
 ---
 scope: Static layout frames — Modifier.amCard(), the row recipe (Modifier.amRowPadding() for hand-built rows, AMRowDefaults for Material ListItem rows), AMSection, AMDisclosureGroup, AMDivider, and how nested surfaces demote (AMSurfaceStyle)
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/layout/**, androidmtrls/src/main/res/drawable/am_ic_expand_more.xml, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/layout/**]
-keywords: [Modifier.amCard, card, CardSurfaceNode, CardPaddingNode, draw inside own layout, shapes.large, padding, clip, fill, Solid, Frosted, AMBackdrop, elevation, AMElevation.None, nested cards, AMSurfaceStyle, Flat, Elevated, ProvideAMSurfaceStyle, re-lift, NestingSurfaceNode, TraversableNode, findNearestAncestor, resolveSurfaceStyle, SurfaceStyleOrigin, ElevatedSurfaceDrawer, row recipe, rowVerticalPadding, 28 dp, 80 dp, 100 dp, Modifier.amRowPadding, AMRowDefaults, contentPadding, colors, shapes, ListItem, ListItemDefaults, minimum height, selectedContainerColor, flat rows, AMSection, AMSectionStyle, Rows, Card, Flat, header, footer, footer over art, LocalAMBackdrop, glyphShadow, inset, amFlatSurface, AMDisclosureGroup, folding, expand_more, expand, collapse, AnimatedVisibility, motionScheme, AMDivider, HorizontalDivider, inset divider, CardPage, SectionPage, DisclosureGroupPage, DividerPage, LayoutPages]
-updated: 2026-11-10
+keywords: [header-less AMSection, SectionLayout, Modifier.amCard, card, CardSurfaceNode, CardPaddingNode, draw inside own layout, shapes.large, padding, clip, fill, Solid, Frosted, AMBackdrop, elevation, AMElevation.None, nested cards, AMSurfaceStyle, Flat, Elevated, ProvideAMSurfaceStyle, re-lift, NestingSurfaceNode, TraversableNode, findNearestAncestor, resolveSurfaceStyle, SurfaceStyleOrigin, ElevatedSurfaceDrawer, row recipe, rowVerticalPadding, 28 dp, 80 dp, 100 dp, Modifier.amRowPadding, AMRowDefaults, contentPadding, colors, shapes, ListItem, ListItemDefaults, minimum height, selectedContainerColor, flat rows, AMSection, AMSectionStyle, Rows, Card, Flat, header, footer, footer over art, LocalAMBackdrop, glyphShadow, inset, amFlatSurface, AMDisclosureGroup, folding, expand_more, expand, collapse, AnimatedVisibility, motionScheme, AMDivider, HorizontalDivider, inset divider, CardPage, SectionPage, DisclosureGroupPage, DividerPage, LayoutPages]
+updated: 2026-11-14
 ---
 
 # Layout
@@ -94,9 +94,10 @@ The library's containers (`AMSection`'s cards, `AMDisclosureGroup`'s body) also 
 ```kotlin
 AMSection("Notifications", footer = "Email digest sends one summary a day.", style = AMSectionStyle.Rows) { … }
 AMSection(header = { Text("Team", Modifier.weight(1f)); Text("2") }, style = AMSectionStyle.Rows) { … }
+AMSection(footer = "Downloads play offline.", style = AMSectionStyle.Rows) { … }   // no header
 ```
 
-A titled group: `AMSectionHeader` on top, the content block, an optional footer. String form `(title, modifier, footer: String?, style, fill, elevation, inset, content)`; slot form `(header: RowScope slot, modifier, footer: slot?, style, fill, elevation, inset, content)`. The string form delegates to the slot form. `content` is a `ColumnScope` lambda.
+A titled group: `AMSectionHeader` on top, the content block, an optional footer. String form `(title, modifier, footer: String?, style, fill, elevation, inset, content)`; slot form `(header: RowScope slot, modifier, footer: slot?, style, fill, elevation, inset, content)`; **header-less form** `(modifier, footer: String? = null, style, fill, elevation, inset, content)`, for a group under a header of its own (a page's first group under its title) or needing none. All three go through private `SectionLayout(header?, …)`, which leaves the header row out when there's none. `content` is a `ColumnScope` lambda.
 
 - **`AMSectionStyle`**, one per kind of content:
   - `Rows` — a group of rows stacked bare in a card with no padding (`amCard(fill, elevation)`); each row brings the recipe. `AMDivider(inset = spacing.lg)` between rows that want a line.
@@ -104,7 +105,7 @@ A titled group: `AMSectionHeader` on top, the content block, an optional footer.
   - `Flat` — a reading block padded `spacing.lg` on a full-width `Surface.primary` strip (`amFlatSurface`), no corners or shadow; inside a card it draws no fill.
 - **Rows go in `Rows`, not `Card`**: the card style pads, so a row in it would sit inset twice.
 - The header, block and footer stack `spacing.sm` apart. The header takes the section header's look (`titleSmall` in `primary`, heading semantics); the footer gets `bodySmall` in `onSurfaceVariant` through `ProvideTextStyle` and `LocalContentColor`.
-- **Over a picture** (inside an `AMBackdrop`, `LocalAMBackdrop` non-null) the footer takes the header's over-art treatment: `onSurface` and the text legibility shadow (`glyphShadow(Style.Shadow.Text)`), so both hold over the art (`Foundations.md`).
+- **On art** (an art tone around it, `LocalAMArtTone` non-null) the header and the footer are art text for the tone: the header the primary ink (`Foundations.md`), the footer the secondary ink (`artInk(secondary = true)` as its content color, `amArtText(secondary = true)` on its box), `onSurfaceVariant` on the library's art, which the wash holds at 4.5:1 (`DataDisplay.md`).
 - `fill` and `elevation` go to the card (`Rows`, `Card`); `Flat` ignores them.
 - `inset = true` (default) stands the header, footer and card in from the section's edges by `spacing.lg`; pass `false` where the column is already inset (a page gutter). The flat strip always runs the full width.
 - The card styles wrap their content in `ProvideAMSurfaceStyle(Flat)`.

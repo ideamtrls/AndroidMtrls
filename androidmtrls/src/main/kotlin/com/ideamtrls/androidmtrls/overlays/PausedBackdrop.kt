@@ -19,9 +19,8 @@ import androidx.compose.ui.unit.Dp
 /** What [Modifier.amPausedBackdrop][amPausedBackdrop] lays over the blurred picture. */
 public enum class AMPausedScrim {
     /**
-     * The modal backdrop: the blur alone in light mode, and a black dim of
-     * [AMTheme.Overlay.darkDimAlpha] over it in dark mode, the look behind the remote and the
-     * spotlight.
+     * The modal backdrop: the mode's wash ([AMTheme.Overlay.wash], white in light mode, black in
+     * dark mode) over the blur, the look behind the remote and the spotlight.
      */
     Modal,
 
@@ -97,7 +96,7 @@ private class PausedScrimNode(var scrim: AMPausedScrim) :
         drawContent()
         val dark = currentValueOf(LocalAMDarkTheme) ?: false
         when (scrim) {
-            AMPausedScrim.Modal -> if (dark) drawRect(Color.Black.copy(alpha = Style.ModalOverlay.DarkDimAlpha))
+            AMPausedScrim.Modal -> drawRect(if (dark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight)
             AMPausedScrim.Page -> drawRect((if (dark) Style.Page.Dark else Style.Page.Light).copy(alpha = Style.ModalOverlay.PageWashAlpha))
         }
     }
