@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DrawModifierNode
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 
 /**
@@ -249,6 +252,79 @@ public fun AMButton(
             face()
         }
     }
+}
+
+/**
+ * Two page buttons that share a row: side by side at equal widths, `spacing.md` apart and equally
+ * tall, when each label fits on one line at half the width; otherwise stacked, [first] over
+ * [second], each full width, `spacing.md` apart. A label never shrinks or breaks to make room: a
+ * longer label ("Remove download") or a larger font scale stacks the pair instead.
+ *
+ * ```kotlin
+ * AMButtonPair(
+ *     { AMButton("Play", onClick = ::play, icon = painterResource(R.drawable.ic_play_arrow)) },
+ *     { AMButton("Shuffle", onClick = ::shuffle, icon = painterResource(R.drawable.ic_shuffle), style = AMButtonStyle.Secondary()) },
+ * )
+ * ```
+ *
+ * Give each slot one [AMButton] with no size of its own: the pair sizes them. Each keeps its own
+ * style, so the pair suits any two page actions; the row that closes a form is [AMFormActions].
+ *
+ * @param first the button at the start of the row, or on top when stacked.
+ * @param second the button at the end of the row, or below when stacked.
+ * @param modifier the pair's placement. The pair fills the width it's given.
+ */
+@Composable
+public fun AMButtonPair(
+    first: @Composable () -> Unit,
+    second: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val gap = AMTheme.tokens.spacing.md
+    Layout(contents = listOf(first, second), modifier = modifier.fillMaxWidth()) { measurables, constraints ->
+        val a = measurables[0].first()
+        val b = measurables[1].first()
+        val gapPx = gap.roundToPx()
+        val width = constraints.maxWidth
+        val half = buttonPairHalf(width, gapPx)
+        // Each button's one-line width, label unbroken.
+        val split = buttonPairSplits(
+            a.maxIntrinsicWidth(Constraints.Infinity),
+            b.maxIntrinsicWidth(Constraints.Infinity),
+            width,
+            gapPx,
+        )
+        if (split) {
+            val height = maxOf(a.minIntrinsicHeight(half), b.minIntrinsicHeight(half))
+            val cell = Constraints(minWidth = half, maxWidth = half, minHeight = height)
+            val pa = a.measure(cell)
+            val pb = b.measure(cell)
+            layout(width, maxOf(pa.height, pb.height)) {
+                pa.placeRelative(0, 0)
+                pb.placeRelative(width - pb.width, 0)
+            }
+        } else {
+            val row = Constraints.fixedWidth(width)
+            val pa = a.measure(row)
+            val pb = b.measure(row)
+            layout(width, pa.height + gapPx + pb.height) {
+                pa.placeRelative(0, 0)
+                pb.placeRelative(0, pa.height + gapPx)
+            }
+        }
+    }
+}
+
+/** Each button's width when an [AMButtonPair] [width] wide splits, [gap] between them. */
+internal fun buttonPairHalf(width: Int, gap: Int): Int = (width - gap) / 2
+
+/**
+ * Whether an [AMButtonPair] [width] wide splits: both buttons' one-line widths ([firstWidth],
+ * [secondWidth]) fit in half the row, [gap] between them. Otherwise it stacks.
+ */
+internal fun buttonPairSplits(firstWidth: Int, secondWidth: Int, width: Int, gap: Int): Boolean {
+    val half = buttonPairHalf(width, gap)
+    return firstWidth <= half && secondWidth <= half
 }
 
 /** Both forms of [AMButton]: picks the Material button and size for [style], and its padding. */

@@ -8,6 +8,7 @@ internal object ActionsPages {
         CardButtonEntry,
         CardActionRowEntry,
         FormActionsEntry,
+        ButtonPairEntry,
         FloatingActionButtonEntry,
         ActionGridEntry,
         ActionGridButtonEntry,

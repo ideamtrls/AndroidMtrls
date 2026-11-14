@@ -1,13 +1,13 @@
 ---
 scope: Buttons and button styles, the floating action button and its hub, icon, card and action-grid buttons, the action containers, and how a container disables the controls inside it — the tappable action primitives
 globs: [androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/actions/**, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/foundations/Enabled.kt, androidmtrls/src/main/res/drawable/am_ic_add.xml, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/actions/**]
-keywords: [AMButton, AMButtonStyle, Primary, Secondary, Ghost, LocalAMButtonStyle, Button, TextButton, medium button, MediumContainerHeight, contentPaddingFor, textStyleFor, iconSizeFor, 56 dp, destructive, controlSurface, ControlSurfaceNode, controlOutline, LocalMinimumInteractiveComponentSize, frosted button, AMIconButton, AMIconButtonSize, IconToggleButton, toggle, checked, onCheckedChange, TooltipBox, PlainTooltip, BadgedBox, badge, AMCardButton, count, active, activeTint, tabular figures, AMCardActionRow, counts, actions, more_vert, AMActionGrid, windowInsets, AMActionGridRow, two three four tiles, AMActionGridButton, tile, tileHeight, contentDescription, spoken name, selection ring, AMFormActions, LocalAMEnabled, resolveEnabled, ProvideAMEnabled, AMFloatingActionButton, AMFloatingActionButtonState, initialOffset, DpOffset, Saver, rememberAMFloatingActionButtonState, floating action button, lift, long press, haptic, drag, systemGestureExclusion, absoluteOffset, FloatingActionButtonDiameter, AMFloatingActions, amFloatingActions, floatingActionButtonTop, clearance, scrolling content, expanded, onExpandedChange, hub, remote, AnimatedVisibility, overlay registry, view tile, live control, rounded rectangle, shapes.medium, no pills, sitsOnPrimarySurface, ActionsPages, ActionsPostCard, FloatingActionButtonPage, sceneFrame, consumeWindowInsets]
+keywords: [AMButton, AMButtonStyle, AMButtonPair, buttonPairSplits, buttonPairHalf, split, stack, ButtonPairTest, Primary, Secondary, Ghost, LocalAMButtonStyle, Button, TextButton, medium button, MediumContainerHeight, contentPaddingFor, textStyleFor, iconSizeFor, 56 dp, destructive, controlSurface, ControlSurfaceNode, controlOutline, LocalMinimumInteractiveComponentSize, frosted button, AMIconButton, AMIconButtonSize, IconToggleButton, toggle, checked, onCheckedChange, TooltipBox, PlainTooltip, BadgedBox, badge, AMCardButton, count, active, activeTint, tabular figures, AMCardActionRow, counts, actions, more_vert, AMActionGrid, windowInsets, AMActionGridRow, two three four tiles, AMActionGridButton, tile, tileHeight, contentDescription, spoken name, selection ring, AMFormActions, LocalAMEnabled, resolveEnabled, ProvideAMEnabled, AMFloatingActionButton, AMFloatingActionButtonState, initialOffset, DpOffset, Saver, rememberAMFloatingActionButtonState, floating action button, lift, long press, haptic, drag, systemGestureExclusion, absoluteOffset, FloatingActionButtonDiameter, AMFloatingActions, amFloatingActions, floatingActionButtonTop, clearance, scrolling content, expanded, onExpandedChange, hub, remote, AnimatedVisibility, overlay registry, view tile, live control, rounded rectangle, shapes.medium, no pills, sitsOnPrimarySurface, ActionsPages, ActionsPostCard, FloatingActionButtonPage, sceneFrame, consumeWindowInsets]
 updated: 2026-11-14
 ---
 
 # Actions
 
-The tappable action primitives: `AMButton` and its sealed `AMButtonStyle` (Primary and Secondary as floating surfaces on Material's `Button`, Ghost as Material's `TextButton`), `AMIconButton` (Material's `IconButton`, or `IconToggleButton` in its toggle form, with a long-press tooltip and an optional badge), `AMCardButton` and `AMCardActionRow`, the remote's grid (`AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`), `AMFormActions`, `AMFloatingActionButton`, and the scene's remote, `AMFloatingActions`, which shows the button over an `AMScene` and opens the actions overlay from it. Every control here honors `LocalAMEnabled`, the internal local through which a container disables its children. Every AM button is a rounded rectangle in the theme's medium shape (12 dp), never a pill; only the floating action button is a circle, and icon buttons keep Material's circular ripple.
+The tappable action primitives: `AMButton` and its sealed `AMButtonStyle` (Primary and Secondary as floating surfaces on Material's `Button`, Ghost as Material's `TextButton`), `AMButtonPair` (two page buttons split or stacked), `AMIconButton` (Material's `IconButton`, or `IconToggleButton` in its toggle form, with a long-press tooltip and an optional badge), `AMCardButton` and `AMCardActionRow`, the remote's grid (`AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`), `AMFormActions`, `AMFloatingActionButton`, and the scene's remote, `AMFloatingActions`, which shows the button over an `AMScene` and opens the actions overlay from it. Every control here honors `LocalAMEnabled`, the internal local through which a container disables its children. Every AM button is a rounded rectangle in the theme's medium shape (12 dp), never a pill; only the floating action button is a circle, and icon buttons keep Material's circular ripple.
 
 ## Where things live
 
@@ -15,7 +15,7 @@ Library sources under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/`
 
 | File | What |
 |---|---|
-| `actions/Buttons.kt` | `AMButtonStyle` (`Primary`, `Secondary`, `Ghost`), `LocalAMButtonStyle`, `AMButton` (string and slot forms); private `ButtonBody`, `SurfaceButton`, `Modifier.controlSurface` (`ControlSurfaceNode`) |
+| `actions/Buttons.kt` | `AMButtonStyle` (`Primary`, `Secondary`, `Ghost`), `LocalAMButtonStyle`, `AMButton` (string and slot forms), `AMButtonPair`; internal `buttonPairHalf`, `buttonPairSplits` (unit-tested in `ButtonPairTest`); private `ButtonBody`, `SurfaceButton`, `Modifier.controlSurface` (`ControlSurfaceNode`) |
 | `actions/IconButton.kt` | `AMIconButtonSize`, `AMIconButton` (tap, text and toggle forms); private `IconButtonTooltip`, `IconButtonGlyph`, `textStyle` |
 | `actions/CardButton.kt` | `AMCardButton` |
 | `actions/CardActionRow.kt` | `AMCardActionRow` |
@@ -55,7 +55,21 @@ AMButton("Cancel", onClick = ::cancel, style = AMButtonStyle.Ghost)
 - **Ghost** is Material's `TextButton` with `shape = MaterialTheme.shapes.medium` (so its ripple is the same rounded rectangle): no surface, label in the scheme's `primary`, Material's own padding and target. **On art** (an art tone around it, `LocalAMArtTone` non-null) its label is the ink of the art's tone (`onSurface` on the library's art: `primary` reads 3.51:1 on the light wash's floor), through `textButtonColors(contentColor)`, so its ripple follows. **Destructive on art** it's `artInkHolding(error, tone)`: the scheme's red moved along its own line just far enough to hold 4.5:1 on that tone (light mode `#B3261E` → `#8C1B15`, 4.5:1 against the light wash's darkest blend; dark mode's `#F2B8B5` holds 4.61:1 and stays). Private `ghostLabelColor(destructive)` picks it.
 - **`destructive = true`** colors the label `AMSemantic.Destructive` (the scheme's `error`) in every style.
 - **Disabled**: the label is `onSurface` at 0.38 and the surface casts no shadow (`AMElevation.None`); the fill stays.
-- A button wraps its label, like Material's. Span a row with `fillMaxWidth()` or a weight.
+- A button wraps its label, like Material's. Span a row with `fillMaxWidth()` or a weight; two page buttons that share a row go in `AMButtonPair`.
+
+## `AMButtonPair` (`Buttons.kt`)
+
+```kotlin
+AMButtonPair(
+    { AMButton("Play", onClick = ::play, icon = painterResource(R.drawable.ic_play_arrow_filled)) },
+    { AMButton("Remove download", onClick = ::remove, icon = painterResource(R.drawable.ic_delete), style = AMButtonStyle.Secondary(), destructive = true) },
+)
+```
+
+- `AMButtonPair(first, second, modifier)`, each slot a `@Composable () -> Unit` holding one `AMButton` with no size of its own; the pair fills the width it's given and sizes both.
+- **Split or stack**, decided per measure by internal `buttonPairSplits(firstWidth, secondWidth, width, gap)`: each button's one-line width (`maxIntrinsicWidth`) against half the row less the `spacing.md` gap (`buttonPairHalf`, rounding down). Both fit → side by side, each exactly half, equally tall (the taller one's `minIntrinsicHeight` at half as both buttons' minimum height), `first` at the start (`placeRelative`, so it mirrors in right-to-left layouts). Either doesn't → stacked, `first` over `second`, each full width, `spacing.md` apart.
+- **Labels never shrink or break to fit**: a longer label ("Remove download" with its glyph, on a 411 dp phone) or a larger font scale stacks the pair; a label wraps only if it outgrows the full width.
+- It sets no style and no enabled state: each button keeps its own. The row that closes a form is `AMFormActions`.
 
 ## `AMIconButton` (`IconButton.kt`)
 
@@ -166,7 +180,7 @@ AMScene(
 
 ## Catalog pages
 
-`demo/.../catalog/pages/actions/`, registered in `ActionsPages.entries` in this order (ids): `buttonStyles`, `iconButton`, `cardButton`, `cardActionRow`, `formActions`, `floatingActionButton`, `actionGrid`, `actionGridButton`.
+`demo/.../catalog/pages/actions/`, registered in `ActionsPages.entries` in this order (ids): `buttonStyles`, `iconButton`, `cardButton`, `cardActionRow`, `formActions`, `buttonPair`, `floatingActionButton`, `actionGrid`, `actionGridButton`.
 
 | Page | Preview | Loaded |
 |---|---|---|
@@ -175,6 +189,7 @@ AMScene(
 | Card button | `FullBleed` strip: reply 12, like 48, share | a post card: comments 1.2K, reposted 4 (active), liked 49 (active, `Destructive`, toggles), then share and ⋮ in an `AMCardActionRow` |
 | Card action row | a post card: reply 12, like 48, share, ⋮ | two post cards: one with reply, reposted and liked; an announcement with only share and ⋮ |
 | Form actions | Delete and Save | an edit-task card (`AMTextField` "Title", filled in, in a card padded `spacing.lg`) over Delete and Save, Save disabled while the title is empty |
+| Button pair | Play (Primary) and Shuffle (Secondary), each with its glyph, side by side | a downloaded album: "Field Recordings" (`titleLarge`) over "12 songs · Downloaded, 412 MB" (`bodyMedium`, secondary text), then Play and Remove download (Secondary, destructive, `ic_delete`), stacked since Remove download won't fit at half a phone's width |
 | Floating action button | `Fill`, 380 dp: a "Notes" `AMScene` (an `AMPageHeader` over "Last action: None yet") whose `AMFloatingActions` opens Compose and Search; a tile closes the menu and names itself in the line | `Fill`, 380 dp: a mail `AMScene` with two roots, Inbox (the landing view) and Archive, each an `AMPageHeader` over a scrolling list of message rows; the remote holds Compose, Search / Inbox, Archive, the current view ringed. A view tile switches the root (`amInstantSwitch`), each list keeps its scroll, and back from Archive returns to Inbox |
 | Action grid | `Wide`: Compose, Search / Feed, Alerts, Exit | a full-width "Show menu" button opening the full menu in `AMActionsOverlay`: Pin, Duplicate, Share, Archive / Compose, Search, Alerts / Feed, Exit; each tile closes it |
 | Action grid button | three tiles: Share, Copy, Pin | filter tiles All (active), Starred, Archived (tapping moves the ring), then a custom "80% / Storage" tile, Move (disabled), Delete (destructive) |
@@ -182,4 +197,4 @@ AMScene(
 - The Action grid's inline Preview grid passes `windowInsets = WindowInsets(0)`, since on the page it doesn't reach the navigation bar; the menu in the overlay keeps its default.
 - **The Floating action button page's scenes** are real `AMScene`s on `Fill` bands: each frame is `fillMaxWidth().height(380.dp).consumeWindowInsets(WindowInsets.safeDrawing)` (private `sceneFrame`), so the band is a screen with no system bars of its own and the button rests `spacing.lg` above its bottom edge; `containerColor = Color.Transparent` lets the band's surface show. Message rows are hand-built on the row recipe, flat on the band, with `WindowInsets.amFloatingActions` less the navigation bar the band doesn't have (`exclude(WindowInsets.navigationBars)`) as the list's content padding, so the last row scrolls clear of the button. Each scene calls `CatalogAutoPresent { showsMenu = true }`, so `--es present preview` (or `--es scrollTo loaded --es present loaded`) opens its menu for a screenshot. The menu is a window, so it opens over the whole screen, its tiles at the screen's bottom.
 - `ActionsSupport.kt` holds `ActionsPostCard(text, modifier, author, actionRow)`: a card with the author (`titleMedium`) and text (`bodyLarge`) padded `spacing.lg` at the top and sides, then the action row inset `spacing.xs`.
-- Demo glyphs these pages add: `ic_add_circle`, `ic_inbox` (the Floating action button page), `ic_smart_button`, `ic_play_circle`, `ic_favorite`, `ic_favorite_filled`, `ic_call_to_action`, `ic_fact_check`, `ic_grid_view`, `ic_grid_view_filled` (entry icons and hearts); `ic_play_arrow_filled`, `ic_pause_filled`, `ic_skip_previous_filled`, `ic_skip_next_filled`, `ic_shuffle`, `ic_shuffle_on`, `ic_repeat`, `ic_cast`; `ic_chat_bubble`, `ic_forum`; `ic_edit_square`, `ic_feed`, `ic_logout`, `ic_library_add`, `ic_archive`, `ic_content_copy`, `ic_filter_list`, `ic_star`, `ic_drive_file_move`, `ic_delete`. They also use `ic_share`, `ic_more_vert`, `ic_search`, `ic_notifications` and `ic_push_pin`.
+- Demo glyphs these pages add: `ic_add_circle`, `ic_inbox` (the Floating action button page), `ic_smart_button`, `ic_play_circle`, `ic_favorite`, `ic_favorite_filled`, `ic_call_to_action`, `ic_fact_check`, `ic_view_column_2`, `ic_grid_view`, `ic_grid_view_filled` (entry icons and hearts); `ic_play_arrow_filled`, `ic_pause_filled`, `ic_skip_previous_filled`, `ic_skip_next_filled`, `ic_shuffle`, `ic_shuffle_on`, `ic_repeat`, `ic_cast`; `ic_chat_bubble`, `ic_forum`; `ic_edit_square`, `ic_feed`, `ic_logout`, `ic_library_add`, `ic_archive`, `ic_content_copy`, `ic_filter_list`, `ic_star`, `ic_drive_file_move`, `ic_delete`. They also use `ic_share`, `ic_more_vert`, `ic_search`, `ic_notifications` and `ic_push_pin`.

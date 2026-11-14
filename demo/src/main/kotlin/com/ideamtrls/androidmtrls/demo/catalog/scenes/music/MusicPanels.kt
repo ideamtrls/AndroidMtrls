@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -43,6 +42,7 @@ import com.ideamtrls.androidmtrls.AMArtPanelChrome
 import com.ideamtrls.androidmtrls.AMArtRowsBackdrop
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMButton
+import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMElevation
@@ -281,45 +281,31 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
 private val MusicTrackNumberWidth = 28.dp
 
 /**
- * Play and Shuffle, frosted, side by side at equal widths: Play plays [target] from its first song
- * with shuffle off, Shuffle with it on. At the largest text sizes, where a half-width "Shuffle"
- * would break mid-word, Shuffle stacks under Play.
+ * Play and Shuffle, frosted, in an [AMButtonPair]: Play plays [target] from its first song with
+ * shuffle off, Shuffle with it on. Side by side at equal widths, or stacked when a label wouldn't
+ * fit on one line at half the width.
  */
 @Composable
 private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel, modifier: Modifier = Modifier) {
-    val spacing = AMTheme.tokens.spacing
     val play = painterResource(R.drawable.ic_play_arrow_filled)
     val shuffle = painterResource(R.drawable.ic_shuffle)
-    val playButton = @Composable { buttonModifier: Modifier ->
-        AMButton(
-            "Play",
-            onClick = { model.play(target, shuffled = false) },
-            modifier = buttonModifier,
-            icon = play,
-            style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
-        )
-    }
-    val shuffleButton = @Composable { buttonModifier: Modifier ->
-        AMButton(
-            "Shuffle",
-            onClick = { model.play(target, shuffled = true) },
-            modifier = buttonModifier,
-            icon = shuffle,
-            style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
-        )
-    }
-    if (LocalDensity.current.fontScale >= MusicStackedButtonsFontScale) {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-            playButton(Modifier.fillMaxWidth())
-            shuffleButton(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
-            playButton(Modifier.weight(1f))
-            shuffleButton(Modifier.weight(1f))
-        }
-    }
+    AMButtonPair(
+        {
+            AMButton(
+                "Play",
+                onClick = { model.play(target, shuffled = false) },
+                icon = play,
+                style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
+            )
+        },
+        {
+            AMButton(
+                "Shuffle",
+                onClick = { model.play(target, shuffled = true) },
+                icon = shuffle,
+                style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
+            )
+        },
+        modifier,
+    )
 }
-
-/** The font scale from which Play and Shuffle stack. */
-private const val MusicStackedButtonsFontScale = 1.5f
