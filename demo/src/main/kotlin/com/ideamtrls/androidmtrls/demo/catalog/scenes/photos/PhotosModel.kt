@@ -185,7 +185,7 @@ internal class PhotosModel(private val scope: CoroutineScope) {
 
     init {
         check(PhotosSampleLibrary.map { it.id }.toSet().size == PhotosSampleLibrary.size) { "Photo ids repeat" }
-        check(PhotosSampleLibrary.map { it.imageId }.toSet().size == PhotosSampleLibrary.size) {
+        check(PhotosSampleLibrary.map { it.file }.toSet().size == PhotosSampleLibrary.size) {
             "Two photos show the same picture"
         }
     }

@@ -26,7 +26,8 @@ internal enum class PhotosPlace(val title: String, val detail: String) {
 @Immutable
 internal data class PhotosItem(
     val id: Int,
-    val imageId: Int,
+    /** The picture's Wikimedia Commons file name. */
+    val file: String,
     val takenAt: LocalDateTime,
     val place: PhotosPlace,
     val camera: String,
@@ -42,10 +43,10 @@ internal data class PhotosItem(
     val isFavorite: Boolean,
 ) {
     /** The grid's square thumbnail. */
-    val thumbUrl: String get() = "https://picsum.photos/id/$imageId/360/360"
+    val thumbUrl: String get() = commonsPhoto(file, 500)
 
     /** The detail's full picture. */
-    val fullUrl: String get() = "https://picsum.photos/id/$imageId/1200/1200"
+    val fullUrl: String get() = commonsPhoto(file, 1280)
 
     /** The Library section this photo falls in. */
     val month: YearMonth get() = YearMonth.from(takenAt)
@@ -87,7 +88,7 @@ private const val FujifilmLens = "XF 23mm F1.4"
 
 private fun photo(
     id: Int,
-    imageId: Int,
+    file: String,
     month: Int,
     day: Int,
     hour: Int,
@@ -103,7 +104,7 @@ private fun photo(
     isFavorite: Boolean,
 ): PhotosItem = PhotosItem(
     id = id,
-    imageId = imageId,
+    file = file,
     takenAt = LocalDateTime.of(2026, month, day, hour, minute),
     place = place,
     camera = camera,
@@ -118,36 +119,36 @@ private fun photo(
 
 /** 30 photos, newest first (August to October 2026), 7 of them favorites. */
 internal val PhotosSampleLibrary: List<PhotosItem> = listOf(
-    photo(1, 63, 10, 24, 8, 12, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/120 s", "80", "5000 × 2813", "7.8 MB", listOf("Coffee", "Table"), true),
-    photo(2, 56, 10, 21, 19, 48, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/30 s", "640", "2880 × 1920", "4.0 MB", listOf("Lights", "Evening"), false),
-    photo(3, 83, 10, 17, 17, 31, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/5.6 · 1/125 s", "400", "2560 × 1920", "3.7 MB", listOf("Forest", "Dusk"), false),
-    photo(4, 80, 10, 15, 11, 5, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/2 · 1/500 s", "200", "3888 × 2592", "6.0 MB", listOf("Pine Cones", "Wood"), false),
-    photo(5, 28, 10, 13, 10, 22, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/8 · 1/250 s", "160", "4928 × 3264", "8.7 MB", listOf("Stream", "Rocks", "Forest"), true),
-    photo(6, 19, 10, 12, 14, 40, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/2 · 1/320 s", "125", "2500 × 1667", "3.4 MB", listOf("Moss", "Garden"), false),
-    photo(7, 17, 10, 10, 9, 17, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "2500 × 1667", "3.4 MB", listOf("Path", "Garden", "Trees"), false),
-    photo(8, 81, 10, 9, 15, 53, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/4 · 1/60 s", "800", "5000 × 3250", "8.8 MB", listOf("Trees", "Path"), true),
-    photo(9, 43, 10, 4, 21, 6, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "400", "1280 × 831", "2.0 MB", listOf("Bridge", "Skyline", "Night"), false),
-    photo(10, 57, 10, 2, 13, 26, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/5.6 · 1/250 s", "200", "2448 × 3264", "5.1 MB", listOf("Street", "Brick", "Cobblestones"), false),
-    photo(11, 42, 9, 28, 9, 44, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "250", "3456 × 2304", "5.1 MB", listOf("Cafe", "Coffee", "Table"), false),
-    photo(12, 32, 9, 26, 16, 2, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "4032 × 3024", "7.0 MB", listOf("Bench", "Tiles", "Wall"), true),
-    photo(13, 78, 9, 25, 11, 37, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/4 · 1/250 s", "200", "1584 × 2376", "3.2 MB", listOf("Door", "Stone"), false),
-    photo(14, 61, 9, 23, 18, 15, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/320 s", "125", "3264 × 2448", "5.1 MB", listOf("Rooftops", "Old Town", "River"), false),
-    photo(15, 62, 9, 22, 19, 3, PhotosPlace.Lisbon, Pixel, PixelLens, "ƒ/1.78 · 1/250 s", "50", "2000 × 1333", "2.7 MB", listOf("Hills", "Haze", "Sunset"), false),
-    photo(16, 23, 9, 20, 20, 19, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "800", "3887 × 4899", "9.0 MB", listOf("Dinner", "Forks"), false),
-    photo(17, 37, 9, 18, 12, 48, PhotosPlace.Lisbon, Pixel, PixelLens, "ƒ/1.78 · 1/1600 s", "50", "2000 × 1333", "2.7 MB", listOf("Coast", "Flowers", "Sea"), false),
-    photo(18, 44, 9, 16, 15, 10, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/1000 s", "160", "4272 × 2848", "7.0 MB", listOf("Beach", "Haze"), false),
-    photo(19, 88, 9, 11, 8, 31, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/500 s", "64", "1280 × 1707", "2.5 MB", listOf("Avenue", "Traffic", "Rooftop"), false),
-    photo(20, 76, 9, 5, 17, 22, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/2.8 · 1/250 s", "200", "4912 × 3264", "8.7 MB", listOf("Bicycle", "Shed", "Wood"), true),
-    photo(21, 68, 8, 30, 18, 40, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "4608 × 3072", "7.9 MB", listOf("Pier", "Lamp", "Clouds"), false),
-    photo(22, 52, 8, 27, 12, 14, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/2000 s", "50", "1280 × 853", "2.0 MB", listOf("Boardwalk", "Planks"), false),
-    photo(23, 79, 8, 22, 13, 56, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/8 · 1/400 s", "160", "2000 × 3011", "4.2 MB", listOf("Mountain", "Trail", "Ridge"), false),
-    photo(24, 15, 8, 21, 11, 9, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/11 · 1/60 s", "100", "2500 × 1667", "3.4 MB", listOf("Waterfall", "Rocks", "Moss"), true),
-    photo(25, 11, 8, 20, 9, 35, PhotosPlace.Reykjavik, Pixel, PixelLens, "ƒ/1.78 · 1/500 s", "50", "2500 × 1667", "3.4 MB", listOf("Valley", "Fog", "River"), false),
-    photo(26, 13, 8, 19, 16, 24, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/8 · 1/320 s", "100", "2500 × 1667", "3.4 MB", listOf("Coast", "Pebbles", "Sea"), false),
-    photo(27, 12, 8, 18, 14, 2, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/11 · 1/250 s", "100", "2500 × 1667", "3.4 MB", listOf("Beach", "Rocks", "Island"), true),
-    photo(28, 14, 8, 17, 10, 47, PhotosPlace.Reykjavik, Pixel, PixelLens, "ƒ/1.78 · 1/1250 s", "50", "2500 × 1667", "3.4 MB", listOf("Sea", "Rocks", "Horizon"), false),
-    photo(29, 39, 8, 9, 20, 28, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "200", "3456 × 2304", "5.1 MB", listOf("Records", "Turntable"), false),
-    photo(30, 84, 8, 3, 19, 52, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/30 s", "500", "1280 × 848", "2.0 MB", listOf("Bridge", "Dusk"), false),
+    photo(1, "Cup of espresso 02.jpg", 10, 24, 8, 12, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/120 s", "80", "5000 × 2813", "7.8 MB", listOf("Coffee", "Cup", "Table"), true),
+    photo(2, "Governors Island at sunset from BBP (02132p).jpg", 10, 21, 19, 48, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/30 s", "640", "2880 × 1920", "4.0 MB", listOf("Harbor", "Sunset", "Evening"), false),
+    photo(3, "Bamboo Grove, Arashiyama, Kyoto, Japan.jpg", 10, 17, 17, 31, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/5.6 · 1/125 s", "400", "2560 × 1920", "3.7 MB", listOf("Bamboo", "Forest"), false),
+    photo(4, "A pine cone.jpg", 10, 15, 11, 5, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/2 · 1/500 s", "200", "3888 × 2592", "6.0 MB", listOf("Pine Cone", "Wood"), false),
+    photo(5, "Stream outside Shimogamo-jinja.jpg", 10, 13, 10, 22, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/8 · 1/250 s", "160", "4928 × 3264", "8.7 MB", listOf("Stream", "Shrine", "Forest"), true),
+    photo(6, "Stone statue of the Buddha seated with moss-covered stone alms bowl in Ryōan-ji Zen Buddhist temple Ukyō-ku Kyoto Japan.jpg", 10, 12, 14, 40, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/2 · 1/320 s", "125", "2500 × 1667", "3.4 MB", listOf("Moss", "Buddha", "Temple"), false),
+    photo(7, "Wooden gate in Okochi Sanso Garden, Kyoto, Japan.jpg", 10, 10, 9, 17, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "2500 × 1667", "3.4 MB", listOf("Gate", "Garden", "Trees"), false),
+    photo(8, "Torii path with lantern at Fushimi Inari Taisha Shrine, Kyoto, Japan.jpg", 10, 9, 15, 53, PhotosPlace.Kyoto, Fujifilm, FujifilmLens, "ƒ/4 · 1/60 s", "800", "5000 × 3250", "8.8 MB", listOf("Torii", "Path", "Lantern"), true),
+    photo(9, "NY city skyline and Brooklyn Bridge-20090518-RM-203224.jpg", 10, 4, 21, 6, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "400", "1280 × 831", "2.0 MB", listOf("Bridge", "Skyline", "Evening"), false),
+    photo(10, "Adams Street beneath the Manhattan Bridge, Dumbo, Brooklyn, New York.jpg", 10, 2, 13, 26, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/5.6 · 1/250 s", "200", "2448 × 3264", "5.1 MB", listOf("Street", "Bridge", "Dumbo"), false),
+    photo(11, "Gray espresso cup with amaretto.jpg", 9, 28, 9, 44, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "250", "3456 × 2304", "5.1 MB", listOf("Espresso", "Cup"), false),
+    photo(12, "Azulejo facade in Rua de São Bento - Lisbon - Portugal.jpg", 9, 26, 16, 2, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "4032 × 3024", "7.0 MB", listOf("Tiles", "Facade", "Street"), true),
+    photo(13, "Blue door, Avenida Guerra Junqueiro, Lisbon, Portugal julesvernex2.jpg", 9, 25, 11, 37, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/4 · 1/250 s", "200", "1584 × 2376", "3.2 MB", listOf("Door", "Blue"), false),
+    photo(14, "View from Miradouro de Santa Luzia, Lisbon, 20250603 2016 9045.jpg", 9, 23, 18, 15, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/320 s", "125", "3264 × 2448", "5.1 MB", listOf("Rooftops", "Old Town", "River"), false),
+    photo(15, "Panorama with Nossa Senhora da Penha de França Convent at sunset, Lisbon, Portugal julesvernex2.jpg", 9, 22, 19, 3, PhotosPlace.Lisbon, Pixel, PixelLens, "ƒ/1.78 · 1/250 s", "50", "2000 × 1333", "2.7 MB", listOf("Convent", "Hills", "Sunset"), false),
+    photo(16, "A roast lamb dinner at Black Horse Inn, Nuthurst West Sussex England.jpg", 9, 20, 20, 19, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "800", "3887 × 4899", "9.0 MB", listOf("Dinner", "Roast"), false),
+    photo(17, "Cliffs at Cabo da Roca, Portugal, 20250606 1528 0284.jpg", 9, 18, 12, 48, PhotosPlace.Lisbon, Pixel, PixelLens, "ƒ/1.78 · 1/1600 s", "50", "2000 × 1333", "2.7 MB", listOf("Coast", "Cliffs", "Sea"), false),
+    photo(18, "Nazaré February 2013-5.jpg", 9, 16, 15, 10, PhotosPlace.Lisbon, Fujifilm, FujifilmLens, "ƒ/8 · 1/1000 s", "160", "4272 × 2848", "7.0 MB", listOf("Beach", "Sea"), false),
+    photo(19, "Nassau Avenue August 2017 03.jpg", 9, 11, 8, 31, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/500 s", "64", "1280 × 1707", "2.5 MB", listOf("Avenue", "Street"), false),
+    photo(20, "Commuting by bicycle.jpg", 9, 5, 17, 22, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/2.8 · 1/250 s", "200", "4912 × 3264", "8.7 MB", listOf("Bicycle", "Commute"), true),
+    photo(21, "View of Manhattan from Brooklyn Bridge Park, New York City, 20231005 0856 2141.jpg", 8, 30, 18, 40, PhotosPlace.Brooklyn, Fujifilm, FujifilmLens, "ƒ/8 · 1/500 s", "125", "4608 × 3072", "7.9 MB", listOf("Park", "Skyline", "River"), false),
+    photo(22, "Coney Island Boardwalk 1.jpg", 8, 27, 12, 14, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/2000 s", "50", "1280 × 853", "2.0 MB", listOf("Boardwalk", "Coney Island"), false),
+    photo(23, "Hiking trail at Námafjall Mountain, Iceland, 20240716 1139 1370.jpg", 8, 22, 13, 56, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/8 · 1/400 s", "160", "2000 × 3011", "4.2 MB", listOf("Mountain", "Trail"), false),
+    photo(24, "Seljalandsfoss Waterfall, Iceland, 20240720 1500 3096.jpg", 8, 21, 11, 9, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/11 · 1/60 s", "100", "2500 × 1667", "3.4 MB", listOf("Waterfall", "Cliffs"), true),
+    photo(25, "Skógá River Valley near Fosstorfufoss, Iceland, 20230501 1506 3996.jpg", 8, 20, 9, 35, PhotosPlace.Reykjavik, Pixel, PixelLens, "ƒ/1.78 · 1/500 s", "50", "2500 × 1667", "3.4 MB", listOf("Valley", "River"), false),
+    photo(26, "Reynisfjara, Iceland, 20230501 1639 4044.jpg", 8, 19, 16, 24, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/8 · 1/320 s", "100", "2500 × 1667", "3.4 MB", listOf("Black Sand", "Beach", "Sea"), false),
+    photo(27, "Reynisdrangar basalt rocks.jpg", 8, 18, 14, 2, PhotosPlace.Reykjavik, Fujifilm, FujifilmLens, "ƒ/11 · 1/250 s", "100", "2500 × 1667", "3.4 MB", listOf("Sea Stacks", "Basalt", "Rocks"), true),
+    photo(28, "Hvítserkur Sea Stack, Northwestern Region, Iceland, 20240715 1135 0849.jpg", 8, 17, 10, 47, PhotosPlace.Reykjavik, Pixel, PixelLens, "ƒ/1.78 · 1/1250 s", "50", "2500 × 1667", "3.4 MB", listOf("Sea Stack", "Coast"), false),
+    photo(29, "Groove and needle in close embrace from beginning to end.jpg", 8, 9, 20, 28, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/60 s", "200", "3456 × 2304", "5.1 MB", listOf("Record", "Needle"), false),
+    photo(30, "Brooklyn-Manhattan-Williamsburg-Bridges at Sunset 2021-06-15 19-31.jpg", 8, 3, 19, 52, PhotosPlace.Brooklyn, Pixel, PixelLens, "ƒ/1.78 · 1/30 s", "500", "1280 × 848", "2.0 MB", listOf("Bridges", "Sunset"), false),
 )
 
 /** The four manual albums. Favorites isn't one: it's derived, so it can never drift out of sync. */

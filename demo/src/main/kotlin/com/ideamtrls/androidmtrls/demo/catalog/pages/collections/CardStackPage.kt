@@ -47,11 +47,11 @@ private fun CardStackPage() {
 private class CollectionsAlbum(val id: Int, val title: String, val detail: String, val seed: String)
 
 private val Albums = listOf(
-    CollectionsAlbum(1, "Morning walk", "12 photos", "ramen"),
-    CollectionsAlbum(2, "Long weekend", "48 photos", "tart"),
-    CollectionsAlbum(3, "Field trip", "23 photos", "curry"),
-    CollectionsAlbum(4, "Low tide", "9 photos", "focaccia"),
-    CollectionsAlbum(5, "Night out", "31 photos", "gazpacho"),
+    CollectionsAlbum(1, "Morning walk", "12 photos", "morning-walk"),
+    CollectionsAlbum(2, "Long weekend", "48 photos", "long-weekend"),
+    CollectionsAlbum(3, "Field trip", "23 photos", "field-trip"),
+    CollectionsAlbum(4, "Low tide", "9 photos", "low-tide"),
+    CollectionsAlbum(5, "Night out", "31 photos", "night-out"),
 )
 
 /** The deck's height; every card fills it. */

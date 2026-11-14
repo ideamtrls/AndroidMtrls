@@ -18,9 +18,9 @@ class ImageDiskCacheTest {
 
     @Test
     fun urlsGetTheirOwnNames() {
-        val name = imageCacheFileName("https://picsum.photos/seed/a/800/600")
-        assertEquals(name, imageCacheFileName("https://picsum.photos/seed/a/800/600"))
-        assertNotEquals(name, imageCacheFileName("https://picsum.photos/seed/b/800/600"))
+        val name = imageCacheFileName("https://example.com/photos/a.jpg")
+        assertEquals(name, imageCacheFileName("https://example.com/photos/a.jpg"))
+        assertNotEquals(name, imageCacheFileName("https://example.com/photos/b.jpg"))
         assertTrue(isImageCacheFileName(name))
     }
 
