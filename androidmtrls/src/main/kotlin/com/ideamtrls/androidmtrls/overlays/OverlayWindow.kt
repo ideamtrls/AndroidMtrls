@@ -104,7 +104,7 @@ internal fun AMOverlayWindow(
 
 /**
  * The fresh context an overlay window's content starts from: nothing to frost over (a window can't
- * sample the screen behind it), cards elevated and controls enabled whatever the presenting screen
+ * sample the screen behind it) and no art under it, cards elevated and controls enabled whatever the presenting screen
  * set, no sheet's surface under the controls (a sheet sets its own inside), and `onSurface`
  * content.
  */
@@ -112,6 +112,7 @@ internal fun AMOverlayWindow(
 internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAMBackdrop provides null,
+        LocalAMArtTone provides null,
         LocalAMEnabled provides true,
         LocalAMOnPrimarySurface provides false,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,

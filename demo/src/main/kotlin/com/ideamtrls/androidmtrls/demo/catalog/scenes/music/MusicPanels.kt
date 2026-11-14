@@ -143,15 +143,16 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
                 .clip(shape),
             fallback = {},
         )
-        Column(Modifier.fillMaxWidth().amArtText(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 artist.name,
-                Modifier.semantics { heading() },
+                Modifier.amArtText().semantics { heading() },
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
             )
             Text(
                 musicArtistSummary(artist, catalog),
+                Modifier.amArtText(secondary = true),
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                 textAlign = TextAlign.Center,
             )

@@ -101,6 +101,15 @@ public object AMTheme {
     public val isDark: Boolean
         @Composable @ReadOnlyComposable get() = LocalAMDarkTheme.current ?: false
 
+    /**
+     * The tone of the art under this composition, or null off art: the nearest art surface's
+     * ([AMBackdrop], [AMArtRowsBackdrop]), which is the mode's unless the app gave it one. The
+     * components that lie on art read it to take their over-art look; read it for text of your own
+     * that lies on art, or use [Modifier.amArtText][amArtText].
+     */
+    public val artTone: AMArtTone?
+        @Composable @ReadOnlyComposable get() = LocalAMArtTone.current
+
     /** The floating surface and the page it floats on. */
     public object Surface {
         /**
@@ -113,20 +122,11 @@ public object AMTheme {
 
         /**
          * The tuned page behind floating surfaces: `#F2F2F7` in light mode, `#141416` in dark
-         * mode, far enough above black that black surfaces read as floating. Screens, scaffolds
-         * and a scrolled page header use it.
+         * mode, far enough above black that black surfaces read as floating. Screens, scaffolds,
+         * a scrolled page header, and art that has no picture (yet) use it.
          */
         public val page: Color
             @Composable @ReadOnlyComposable get() = if (isDark) Style.Page.Dark else Style.Page.Light
-
-        /**
-         * The dark neutral that stands in for art until its picture lands: `#333333` in both
-         * modes, so white art text stays legible over it. Art backdrops and art rows draw it under
-         * their wash before the picture arrives; a screen that sits on art puts it behind its
-         * transitions so a light page never flashes between pictures.
-         */
-        public val art: Color
-            get() = Style.Surface.Art
     }
 
     /**

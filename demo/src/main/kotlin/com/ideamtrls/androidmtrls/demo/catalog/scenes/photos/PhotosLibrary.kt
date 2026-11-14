@@ -45,7 +45,7 @@ import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import com.ideamtrls.androidmtrls.amSelectionCheck
 import com.ideamtrls.androidmtrls.amShimmer
 
@@ -235,7 +235,7 @@ private fun PhotosTile(photo: PhotosItem, loading: Boolean, selecting: Boolean, 
 @Composable
 internal fun PhotosPageBackdrop(photo: PhotosItem?, content: @Composable BoxScope.() -> Unit) {
     val url = photo?.thumbUrl
-    AMBackdrop(art = { Box(Modifier.fillMaxSize().amPageBackdrop(url)) }, modifier = Modifier.fillMaxSize(), content = content)
+    AMBackdrop(art = { Box(Modifier.fillMaxSize().amArtBackdrop(url)) }, modifier = Modifier.fillMaxSize(), content = content)
 }
 
 /** While [selecting], back ends select mode before anything else on the view. */

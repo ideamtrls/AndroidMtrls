@@ -39,7 +39,7 @@ import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import java.util.Locale
 
 // Shared sizes
@@ -68,22 +68,18 @@ internal fun TextStyle.shopFigures(): TextStyle = copy(fontFeatureSettings = "tn
 private val ShopBeansUrl = commonsPhoto("Roasted_coffee_beans.jpg")
 
 /**
- * The scene's one background, so the whole app feels like a coffee shop: roasted beans as a page
- * backdrop, blurred only enough to soften them, so they still read as beans. Light mode's white
- * wash already softens them; dark mode's lighter wash would leave their highlights hard against
- * the dark, so dark blurs more. It fills what holds it: the art of an `AMBackdrop`.
+ * The scene's one background, so the whole app feels like a coffee shop: roasted beans as an art
+ * backdrop, blurred only enough to soften them, so they still read as beans, and washed toward the
+ * mode at the library's defaults, so the text on them holds. Light mode's lift already softens
+ * them; dark mode blurs more, so the lowered highlights don't speckle the dark. It fills what holds
+ * it: the art of an `AMBackdrop`.
  */
 @Composable
 internal fun ShopBackdrop() {
     Box(
         Modifier
             .fillMaxSize()
-            .amPageBackdrop(
-                ShopBeansUrl,
-                blurRadius = if (AMTheme.isDark) 17.dp else 3.5.dp,
-                lightWash = 0.55f,
-                darkWash = 0.4f,
-            ),
+            .amArtBackdrop(ShopBeansUrl, blurRadius = if (AMTheme.isDark) 17.dp else 3.5.dp),
     )
 }
 

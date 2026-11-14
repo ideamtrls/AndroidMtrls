@@ -2,7 +2,7 @@
 scope: The rules the demo's six Showcase scenes (Social, Music, Photos, Calendar, Shop, Account) share — where scene code lives, scenes vs pages, presentation and back, panels and route types, page headers, sentence case, sheets and the discard guard, the light/dark chip, the remote, motion, rows, banners and toasts, state and cancellation, photos
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/**, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/showcase/**]
 keywords: [Scenes, scene rules, Showcase, ShowcasePages, socialScene, musicScene, photosScene, calendarScene, shopScene, accountScene, catalog/scenes, scene entry, AMScene, roots form, overlays slot, AMKeepsPlace, amStatusBarEdge, AMLightStatusBarIcons, landing view, back order, Exit tile, logout, LocalCatalogNavigator, panels, NavDisplay, route type, SocialRoute, MusicRoute, PhotosRoute, ShopRoute, AMPanel, AMPanelChrome, AMArtPanelChrome, AMPageHeader, navigationIcon, exitUntilCollapsedScrollBehavior, AMBackdrop, NavigationBackHandler, select mode, step screen, field card, outlined fields, sentence case, AMSheet title, discard guard, amDiscardGuard, SceneAppearanceButton, light/dark chip, remote, AMFloatingActions, Actions, AMActionGrid, AMActionGridRow, active tile, no badges, tile titles, amInstantSwitch, amCrossfade, motion, AMListRow, AMSection Rows, bare rows, inset divider, AMBanner, AMToast, toast above the button, scene model, rememberSaveable, Saver, rememberCoroutineScope, cancellation, cancelPendingWork, FAB clearance, AMRemoteImage, AMAvatar, commonsPhoto, picsum]
-updated: 2026-11-10
+updated: 2026-11-14
 ---
 
 # Demo scenes
@@ -86,4 +86,4 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 ## Photos and art
 
 - Pictures load through the library's image pipeline (`AMRemoteImage`, `AMAvatar`, the art modifiers) from each scene's own URLs: Wikimedia Commons files through `commonsPhoto` (Social's people and posts, Calendar's month art, Shop's beans), picsum's images by id (Photos), and the owner's site (Music). Scenes never use `catalogPhoto`, so `artwork night` leaves them as they are.
-- Art backdrops use the data display modifiers (`amArtBackdrop`, `amPageBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`).
+- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the mode's colors.

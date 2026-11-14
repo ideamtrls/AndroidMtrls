@@ -154,10 +154,10 @@ internal fun MusicArtEntry(
             MusicArtCard(art, cover, Modifier.fillMaxWidth().aspectRatio(aspectRatio), interactionSource)
             if (isPlaying) MusicNowPlayingBadge(Modifier.align(Alignment.TopEnd).padding(spacing.md))
         }
-        Column(Modifier.padding(horizontal = spacing.lg).amArtText()) {
-            Text(title, style = MaterialTheme.typography.titleLarge)
+        Column(Modifier.padding(horizontal = spacing.lg)) {
+            Text(title, Modifier.amArtText(), style = MaterialTheme.typography.titleLarge)
             if (detail != null) {
-                Text(detail, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+                Text(detail, Modifier.amArtText(secondary = true), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
             }
         }
     }

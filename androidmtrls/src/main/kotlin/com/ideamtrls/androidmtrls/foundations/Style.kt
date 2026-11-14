@@ -31,9 +31,28 @@ internal object Style {
     object Surface {
         val Light = Color.White
         val Dark = Color.Black
+    }
 
-        /** The dark neutral standing in for art before its picture lands, in both modes. */
-        val Art = Color(0xFF333333)
+    /**
+     * Text lying on art whose tone isn't the mode's (an app's lowered wash, sharp art, a scrim over
+     * a photo). On art in the mode's tone, text takes the scheme's own colors instead.
+     */
+    object ArtInk {
+        /** On dark art in light mode: white, and a light gray for secondary text. */
+        val OnDark = Color.White
+        val OnDarkSecondary = Color(0xFFD1D1D6)
+
+        /** On light art in dark mode: near-black, and a dark gray for secondary text. */
+        val OnLight = Color(0xFF1C1C1E)
+        val OnLightSecondary = Color(0xFF48484A)
+
+        /**
+         * The darkest the library's light-mode art gets, as relative luminance: two colors lifted
+         * to the default light wash's floor (gray `#BFBFBF`, 0.5225) dip to this where bands blend,
+         * at worst (a bright green into a pink, measured). Colored text on light art holds 4.5:1
+         * against it.
+         */
+        const val LightArtGround = 0.4646f
     }
 
     /**
@@ -84,10 +103,17 @@ internal object Style {
             far = ShadowLayer(16.dp, 4.dp, 0.10f, 0.10f),
         )
 
-        /** White art text on a darkened picture: a tight and a soft layer, stronger than [Text]. */
+        /** Light art text on dark art: a tight and a soft black layer, stronger than [Text]. */
         val ArtText = ShadowLevel(
             near = ShadowLayer(1.dp, 1.dp, 0.30f, 0.30f),
             far = ShadowLayer(10.dp, 2.dp, 0.28f, 0.28f),
+        )
+
+        /** Dark art text on light art: the same layers in white, a glow that lifts the glyphs' edges. */
+        val ArtTextLight = ShadowLevel(
+            near = ShadowLayer(1.dp, 1.dp, 0.30f, 0.30f),
+            far = ShadowLayer(10.dp, 2.dp, 0.28f, 0.28f),
+            color = Color.White,
         )
     }
 
@@ -199,6 +225,6 @@ internal data class ShadowLayer(val blur: Dp, val offsetY: Dp, val lightAlpha: F
     fun alpha(dark: Boolean): Float = if (dark) darkAlpha else lightAlpha
 }
 
-/** One elevation level: its near and far layers. */
+/** One elevation level: its near and far layers, in [color]: black, or white for a glow under dark text. */
 @Immutable
-internal data class ShadowLevel(val near: ShadowLayer, val far: ShadowLayer)
+internal data class ShadowLevel(val near: ShadowLayer, val far: ShadowLayer, val color: Color = Color.Black)

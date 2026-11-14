@@ -20,17 +20,24 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
  *
  * The region takes its size from [modifier] and [content]; [art] fills it. Only [art] is sampled,
  * never the content, so a frosted surface never blurs itself or another frosted surface. The
- * nearest backdrop wins: a row's own art beats the page's. Inside it, section headers sit on the
- * picture ([AMSectionHeader] switches to its over-art look).
+ * nearest backdrop wins: a row's own art beats the page's.
+ *
+ * **It's an art surface.** What lies on it takes its over-art look for its [tone]: section
+ * headers and footers, empty states, ghost buttons, page headers, panel chrome, art text
+ * ([amArtText]) and the status bar's icons ([AMTheme.artTone]). The tone is the mode's by default,
+ * which holds for the library's art ([amArtBackdrop], washed toward the mode). Art the app washes
+ * less, or draws itself, gets the tone it has: `AMBackdrop(art = { Photo() }, tone = AMArtTone.Dark)`.
  *
  * @param art what sits behind the region: a photo, a blurred picture, a gradient.
  * @param modifier the region's size and placement.
+ * @param tone how light [art] is, for what lies on it: null, the default, is the mode's.
  * @param content what sits on the art.
  */
 @Composable
 public fun AMBackdrop(
     art: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    tone: AMArtTone? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layer = rememberGraphicsLayer()
@@ -38,6 +45,9 @@ public fun AMBackdrop(
     Box(modifier) {
         Box(Modifier.matchParentSize().backdropSource(source)) { art() }
         val scope = this
-        CompositionLocalProvider(LocalAMBackdrop provides source) { scope.content() }
+        CompositionLocalProvider(
+            LocalAMBackdrop provides source,
+            LocalAMArtTone provides (tone ?: modeArtTone()),
+        ) { scope.content() }
     }
 }

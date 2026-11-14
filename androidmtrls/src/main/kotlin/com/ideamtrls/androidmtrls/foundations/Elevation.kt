@@ -1,5 +1,7 @@
 package com.ideamtrls.androidmtrls
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
@@ -96,11 +98,23 @@ public fun Modifier.amElevation(level: AMElevation, shape: Shape): Modifier =
 public fun Modifier.amTextShadow(): Modifier = glyphShadow(Style.Shadow.Text)
 
 /**
- * The glyphs of this content casting [level]'s two layers, drawn in [tint] when it's specified
- * (art text is white), in their own colors otherwise.
+ * The glyphs of this content casting [level]'s two layers, drawn in [tint] when it's specified, in
+ * their own colors otherwise.
  */
 internal fun Modifier.glyphShadow(level: ShadowLevel, tint: Color = Color.Unspecified): Modifier =
-    this then GlyphShadowElement(level, tint)
+    this then GlyphShadowElement(level, tint, art = null)
+
+/**
+ * The glyphs of this content as art text ([amArtText]): drawn in the ink of the art's tone with the
+ * shadow of the other tone, both resolved while drawing from [art] and the locals, so a change of
+ * tone or mode redraws without recomposing.
+ */
+internal fun Modifier.artGlyphs(art: ArtGlyphs): Modifier =
+    this then GlyphShadowElement(artInkShadow(art.tone ?: AMArtTone.Dark), Color.Unspecified, art)
+
+/** Art text's request: the tone it lies on (null: the nearest art surface's, or the mode's) and whether it's secondary. */
+@Immutable
+internal data class ArtGlyphs(val tone: AMArtTone?, val secondary: Boolean)
 
 // The shape's shadow
 
@@ -152,7 +166,7 @@ internal class ShapeShadows {
                         shape,
                         Shadow(
                             radius = layer.blur,
-                            color = Color.Black.copy(alpha = layer.alpha(dark)),
+                            color = level.color.copy(alpha = layer.alpha(dark)),
                             offset = DpOffset(0.dp, layer.offsetY),
                         ),
                     )
@@ -164,29 +178,37 @@ internal class ShapeShadows {
 
 // The glyphs' shadow
 
-private data class GlyphShadowElement(val level: ShadowLevel, val tint: Color) :
+private data class GlyphShadowElement(val level: ShadowLevel, val tint: Color, val art: ArtGlyphs?) :
     ModifierNodeElement<GlyphShadowNode>() {
-    override fun create() = GlyphShadowNode(level, tint)
+    override fun create() = GlyphShadowNode(level, tint, art)
 
     override fun update(node: GlyphShadowNode) {
         node.level = level
         node.tint = tint
+        node.art = art
         node.invalidateDraw()
     }
 
     override fun InspectorInfo.inspectableProperties() {
-        name = "glyphShadow"
-        properties["level"] = level
-        properties["tint"] = tint
+        if (art != null) {
+            name = "amArtText"
+            properties["tone"] = art.tone
+            properties["secondary"] = art.secondary
+        } else {
+            name = "glyphShadow"
+            properties["level"] = level
+            properties["tint"] = tint
+        }
     }
 }
 
 /**
- * Records the content into a layer, then draws it three times: blurred and offset in black for
- * the far layer and the near layer, then the content itself on top. The shadow passes record a
- * margin around the content, so the blur spreads past its bounds instead of being cut off.
+ * Records the content into a layer, then draws it three times: blurred and offset in the shadow's
+ * color for the far layer and the near layer, then the content itself on top. The shadow passes
+ * record a margin around the content, so the blur spreads past its bounds instead of being cut
+ * off. As art text ([art]) it resolves its ink and shadow from the art's tone each time it draws.
  */
-private class GlyphShadowNode(var level: ShadowLevel, var tint: Color) :
+private class GlyphShadowNode(var level: ShadowLevel, var tint: Color, var art: ArtGlyphs?) :
     Modifier.Node(), DrawModifierNode, CompositionLocalConsumerModifierNode {
 
     private var glyphs: GraphicsLayer? = null
@@ -215,21 +237,28 @@ private class GlyphShadowNode(var level: ShadowLevel, var tint: Color) :
             return
         }
         val dark = currentValueOf(LocalAMDarkTheme) ?: false
+        var level = level
+        var tint = tint
+        art?.let { art ->
+            val tone = art.tone ?: currentValueOf(LocalAMArtTone) ?: artToneOf(dark)
+            level = artInkShadow(tone)
+            tint = artInk(tone, dark, currentValueOf(MaterialTheme.LocalMaterialTheme).colorScheme, art.secondary)
+        }
         glyphs.colorFilter = if (tint.isSpecified) ColorFilter.tint(tint, BlendMode.SrcIn) else null
         glyphs.record { this@draw.drawContent() }
-        far.draw(this, glyphs, level.far, dark)
-        near.draw(this, glyphs, level.near, dark)
+        far.draw(this, glyphs, level.far, level.color, dark)
+        near.draw(this, glyphs, level.near, level.color, dark)
         drawLayer(glyphs)
     }
 }
 
-/** One shadow layer of [GlyphShadowNode]: the glyphs again, black, blurred and offset. */
+/** One shadow layer of [GlyphShadowNode]: the glyphs again, in the shadow's color, blurred and offset. */
 private class ShadowPass {
     var layer: GraphicsLayer? = null
     private var effect: BlurEffect? = null
     private var effectRadius = -1f
 
-    fun draw(scope: DrawScope, glyphs: GraphicsLayer, spec: ShadowLayer, dark: Boolean) = with(scope) {
+    fun draw(scope: DrawScope, glyphs: GraphicsLayer, spec: ShadowLayer, color: Color, dark: Boolean) = with(scope) {
         val layer = layer ?: return@with
         val alpha = spec.alpha(dark)
         if (alpha <= 0f) return@with
@@ -241,7 +270,7 @@ private class ShadowPass {
         // The blur reaches about twice its radius; the margin gives it room.
         val margin = ceil(radius * 2f).toInt() + 2
         layer.renderEffect = effect
-        layer.colorFilter = ColorFilter.tint(Color.Black.copy(alpha = alpha), BlendMode.SrcIn)
+        layer.colorFilter = ColorFilter.tint(color.copy(alpha = alpha), BlendMode.SrcIn)
         layer.topLeft = IntOffset(-margin, -margin + spec.offsetY.toPx().roundToInt())
         val recorded = IntSize(ceil(size.width).toInt() + margin * 2, ceil(size.height).toInt() + margin * 2)
         layer.record(recorded) {

@@ -114,12 +114,22 @@ class DataDisplayMathTest {
 
     @Test
     fun keysOfEqualRecipesAreEqual() {
-        val a = artKey(ArtSource.Url("https://example.com/a.jpg"), IntSize(1080, 2340), 543f, 2.2f, fade = 0f)
-        val b = artKey(ArtSource.Url("https://example.com/a.jpg"), IntSize(1080, 2340), 543f, 2.2f, fade = 0f)
+        val url = ArtSource.Url("https://example.com/a.jpg")
+        val a = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
+        val b = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
         assertEquals(a, b)
         assertEquals(a.hashCode(), b.hashCode())
         assertEquals(220, a.saturation)
-        assertNotEquals(a, artKey(ArtSource.Url("https://example.com/b.jpg"), IntSize(1080, 2340), 543f, 2.2f, fade = 0f))
+        assertEquals(75, a.wash)
+        assertNotEquals(a, artKey(ArtSource.Url("https://example.com/b.jpg"), IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f))
+    }
+
+    @Test
+    fun theModeAndTheWashAreInTheKey() {
+        val url = ArtSource.Url("https://example.com/a.jpg")
+        val light = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
+        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = true, wash = 0.75f, fade = 0f))
+        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.5f, fade = 0f))
     }
 
     // An app bitmap's identity, which keys its art pictures
@@ -145,8 +155,8 @@ class DataDisplayMathTest {
         val url = "https://example.com/a.jpg"
         assertNotEquals(ArtIdentity(url), url)
         assertNotEquals(
-            artKey(ArtSource.Url(url), IntSize(100, 100), 0f, 1f, fade = 0f),
-            ArtKey(ArtIdentity(url), 50, 50, 0, 100, 0),
+            artKey(ArtSource.Url(url), IntSize(100, 100), 0f, 1f, dark = false, wash = 0f, fade = 0f),
+            ArtKey(ArtIdentity(url), 50, 50, 0, 100, dark = false, wash = 0, fade = 0),
         )
     }
 

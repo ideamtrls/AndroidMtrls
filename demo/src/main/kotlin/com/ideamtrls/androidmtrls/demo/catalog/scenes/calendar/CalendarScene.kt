@@ -23,7 +23,7 @@ import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.amInstantSwitch
-import com.ideamtrls.androidmtrls.amPageBackdrop
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import java.time.YearMonth
 
 internal val CalendarSceneEntry = ComponentEntry(
@@ -60,7 +60,7 @@ internal fun CalendarScene() {
     AMBackdrop(
         art = {
             val month = if (model.currentView == CalendarView.Month) model.displayedMonth else YearMonth.now()
-            Box(Modifier.fillMaxSize().amPageBackdrop(calendarMonthArt(month)))
+            Box(Modifier.fillMaxSize().amArtBackdrop(calendarMonthArt(month)))
         },
         Modifier.fillMaxSize(),
     ) {

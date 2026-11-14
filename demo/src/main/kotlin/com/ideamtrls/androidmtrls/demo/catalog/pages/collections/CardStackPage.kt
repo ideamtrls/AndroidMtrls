@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMCardStack
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
@@ -87,7 +88,7 @@ private fun AlbumCard(album: CollectionsAlbum) {
                 .fillMaxWidth()
                 .background(Brush.verticalGradient(listOf(scrim.copy(alpha = 0f), scrim.copy(alpha = 0.55f))))
                 .padding(AMTheme.tokens.spacing.lg)
-                .amArtText(),
+                .amArtText(AMArtTone.Dark),
         ) {
             Text(album.title, style = MaterialTheme.typography.titleLarge)
             Text(album.detail, style = MaterialTheme.typography.bodyMedium)

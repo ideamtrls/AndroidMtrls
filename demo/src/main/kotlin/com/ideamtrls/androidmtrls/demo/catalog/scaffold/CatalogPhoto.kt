@@ -1,7 +1,10 @@
 package com.ideamtrls.androidmtrls.demo
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 
 /**
  * A sample photo for a catalog page: picsum's fixed image for [seed], at [width] × [height]
@@ -59,4 +62,16 @@ internal class CatalogArt private constructor(val day: String, val night: String
             night = "Manhattan from Weehawken, NJ.jpg",
         )
     }
+}
+
+/**
+ * Solid white and solid black pictures, for showing art at its extremes: a page over an all-white
+ * or an all-black cover. One bitmap each for the process, so the art made from them is kept.
+ */
+internal object SolidArt {
+    val White: ImageBitmap = solid(android.graphics.Color.WHITE)
+    val Black: ImageBitmap = solid(android.graphics.Color.BLACK)
+
+    private fun solid(color: Int): ImageBitmap =
+        Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888).apply { eraseColor(color) }.asImageBitmap()
 }

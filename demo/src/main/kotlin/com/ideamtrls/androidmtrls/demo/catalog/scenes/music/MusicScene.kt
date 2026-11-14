@@ -88,14 +88,14 @@ internal fun MusicScene() {
  * The Artists root view: the Navigation 3 stack of the Artists page and the panels it pushes. Each
  * page sits on its own backdrop (the Artists page and the artist page on their art rows, the album
  * page on its cover's art), so its light/dark chip and toolbar buttons are solid and its frosted
- * surfaces blur its own art; the dark neutral behind them shows while Navigation 3 moves between
+ * surfaces blur its own art; the page color behind them shows while Navigation 3 moves between
  * pages. The page on top hosts the Queue sheet.
  */
 @Composable
 private fun MusicArtistsStack(model: MusicModel) {
     NavDisplay(
         backStack = model.backStack,
-        modifier = Modifier.fillMaxSize().background(AMTheme.Surface.art),
+        modifier = Modifier.fillMaxSize().background(AMTheme.Surface.page),
         onBack = model::back,
         entryProvider = { route ->
             when (route) {

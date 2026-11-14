@@ -41,7 +41,7 @@ the one package.
 | `lists` | `AMListRow`, `AMListCard`, `AMLabeledContent`, `AMReorderableRowList`, `AMReorderableCardList`, `AMSwipeableRow` and `AMSwipeAction` |
 | `feedback` | `AMBanner` and `AMBannerHost`, `AMToast` and `AMToastHost`, `AMLoadingOverlay`, `AMEmptyState`, `AMSkeleton` and `Modifier.amShimmer`, `AMProgressView` |
 | `overlays` | `AMSheet`, `AMAlert`, `AMActionsOverlay`, `AMSpotlight` and `Modifier.amHoldable`, `AMBackdropBlur`, `Modifier.amPausedBackdrop`, `Modifier.amDiscardGuard` |
-| `datadisplay` | `AMAvatar`, `AMTag`, `AMBadge` and `AMBadgedBox`, `AMTimeline`, `AMRemoteImage`, `Modifier.amArtBackdrop`, `Modifier.amPageBackdrop`, `Modifier.amArtRows` and `Modifier.amArtRow` inside `AMArtRowsBackdrop`, `Modifier.amArtText` |
+| `datadisplay` | `AMAvatar`, `AMTag`, `AMBadge` and `AMBadgedBox`, `AMTimeline`, `AMRemoteImage`, `Modifier.amArtBackdrop` and `AMArtDefaults`, `Modifier.amArtRows` and `Modifier.amArtRow` inside `AMArtRowsBackdrop`, `AMArtTone`, `Modifier.amArtText` |
 | `collections` | `AMCarousel`, `AMCardStack` |
 
 ## Getting started

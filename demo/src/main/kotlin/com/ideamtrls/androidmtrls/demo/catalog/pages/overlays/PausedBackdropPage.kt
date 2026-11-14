@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMPausedScrim
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
@@ -49,7 +50,7 @@ private fun Paused() {
         contentAlignment = Alignment.Center,
     ) {
         AMRemoteImage(photo(), contentDescription = null, modifier = Modifier.matchParentSize().amPausedBackdrop())
-        Text("Paused", Modifier.amArtText(), style = MaterialTheme.typography.titleLarge)
+        Text("Paused", Modifier.amArtText(AMArtTone.Dark), style = MaterialTheme.typography.titleLarge)
     }
 }
 
