@@ -20,7 +20,6 @@ import com.ideamtrls.androidmtrls.AMIconButton
 import com.ideamtrls.androidmtrls.AMIconButtonSize
 import com.ideamtrls.androidmtrls.AMSlider
 import com.ideamtrls.androidmtrls.AMSliderDecoration
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
@@ -45,7 +44,7 @@ internal fun MusicControlsCard(model: MusicModel, modifier: Modifier = Modifier)
     Column(
         modifier
             .fillMaxWidth()
-            .amCard(fill = AMSurfaceFill.Frosted, padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
+            .amCard(padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
     ) {
         ProvideAMOnSurface {
             MusicControlsHeading(track, model)

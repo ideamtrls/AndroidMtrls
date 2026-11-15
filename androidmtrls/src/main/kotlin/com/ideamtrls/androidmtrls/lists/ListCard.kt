@@ -19,8 +19,10 @@ import androidx.compose.ui.unit.dp
  * }
  * ```
  *
- * The card spans its container's width, in `shapes.large` with the card's shadow; its text sits
- * at the same inset and height as any other row's (28 dp above and below, 16 dp at the sides).
+ * The card spans its container's width, in `shapes.large` with the card's shadow, its fill the
+ * app's surface setting ([AMTheme.surfaceFill]) as for every [amCard]: solid in a solid app; in a
+ * frosted app, frosted over the backdrop and the tint on a sheet. Its text sits at the same inset
+ * and height as any other row's (28 dp above and below, 16 dp at the sides), lying on the card.
  * With [onClick] the whole card is a button, its ripple inside the card's corners, and
  * [onClickLabel] names what a tap does for TalkBack. Stack cards
  * `spacing.md` apart, or hand them to [AMReorderableCardList], which keeps their text clear of
@@ -31,7 +33,6 @@ import androidx.compose.ui.unit.dp
  * @param subtitle a supporting line under the title. Null or empty shows none.
  * @param leadingContent a glyph, avatar or picture before the text. Null shows none.
  * @param trailingContent an accessory after the text. Null shows none.
- * @param fill the card's fill, solid or frosted over art.
  * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to" ("Open task").
  *   Null leaves TalkBack's generic "activate". Only a card with [onClick] uses it.
  * @param onClick makes the card a button. Null leaves it a plain card.
@@ -44,7 +45,6 @@ public fun AMListCard(
     subtitle: String? = null,
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
@@ -54,7 +54,6 @@ public fun AMListCard(
         leadingContent = leadingContent,
         supportingContent = if (subtitle.isNullOrEmpty()) null else ({ Text(subtitle) }),
         trailingContent = trailingContent,
-        fill = fill,
         onClickLabel = onClickLabel,
         onClick = onClick,
         enabled = enabled,
@@ -72,7 +71,6 @@ public fun AMListCard(
  * @param leadingContent a glyph, avatar or picture before the text. Null shows none.
  * @param supportingContent what sits under the headline. Null shows none.
  * @param trailingContent an accessory after the text. Null shows none.
- * @param fill the card's fill, solid or frosted over art.
  * @param onClickLabel what a tap does, as TalkBack says it after "double-tap to" ("Open task").
  *   Null leaves TalkBack's generic "activate". Only a card with [onClick] uses it.
  * @param onClick makes the card a button. Null leaves it a plain card.
@@ -85,7 +83,6 @@ public fun AMListCard(
     leadingContent: (@Composable () -> Unit)? = null,
     supportingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
@@ -99,7 +96,7 @@ public fun AMListCard(
     val elevation = if (LocalAMReorderLifted.current) AMElevation.Medium else AMElevation.Low
     val cardModifier = modifier
         .fillMaxWidth()
-        .amCard(fill = fill, elevation = elevation)
+        .amCard(elevation = elevation)
         .then(claimRowActions())
         .rowClickLabel(onClickLabel, onClick, isEnabled)
     CompositionLocalProvider(
@@ -111,9 +108,9 @@ public fun AMListCard(
         // around it. Material composes the slots inside the list item's own node, which carries the
         // card, so the slots and the colors they take go on the card one by one.
         val colors = readOnSurface { AMRowDefaults.colors() }
-        val leading = onCard(leadingContent)
-        val trailing = onCard(trailingContent)
-        val supporting = onCard(supportingContent)
+        val leading = slotOnSurface(leadingContent)
+        val trailing = slotOnSurface(trailingContent)
+        val supporting = slotOnSurface(supportingContent)
         val headline: @Composable () -> Unit = { ProvideAMOnSurface(content) }
         if (onClick == null) {
             ListItem(
@@ -143,7 +140,3 @@ public fun AMListCard(
         }
     }
 }
-
-/** [slot] lying on the list card ([ProvideAMOnSurface]), or null for none. */
-private fun onCard(slot: (@Composable () -> Unit)?): (@Composable () -> Unit)? =
-    slot?.let { content -> @Composable { ProvideAMOnSurface(content) } }

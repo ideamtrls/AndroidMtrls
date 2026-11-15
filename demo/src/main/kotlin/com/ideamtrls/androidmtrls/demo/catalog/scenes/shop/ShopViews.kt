@@ -45,7 +45,6 @@ import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSkeleton
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
@@ -300,7 +299,7 @@ internal fun ShopProductCard(
     Column(
         modifier
             .fillMaxWidth()
-            .amCard(fill = AMSurfaceFill.Frosted)
+            .amCard()
             .then(if (loading) Modifier.clearAndSetSemantics {} else interaction),
     ) {
         if (loading) {

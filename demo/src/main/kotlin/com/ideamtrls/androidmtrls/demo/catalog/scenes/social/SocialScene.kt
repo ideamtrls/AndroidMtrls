@@ -180,8 +180,8 @@ private fun SocialRemote(model: SocialModel, onClose: () -> Unit, onExit: () -> 
 
 /**
  * Everything the scene presents over its views: the compose and search sheets (frosted in dark
- * mode, like the cards), the "Delete post?" alert, the post menu in the spotlight, the mute banner
- * (a tap undoes it) and the toasts.
+ * mode), the "Delete post?" alert, the post menu in the spotlight, the mute banner (a tap undoes
+ * it) and the toasts.
  */
 @Composable
 private fun SocialOverlays(model: SocialModel, postActions: SocialPostActions) {

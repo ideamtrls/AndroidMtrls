@@ -42,16 +42,17 @@ import androidx.compose.ui.text.style.TextOverflow
  *   indicator. The area fills the height the tabs are given, under the strip; in a scrolling
  *   column it takes its content's height.
  * - **The surface** under the strip and the content is one flat rounded shape (`shapes.large`)
- *   with no shadow: the floating surface's fill for [AMSurfaceFill.Solid], or frosted over the
- *   nearest [AMBackdrop]'s art for [AMSurfaceFill.Frosted], matching the app's cards. The
- *   content rides on it [AMSurfaceStyle.Flat], as inside a card: put rows straight in a tab,
- *   an [AMDivider] between them, not in a card of their own. A frosted piece with its own shape
- *   in the content (a button) is embedded, so it draws the tint.
+ *   with no shadow, in the app's surface setting ([AMTheme.surfaceFill]), matching its cards: the
+ *   floating surface's fill in a solid app; in a frosted app, frosted over the nearest
+ *   [AMBackdrop]'s art (frost over the page color with no art behind it), and the tint where the
+ *   tabs are embedded (inside a card, on a sheet). The content rides on it
+ *   [AMSurfaceStyle.Flat], as inside a card: put rows straight in a tab, an [AMDivider] between
+ *   them, not in a card of their own. A frosted piece with its own shape in the content (a
+ *   button) is embedded, so it draws the tint.
  *
  * @param selection the id of the tab showing.
  * @param onSelectionChange called with a tab's id when it's tapped.
  * @param modifier the tabs' placement and size.
- * @param fill solid (the default) or frosted over art, like the app's cards.
  * @param enabled whether the tabs take taps, here and in any disabling container around them.
  * @param tabs declares the tabs, in order, through [AMTabsScope.tab].
  */
@@ -60,7 +61,6 @@ public fun <T> AMTabs(
     selection: T,
     onSelectionChange: (T) -> Unit,
     modifier: Modifier = Modifier,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     enabled: Boolean = true,
     tabs: AMTabsScope<T>.() -> Unit,
 ) {
@@ -70,9 +70,12 @@ public fun <T> AMTabs(
     val shape = MaterialTheme.shapes.large
     val selectedColor = MaterialTheme.colorScheme.onSurface
     val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val surface = when (fill) {
-        AMSurfaceFill.Solid -> Modifier.background(AMTheme.Surface.primary, shape)
-        AMSurfaceFill.Frosted -> Modifier.amElevatedSurface(shape, AMElevation.None, AMSurfaceFill.Frosted)
+    // Solid in a solid app; in a frosted app the surface node resolves frost, or the tint where
+    // the tabs are embedded.
+    val surface = if (AMTheme.surfaceFill == AMSurfaceFill.Solid) {
+        Modifier.background(AMTheme.Surface.primary, shape)
+    } else {
+        Modifier.amElevatedSurface(shape, AMElevation.None, fill = AMTheme.surfaceFill)
     }
     Column(modifier.then(surface).clip(shape)) {
         SecondaryTabRow(

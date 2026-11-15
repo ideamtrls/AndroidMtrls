@@ -10,11 +10,14 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 
 /**
  * Art behind a region, for frosted surfaces to sit on: [art] draws behind [content], filling the
- * region, and every [AMSurfaceFill.Frosted] surface in [content] blurs its own slice of it.
+ * region, and in a frosted app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) every surface in
+ * [content] standing on it blurs its own slice of it.
  *
  * ```kotlin
- * AMBackdrop(art = { AMRemoteImage(cover, contentDescription = null) }) {
- *     LazyColumn { items(tracks) { TrackCard(it, Modifier.amCard(fill = AMSurfaceFill.Frosted)) } }
+ * AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+ *     AMBackdrop(art = { AMRemoteImage(cover, contentDescription = null) }) {
+ *         LazyColumn { items(tracks) { TrackCard(it, Modifier.amCard()) } }   // frosted over the cover
+ *     }
  * }
  * ```
  *

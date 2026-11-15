@@ -21,7 +21,6 @@ import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMListRow
 import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amStatusBarEdge
@@ -59,7 +58,6 @@ internal fun CalendarMonthsView(model: CalendarModel) {
                 year.toString(),
                 Modifier.padding(top = spacing.xl),
                 style = AMSectionStyle.Rows,
-                fill = AMSurfaceFill.Frosted,
                 inset = false,
             ) {
                 (1..12).forEach { monthNumber ->

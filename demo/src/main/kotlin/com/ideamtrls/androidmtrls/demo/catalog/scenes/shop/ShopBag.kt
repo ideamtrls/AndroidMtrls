@@ -28,7 +28,6 @@ import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMStepper
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMSwipeableRow
 import com.ideamtrls.androidmtrls.AMTheme
@@ -76,7 +75,7 @@ private fun ShopBagContent(model: ShopModel, padding: PaddingValues, onBrowse: (
                 action = AMEmptyStateAction("Browse", onClick = onBrowse),
             )
         } else {
-            AMSection("Items", style = AMSectionStyle.Rows, fill = AMSurfaceFill.Frosted, inset = false) {
+            AMSection("Items", style = AMSectionStyle.Rows, inset = false) {
                 model.bag.forEach { line ->
                     key(line.id) {
                         AMSwipeableRow(
@@ -94,7 +93,6 @@ private fun ShopBagContent(model: ShopModel, padding: PaddingValues, onBrowse: (
                 "Summary",
                 footer = "Standard shipping is free over $50.",
                 style = AMSectionStyle.Rows,
-                fill = AMSurfaceFill.Frosted,
                 inset = false,
             ) {
                 ShopTotalsRows(model.bagSubtotal, ShopDelivery.Standard.shipping(model.bagSubtotal))

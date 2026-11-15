@@ -73,15 +73,18 @@ private fun ProjectDetail() {
             art = { AMRemoteImage(CatalogArt.Valley.url(AMTheme.isDark), contentDescription = null) },
             modifier = Modifier.fillMaxWidth().height(200.dp).clip(MaterialTheme.shapes.large),
         ) {
-            Column(
-                Modifier
-                    .align(Alignment.Center)
-                    .padding(spacing.lg)
-                    .fillMaxWidth()
-                    .amCard(fill = AMSurfaceFill.Frosted),
-            ) {
-                ProvideAMOnSurface {
-                    TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
+            // A frosted app's card: the nested theme sets the app's surface setting for it alone.
+            AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+                Column(
+                    Modifier
+                        .align(Alignment.Center)
+                        .padding(spacing.lg)
+                        .fillMaxWidth()
+                        .amCard(),
+                ) {
+                    ProvideAMOnSurface {
+                        TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
+                    }
                 }
             }
         }

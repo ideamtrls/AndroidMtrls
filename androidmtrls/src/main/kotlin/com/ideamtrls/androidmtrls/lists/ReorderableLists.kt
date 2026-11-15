@@ -48,7 +48,9 @@ import androidx.compose.ui.draw.clip
  *   [AMSwipeableRow] does; the handle moves with the swiping row. An action that removes its item
  *   from [items] fades the row out as the rows below close up.
  * - **Surface.** Rows lie flat on what holds the list: a card (`Modifier.amCard()`, frosted over
- *   art too, its rows carrying `Modifier.amArtRow`) or a strip of the surface color.
+ *   art in a frosted app, its rows carrying `Modifier.amArtRow`); standing on its own, each row is
+ *   a strip of the app's surface. A row's content lies flat on it either way, so an [AMListRow]
+ *   draws no strip of its own and its text reads as on the card or strip.
  * - **Scrolling on its own.** Given a bounded height (a screen's, a weight, `heightIn(max = …)`),
  *   it's a `LazyColumn` on [state] that takes its rows' height up to that and scrolls inside it.
  * - **In a scrolling page.** Measured without a height limit (inside `Modifier.verticalScroll`, or
@@ -64,10 +66,10 @@ import androidx.compose.ui.draw.clip
  *   actions on the row itself; the handle is skipped.
  *
  * ```kotlin
- * // In an AMArtRowsBackdrop, so the frosted card blurs the rows' colors.
+ * // In a frosted app, inside an AMArtRowsBackdrop, so the card frosts the rows' colors.
  * Column(Modifier.verticalScroll(rememberScrollState()).amArtRows()) {
  *     AMSectionHeader("Up next", Modifier.padding(horizontal = 16.dp))
- *     AMReorderableRowList(queue, key = { it.id }, onMove = ::moveTrack, Modifier.padding(horizontal = 16.dp).amCard(AMSurfaceFill.Frosted)) { track ->
+ *     AMReorderableRowList(queue, key = { it.id }, onMove = ::moveTrack, Modifier.padding(horizontal = 16.dp).amCard()) { track ->
  *         AMListRow(track.title, Modifier.amArtRow(track.coverUrl), subtitle = track.album)
  *     }
  * }
@@ -126,7 +128,11 @@ public fun <T> AMReorderableRowList(
                 modifier = if (lifted) Modifier.amElevatedSurface(liftShape, AMElevation.Medium).clip(liftShape) else Modifier,
             ) {
                 Row(Modifier.fillMaxWidth().amFlatSurface(), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.weight(1f)) { content(item) }
+                    // The row's content lies flat on its strip, as on a card: an AMListRow in it
+                    // draws no strip of its own, and its text and pieces lie on the strip.
+                    Box(Modifier.weight(1f)) {
+                        ProvideAMOnSurface { ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { content(item) } }
+                    }
                     ReorderHandle(isEnabled, Modifier.padding(end = side))
                 }
             }

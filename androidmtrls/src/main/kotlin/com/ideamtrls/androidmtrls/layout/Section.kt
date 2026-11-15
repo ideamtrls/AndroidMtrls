@@ -31,8 +31,11 @@ public enum class AMSectionStyle {
     Card,
 
     /**
-     * A reading block: padded by `spacing.lg` on a full-width strip of [AMTheme.Surface.primary],
-     * with no corners or shadow. Inside a card the strip draws no fill and lies on the card.
+     * A reading block: padded by `spacing.lg` on a full-width strip with no corners or shadow, in
+     * the app's surface setting ([AMTheme.surfaceFill]): [AMTheme.Surface.primary] in a solid app;
+     * in a frosted app, frosted on the backdrop and the tint on a sheet. Its content lies on the
+     * strip as on a card: a card or a flat row in it draws nothing of its own. Inside a card the
+     * strip draws nothing and lies on the card.
      */
     Flat,
 }
@@ -53,6 +56,10 @@ public enum class AMSectionStyle {
  * a row in it would sit inset twice. Rows too many to compose at once go in a `LazyColumn` through
  * [amSection], the same card drawn a row at a time.
  *
+ * The card is [amCard], so its fill is the app's surface setting ([AMTheme.surfaceFill]): solid
+ * in a solid app; in a frosted app, frosted over the backdrop and the tint on a sheet. Its content
+ * lies on it ([ProvideAMOnSurface]).
+ *
  * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) the header and the footer lie on the art
  * as art text for its tone ([amArtText]): the header in the tone's primary ink, the footer in its
  * secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art, which hold over the library's
@@ -63,7 +70,6 @@ public enum class AMSectionStyle {
  * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, the
  *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
- * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow; [AMElevation.None] keeps the fill and corners but casts
  *   nothing. The flat style ignores it.
  * @param inset whether the header, footer and card stand in from the section's edges by
@@ -77,7 +83,6 @@ public fun AMSection(
     modifier: Modifier = Modifier,
     footer: String? = null,
     style: AMSectionStyle = AMSectionStyle.Card,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     inset: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
@@ -87,7 +92,6 @@ public fun AMSection(
         modifier = modifier,
         footer = footer?.let { text -> { Text(text) } },
         style = style,
-        fill = fill,
         elevation = elevation,
         inset = inset,
         content = content,
@@ -117,7 +121,6 @@ public fun AMSection(
  * @param footer the caption under the content, given `bodySmall` and `onSurfaceVariant` (on art,
  *   the tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
- * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow. The flat style ignores it.
  * @param inset whether the header, footer and card stand in from the section's edges by
  *   `spacing.lg`.
@@ -129,12 +132,11 @@ public fun AMSection(
     modifier: Modifier = Modifier,
     footer: (@Composable () -> Unit)? = null,
     style: AMSectionStyle = AMSectionStyle.Card,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     inset: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    SectionLayout(header, modifier, footer, style, fill, elevation, inset, content)
+    SectionLayout(header, modifier, footer, style, elevation, inset, content)
 }
 
 /**
@@ -151,7 +153,6 @@ public fun AMSection(
  * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, the
  *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
- * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow. The flat style ignores it.
  * @param inset whether the footer and card stand in from the section's edges by `spacing.lg`.
  * @param content the section's content, in a column.
@@ -161,12 +162,11 @@ public fun AMSection(
     modifier: Modifier = Modifier,
     footer: String? = null,
     style: AMSectionStyle = AMSectionStyle.Card,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     inset: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    SectionLayout(null, modifier, footer?.let { text -> { Text(text) } }, style, fill, elevation, inset, content)
+    SectionLayout(null, modifier, footer?.let { text -> { Text(text) } }, style, elevation, inset, content)
 }
 
 /** Every form of [AMSection]: the header when there is one, the content in its style, the footer. */
@@ -176,7 +176,6 @@ private fun SectionLayout(
     modifier: Modifier,
     footer: (@Composable () -> Unit)?,
     style: AMSectionStyle,
-    fill: AMSurfaceFill,
     elevation: AMElevation,
     inset: Boolean,
     content: @Composable ColumnScope.() -> Unit,
@@ -186,18 +185,18 @@ private fun SectionLayout(
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
         if (header != null) AMSectionHeader(Modifier.padding(horizontal = side), content = header)
         when (style) {
-            AMSectionStyle.Rows -> SectionCard(
-                Modifier.padding(horizontal = side).fillMaxWidth().amCard(fill, elevation),
+            AMSectionStyle.Rows -> SectionSurface(
+                Modifier.padding(horizontal = side).fillMaxWidth().amCard(elevation),
                 content,
             )
-            AMSectionStyle.Card -> SectionCard(
+            AMSectionStyle.Card -> SectionSurface(
                 Modifier.padding(horizontal = side).fillMaxWidth()
-                    .amCard(fill, elevation, padding = PaddingValues(spacing.lg)),
+                    .amCard(elevation, padding = PaddingValues(spacing.lg)),
                 content,
             )
-            AMSectionStyle.Flat -> Column(
+            AMSectionStyle.Flat -> SectionSurface(
                 Modifier.fillMaxWidth().amFlatSurface().padding(spacing.lg),
-                content = content,
+                content,
             )
         }
         if (footer != null) SectionFooter(footer, Modifier.padding(horizontal = side))
@@ -217,11 +216,13 @@ private fun SectionFooter(footer: @Composable () -> Unit, modifier: Modifier) {
 }
 
 /**
- * The section's card: its content flat inside it, so a card in the content draws nothing of its
- * own, and lying on the card ([ProvideAMOnSurface]), so its secondary text resolves from it.
+ * The section's surface, its card or its flat strip ([modifier] carries it): its content flat on
+ * it, so a card or a flat row in the content draws nothing of its own, and lying on it
+ * ([ProvideAMOnSurface]), so its secondary text resolves from it and a piece with its own shape in
+ * it is embedded. The surface itself stands where the section is placed.
  */
 @Composable
-private fun SectionCard(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
+private fun SectionSurface(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(modifier) {
         val column = this
         ProvideAMOnSurface {
@@ -255,16 +256,16 @@ private fun SectionCard(modifier: Modifier, content: @Composable ColumnScope.() 
  * - **Keys.** [key] gives each row a key that is stable, unique across the whole list (other
  *   sections included) and saveable in a `Bundle`, as for any `LazyColumn`; the header and the
  *   footer key themselves.
- * - **Over art.** A frosted [fill] blurs the art of the nearest [AMBackdrop] or [AMArtRowsBackdrop]
- *   under each row; on an [amArtRows] list, rows marked with [amArtRow] give their own colors. The
- *   header and the footer are art text there, as in [AMSection].
+ * - **Over art.** In a frosted app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) the card
+ *   blurs the art of the nearest [AMBackdrop] or [AMArtRowsBackdrop] under each row; on an
+ *   [amArtRows] list, rows marked with [amArtRow] give their own colors. The header and the footer
+ *   are art text there, as in [AMSection].
  *
  * @param items the rows' items, in order.
  * @param key a stable, unique key per item, saveable in a `Bundle`.
  * @param title the header, in the section header's look ([AMSectionHeader]). Null shows none.
  * @param footer a caption under the card, in `bodySmall` and `onSurfaceVariant` (on art, the tone's
  *   secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
- * @param fill the card's fill, solid or frosted over art.
  * @param elevation the card's shadow; [AMElevation.None] keeps the fill and corners but casts
  *   nothing.
  * @param inset whether the header, footer and card stand in from the list's edges by `spacing.lg`.
@@ -277,7 +278,6 @@ public fun <T> LazyListScope.amSection(
     key: (item: T) -> Any,
     title: String? = null,
     footer: String? = null,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     inset: Boolean = true,
     dividers: Boolean = true,
@@ -288,7 +288,6 @@ public fun <T> LazyListScope.amSection(
         key = key,
         header = title?.let { text -> { Text(text) } },
         footer = footer?.let { text -> { Text(text) } },
-        fill = fill,
         elevation = elevation,
         inset = inset,
         dividers = dividers,
@@ -317,7 +316,6 @@ public fun <T> LazyListScope.amSection(
  * @param header the header's parts, in a row, in `titleSmall` and `primary`.
  * @param footer the caption under the card, given `bodySmall` and `onSurfaceVariant` (on art, the
  *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
- * @param fill the card's fill, solid or frosted over art.
  * @param elevation the card's shadow.
  * @param inset whether the header, footer and card stand in from the list's edges by `spacing.lg`.
  * @param dividers whether an inset [AMDivider] separates each row from the next.
@@ -328,13 +326,12 @@ public fun <T> LazyListScope.amSection(
     key: (item: T) -> Any,
     header: @Composable RowScope.() -> Unit,
     footer: (@Composable () -> Unit)? = null,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     inset: Boolean = true,
     dividers: Boolean = true,
     content: @Composable (item: T) -> Unit,
 ) {
-    lazySection(items, key, header, footer, fill, elevation, inset, dividers, content)
+    lazySection(items, key, header, footer, elevation, inset, dividers, content)
 }
 
 /** Every form of [amSection]: the header item when there is one, a slice item per row, the footer item. */
@@ -343,7 +340,6 @@ private fun <T> LazyListScope.lazySection(
     key: (item: T) -> Any,
     header: (@Composable RowScope.() -> Unit)?,
     footer: (@Composable () -> Unit)?,
-    fill: AMSurfaceFill,
     elevation: AMElevation,
     inset: Boolean,
     dividers: Boolean,
@@ -364,7 +360,7 @@ private fun <T> LazyListScope.lazySection(
             Modifier
                 .padding(horizontal = if (inset) spacing.lg else 0.dp)
                 .fillMaxWidth()
-                .amCardSlice(fill, elevation, MaterialTheme.shapes.large, first = index == 0, last = index == items.lastIndex),
+                .amCardSlice(elevation, MaterialTheme.shapes.large, first = index == 0, last = index == items.lastIndex),
         ) {
             ProvideAMOnSurface {
                 ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) {

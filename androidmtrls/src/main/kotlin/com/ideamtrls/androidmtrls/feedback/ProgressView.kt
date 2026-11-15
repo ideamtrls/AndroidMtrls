@@ -69,8 +69,10 @@ public sealed interface AMProgressViewStyle {
      * Material's linear progress indicator, full width, under a row of the label (`bodyLarge` in
      * `onSurface`, up to two lines, ellipsized) and the value label at its end (`bodyMedium` in
      * [AMTheme.secondaryText], one line), `spacing.sm` apart, on the row recipe. Like a flat row, it
-     * paints the floating surface when it stands on the page and nothing inside a card, so it
-     * stacks with other rows in one, divided by [AMDivider]. In a row container (an
+     * paints a strip of the app's surface when it stands on its own (the floating surface's color
+     * in a solid app; frosted, or the tint on a sheet, in a frosted app) and nothing inside a card,
+     * its lines lying on the strip or the card ([ProvideAMOnSurface]), so it stacks with other rows
+     * in one, divided by [AMDivider]. In a row container (an
      * [AMSwipeableRow], a reorderable list) it's the row: TalkBack finds the container's actions
      * on it, one stop.
      */
@@ -178,34 +180,37 @@ private fun BarProgress(label: String, modifier: Modifier, progress: (() -> Floa
         .semantics(mergeDescendants = true) {}
     CompositionLocalProvider(LocalAMRowActions provides null) {
         Column(barModifier, verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-            Row(Modifier.fillMaxWidth()) {
-                Text(
-                    label,
-                    Modifier
-                        .weight(1f)
-                        .alignByBaseline(),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = BarLabelMaxLines,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                if (valueLabel != null) {
+            // The strip stands where the bar is placed; its lines lie on it, off any art around it.
+            ProvideAMOnSurface {
+                Row(Modifier.fillMaxWidth()) {
                     Text(
-                        valueLabel,
+                        label,
                         Modifier
-                            .padding(start = spacing.md)
+                            .weight(1f)
                             .alignByBaseline(),
-                        color = AMTheme.secondaryText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = BarLabelMaxLines,
+                        style = MaterialTheme.typography.bodyLarge,
                     )
+                    if (valueLabel != null) {
+                        Text(
+                            valueLabel,
+                            Modifier
+                                .padding(start = spacing.md)
+                                .alignByBaseline(),
+                            color = AMTheme.secondaryText,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                 }
-            }
-            if (progress != null) {
-                LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth())
-            } else {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (progress != null) {
+                    LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth())
+                } else {
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
             }
         }
     }

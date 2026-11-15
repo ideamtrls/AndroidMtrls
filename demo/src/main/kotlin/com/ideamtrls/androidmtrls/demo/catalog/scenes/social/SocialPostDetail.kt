@@ -94,7 +94,7 @@ private fun SocialReplies(post: SocialPost, model: SocialModel) {
         }
         return
     }
-    AMSection("Replies", style = AMSectionStyle.Rows, fill = socialFill(), inset = false) {
+    AMSection("Replies", style = AMSectionStyle.Rows, inset = false) {
         replies.forEach { reply ->
             val author = model.user(reply.authorId)
             AMListRow(

@@ -69,7 +69,7 @@ internal fun SocialProfile(model: SocialModel, userId: String, onBack: () -> Uni
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 SocialProfileHeader(user, model)
-                AMTabs(selectedTab, onSelectionChange = { selectedTab = it }, fill = socialFill()) {
+                AMTabs(selectedTab, onSelectionChange = { selectedTab = it }) {
                     tab(SocialProfileTab.Posts, "Posts") { SocialProfilePosts(user, model) }
                     tab(SocialProfileTab.About, "About") { SocialProfileAbout(user) }
                 }

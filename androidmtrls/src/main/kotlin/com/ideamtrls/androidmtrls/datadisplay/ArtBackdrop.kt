@@ -246,9 +246,9 @@ public fun Modifier.amArtRows(
 /**
  * A region whose art is the art rows inside it: the colors of the [amArtRows] page in [content]
  * draw behind the whole region, the top app bar's place included, moving with the rows as they
- * scroll, and every [AMSurfaceFill.Frosted] surface in [content] blurs the colors under it, as it
- * would an [AMBackdrop]'s art. Section headers, page headers and the other components on it take
- * their over-art look for its [tone].
+ * scroll, and in a frosted app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) every surface in
+ * [content] standing on it blurs the colors under it, as it would an [AMBackdrop]'s art. Section
+ * headers, page headers and the other components on it take their over-art look for its [tone].
  *
  * ```kotlin
  * AMArtRowsBackdrop(Modifier.fillMaxSize()) {

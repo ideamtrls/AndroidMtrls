@@ -41,7 +41,6 @@ import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSemantic
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMTimeline
 import com.ideamtrls.androidmtrls.AMTimelineDot
@@ -90,7 +89,7 @@ internal fun CalendarMonthView(model: CalendarModel) {
                 model.displayedMonth,
                 selected = model.selectedDay,
                 onSelectedChange = model::selectDay,
-                modifier = Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted),
+                modifier = Modifier.fillMaxWidth().amCard(),
                 markers = { day -> model.events.count { it.occursOn(day) } },
                 onHold = { model.peekDay = it },
             )
@@ -120,7 +119,6 @@ private fun CalendarDayAgenda(day: LocalDate, events: List<CalendarEvent>, onSel
         AMSection(
             heading,
             style = AMSectionStyle.Card,
-            fill = AMSurfaceFill.Frosted,
             elevation = AMElevation.None,
             inset = false,
         ) {

@@ -54,23 +54,23 @@ import androidx.compose.ui.unit.offset
  * A card of rows takes no padding: every row carries the row recipe ([amRowPadding]), so its text
  * sits at the row inset. A block of prose or a composite block takes `spacing.lg` all round.
  *
- * **Nesting.** A card inside another card draws nothing of its own, whatever its [fill]: no fill,
- * shadow, hairline, clip or [padding]. Its content lies on the outer card, whose own padding is
- * the only inset, so shadows never stack and padding never doubles. [ProvideAMSurfaceStyle] with
+ * **Nesting.** A card inside another card draws nothing of its own: no fill, shadow, hairline,
+ * clip or [padding]. Its content lies on the outer card, whose own padding is the only inset, so
+ * shadows never stack and padding never doubles. [ProvideAMSurfaceStyle] with
  * [AMSurfaceStyle.Elevated] lifts a card inside a card again; [AMSurfaceStyle.Flat] flattens a
  * card anywhere.
  *
- * **Frosted.** With [AMSurfaceFill.Frosted] the card is frosted over the art of the nearest
- * [AMBackdrop], or frost over the page color with no art behind it. On a sheet, or lifted again
- * inside another card, it's embedded and draws the tint ([AMTheme.Frosted.embeddedFill]). Wrap what
- * it holds in [ProvideAMOnSurface], so its supporting text ([AMTheme.secondaryText]) resolves from
- * the card.
+ * **The fill is the app's setting** ([AMTheme.surfaceFill]): solid in a solid app. In a frosted
+ * app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) the card is frosted over the art of the
+ * nearest [AMBackdrop], or frost over the page color with no art behind it; on a sheet, or lifted
+ * again inside another card, it's embedded and draws the tint ([AMTheme.Frosted.embeddedFill]).
+ * Wrap what it holds in [ProvideAMOnSurface], so its supporting text ([AMTheme.secondaryText])
+ * resolves from the card.
  *
  * Order it after the modifiers that size the card and before the content's own: `Modifier
  * .fillMaxWidth().amCard()`. The card adds no click handling; a clickable card puts its
  * `clickable` after `amCard`, so the ripple stays inside the shape.
  *
- * @param fill solid (the default) or frosted over art.
  * @param elevation the card's shadow: [AMElevation.Low] by default, [AMElevation.None] for a card
  *   that keeps its fill and corners but casts nothing.
  * @param padding the space between the card's edge and its content. None by default.
@@ -79,25 +79,22 @@ import androidx.compose.ui.unit.offset
 @Composable
 @ReadOnlyComposable
 public fun Modifier.amCard(
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     elevation: AMElevation = AMElevation.Low,
     padding: PaddingValues = PaddingValues(0.dp),
     shape: Shape = MaterialTheme.shapes.large,
-): Modifier = this then CardSurfaceElement(fill, elevation, shape) then CardPaddingElement(padding)
+): Modifier = this then CardSurfaceElement(elevation, shape) then CardPaddingElement(padding)
 
 // The card is two nodes, the surface and then the padding, like a background before a padding.
 // Compose draws a node that also lays out inside its own layout, at its content's bounds, so a
 // single node would paint the surface inside the padding, hugging the content.
 
 private data class CardSurfaceElement(
-    val fill: AMSurfaceFill,
     val elevation: AMElevation,
     val shape: Shape,
 ) : ModifierNodeElement<CardSurfaceNode>() {
-    override fun create() = CardSurfaceNode(fill, elevation, shape)
+    override fun create() = CardSurfaceNode(elevation, shape)
 
     override fun update(node: CardSurfaceNode) {
-        node.fill = fill
         node.elevation = elevation
         node.shape = shape
         node.invalidateDraw()
@@ -105,7 +102,6 @@ private data class CardSurfaceElement(
 
     override fun InspectorInfo.inspectableProperties() {
         name = "amCard"
-        properties["fill"] = fill
         properties["elevation"] = elevation
         properties["shape"] = shape
     }
@@ -113,8 +109,9 @@ private data class CardSurfaceElement(
 
 /**
  * The card's surface: the elevated surface drawn at the card's full size, padding included, while
- * the card is [AMSurfaceStyle.Elevated]. It's the card's [NestingSurfaceNode], so a card below it
- * in the layout tree demotes itself.
+ * the card is [AMSurfaceStyle.Elevated], in the look the app's setting gives it where it stands
+ * ([lookOf]). It's the card's [NestingSurfaceNode], so a card below it in the layout tree demotes
+ * itself.
  *
  * The card's padding node settles the style while it measures ([styleForLayout]), and the surface
  * draws the style the layout was measured with, so the padding and the surface always agree. The
@@ -122,7 +119,6 @@ private data class CardSurfaceElement(
  * measure, so a change to them measures the card again, and a changed style redraws it.
  */
 private class CardSurfaceNode(
-    var fill: AMSurfaceFill,
     var elevation: AMElevation,
     var shape: Shape,
 ) : Modifier.Node(),
@@ -154,7 +150,7 @@ private class CardSurfaceNode(
 
     // A frosted card that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
@@ -162,8 +158,9 @@ private class CardSurfaceNode(
             drawContent()
             return
         }
-        // A frosted card on a sheet, or lifted again inside another card, is embedded: it draws the tint.
-        val look = lookOf(fill)
+        // In a frosted app a card on a sheet, or lifted again inside another card, is embedded: it
+        // draws the tint.
+        val look = lookOf(currentValueOf(LocalAMSurfaceFill))
         with(surface) {
             drawSurface(
                 context = requireGraphicsContext(),
@@ -225,24 +222,21 @@ private val NoPadding = PaddingValues(0.dp)
  * nesting: a card inside it is flat, and inside another card it draws nothing of its own.
  */
 internal fun Modifier.amCardSlice(
-    fill: AMSurfaceFill,
     elevation: AMElevation,
     shape: Shape,
     first: Boolean,
     last: Boolean,
-): Modifier = this then CardSliceElement(fill, elevation, shape, first, last)
+): Modifier = this then CardSliceElement(elevation, shape, first, last)
 
 private data class CardSliceElement(
-    val fill: AMSurfaceFill,
     val elevation: AMElevation,
     val shape: Shape,
     val first: Boolean,
     val last: Boolean,
 ) : ModifierNodeElement<CardSliceNode>() {
-    override fun create() = CardSliceNode(fill, elevation, shape, first, last)
+    override fun create() = CardSliceNode(elevation, shape, first, last)
 
     override fun update(node: CardSliceNode) {
-        node.fill = fill
         node.elevation = elevation
         node.shape = shape
         node.first = first
@@ -252,7 +246,6 @@ private data class CardSliceElement(
 
     override fun InspectorInfo.inspectableProperties() {
         name = "amCardSlice"
-        properties["fill"] = fill
         properties["elevation"] = elevation
         properties["shape"] = shape
         properties["first"] = first
@@ -261,7 +254,6 @@ private data class CardSliceElement(
 }
 
 private class CardSliceNode(
-    var fill: AMSurfaceFill,
     var elevation: AMElevation,
     var shape: Shape,
     var first: Boolean,
@@ -279,7 +271,7 @@ private class CardSliceNode(
 
     // A frosted slice that moves over its art (a scroll) samples a different part of it, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
@@ -288,7 +280,7 @@ private class CardSliceNode(
             return
         }
         val level = elevation.shadowLevel
-        val look = lookOf(fill)
+        val look = lookOf(currentValueOf(LocalAMSurfaceFill))
         with(surface) {
             drawSurfaceSlice(
                 context = requireGraphicsContext(),
@@ -448,9 +440,16 @@ public object AMRowDefaults {
 }
 
 /**
- * The surface of a block that lies flat on the page (a section's flat block): a full-width fill in
- * [AMTheme.Surface.primary] when it stands on the page, and none inside a card, so the card's
- * rounded surface shows instead of a square fill over its corners.
+ * The surface of a block that lies flat where it stands (a section's flat block, a self-filled
+ * row): while it stands on its own, a full-width strip with no corners, shadow or outline, in the
+ * look the app's setting gives it there ([lookOf]): the floating surface's color in a solid app;
+ * in a frosted app, frosted on the backdrop and the tint on a sheet. Inside a card it draws none,
+ * so the card's rounded surface shows instead of a square strip over its corners.
+ *
+ * The strip is no card for nesting, and a modifier can't provide locals, so the block puts what it
+ * holds on the strip itself, inside it: in [ProvideAMOnSurface], and for a block that holds other
+ * blocks (a flat section, a reorderable row) in [ProvideAMSurfaceStyle] [AMSurfaceStyle.Flat] too,
+ * so a strip inside draws nothing and strips never stack.
  */
 internal fun Modifier.amFlatSurface(): Modifier = this then FlatSurfaceElement
 
@@ -464,12 +463,41 @@ private data object FlatSurfaceElement : ModifierNodeElement<FlatSurfaceNode>() 
     }
 }
 
-private class FlatSurfaceNode : Modifier.Node(), DrawModifierNode, CompositionLocalConsumerModifierNode {
+private class FlatSurfaceNode :
+    Modifier.Node(),
+    DrawModifierNode,
+    GlobalPositionAwareModifierNode,
+    CompositionLocalConsumerModifierNode {
+
+    private val surface = ElevatedSurfaceDrawer()
+
+    override fun onAttach() = surface.attach(requireGraphicsContext())
+
+    override fun onDetach() = surface.detach(requireGraphicsContext())
+
+    // A frosted strip that moves over its art (a scroll) samples a different slice, so it redraws.
+    override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
+        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
+    }
+
     override fun ContentDrawScope.draw() {
-        if (resolveSurfaceStyle() == AMSurfaceStyle.Elevated) {
-            val dark = currentValueOf(LocalAMDarkTheme) ?: false
-            drawRect(if (dark) Style.Surface.Dark else Style.Surface.Light)
+        if (resolveSurfaceStyle() == AMSurfaceStyle.Flat) {
+            drawContent()
+            return
         }
-        drawContent()
+        val look = lookOf(currentValueOf(LocalAMSurfaceFill))
+        with(surface) {
+            drawSurface(
+                context = requireGraphicsContext(),
+                shape = RectangleShape,
+                shadow = Style.Shadow.None,
+                look = look,
+                hairline = Color.Unspecified,
+                dark = currentValueOf(LocalAMDarkTheme) ?: false,
+                backdrop = backdropFor(look),
+                clipContent = false,
+                outline = false,
+            )
+        }
     }
 }

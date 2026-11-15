@@ -193,7 +193,7 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 MusicPlayShuffleButtons(MusicQueueTarget.Album(album), model)
                 // Bare rows with inset dividers between them, in a frosted card that clips them,
                 // so the playing row's highlight rounds with it.
-                Column(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
+                Column(Modifier.fillMaxWidth().amCard()) {
                     ProvideAMOnSurface {
                         tracks.forEachIndexed { index, track ->
                             if (index > 0) AMDivider(inset = spacing.lg)
