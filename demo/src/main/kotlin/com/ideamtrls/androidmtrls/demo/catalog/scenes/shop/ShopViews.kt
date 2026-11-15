@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,12 +30,15 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPageHeader
@@ -45,6 +49,7 @@ import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amArtBackdrop
+import com.ideamtrls.androidmtrls.amArtText
 import java.util.Locale
 
 // Shared sizes
@@ -127,8 +132,10 @@ internal sealed interface ShopLabelStyle {
  * shows its bag photo, on the label's color while it loads, with no type over it: the bag carries
  * its own label, and the card or row around it names the product. Gear shows its typographic
  * label: its color with its ink type on it. A banner keeps its kicker, title, blurb and price, over
- * a coffee's photo in white on a dark scrim. Label type is packaging, not UI text, so it's set in
- * fixed sizes that don't follow the font scale, and TalkBack skips the picture.
+ * a coffee's photo in white on a dark scrim, darkest behind the type at the start edge, so the
+ * type reads over the bag's own printed label while the bag shows at the end. Label type is
+ * packaging, not UI text, so it's set in fixed sizes that don't follow the font scale, and TalkBack
+ * skips the picture.
  */
 @Composable
 internal fun ShopLabelArt(product: ShopProduct, style: ShopLabelStyle, modifier: Modifier = Modifier) {
@@ -161,17 +168,22 @@ internal fun ShopLabelArt(product: ShopProduct, style: ShopLabelStyle, modifier:
         is ShopLabelStyle.Banner -> Box(art.fillMaxSize().background(product.color, shapes.large)) {
             val ink = if (photo != null) Color.White else product.ink
             if (photo != null) {
+                val startScrim = if (LocalLayoutDirection.current == LayoutDirection.Ltr) ShopBannerStartScrim else ShopBannerStartScrimRtl
                 ShopBagPhoto(photo, width = 1280, product.color, shapes.large, Modifier.fillMaxSize())
-                Box(Modifier.fillMaxSize().background(ShopBannerScrim, shapes.large))
+                Box(Modifier.fillMaxSize().background(ShopBannerScrim, shapes.large).background(startScrim, shapes.large))
             }
-            Column(Modifier.fillMaxSize().padding(spacing.lg)) {
+            // Over a photo the type keeps to the start scrim's side, as art text on dark art: light
+            // ink with the library's shadow under its glyphs.
+            val type = if (photo != null) Modifier.fillMaxWidth(ShopBannerTypeWidth).amArtText(AMArtTone.Dark) else Modifier.fillMaxWidth()
+            Column(Modifier.fillMaxHeight().then(type).padding(spacing.lg)) {
                 ShopLabelText(
                     style.kicker.uppercase(Locale.getDefault()), ink.copy(alpha = 0.8f),
                     size = 11f, weight = FontWeight.Bold, tracking = 1.5f,
                 )
                 Spacer(Modifier.weight(1f))
                 ShopLabelText(product.labelTitle, ink, size = 36f, weight = FontWeight.Black, shrinks = true)
-                ShopLabelText(style.blurb, ink.copy(alpha = 0.85f), size = 14f, weight = FontWeight.Medium, maxLines = 2)
+                // The narrower column over a photo gives the blurb a third line.
+                ShopLabelText(style.blurb, ink.copy(alpha = 0.85f), size = 14f, weight = FontWeight.Medium, maxLines = if (photo != null) 3 else 2)
                 ShopLabelText(product.priceLabel, ink, size = 13f, weight = FontWeight.SemiBold)
             }
         }
@@ -184,6 +196,31 @@ private val ShopBannerScrim = Brush.verticalGradient(
     0.35f to Color.Black.copy(alpha = 0.15f),
     1f to Color.Black.copy(alpha = 0.75f),
 )
+
+/**
+ * Darkens a banner's photo behind its type column, over [ShopBannerScrim]: black at 70 % at the
+ * start edge, clear by 60 % of the banner's width, so the type reads over whatever the bag has
+ * printed on it while the bag shows on the end side. The darkness eases off (70 % × (1 − t²) across
+ * that 60 %), holding under the type and falling away past it. Left to right; for right to left,
+ * [ShopBannerStartScrimRtl] mirrors it.
+ */
+private val ShopBannerStartScrimStops: List<Pair<Float, Color>> = List(ShopBannerScrimSamples + 1) { index ->
+    val t = index / ShopBannerScrimSamples.toFloat()
+    t * ShopBannerScrimReach to Color.Black.copy(alpha = 0.7f * (1f - t * t))
+}
+
+private val ShopBannerStartScrim = Brush.horizontalGradient(*ShopBannerStartScrimStops.toTypedArray())
+
+private val ShopBannerStartScrimRtl =
+    Brush.horizontalGradient(*ShopBannerStartScrimStops.map { (at, color) -> 1f - at to color }.reversed().toTypedArray())
+
+/** How far across a banner the start scrim reaches before it's clear. */
+private const val ShopBannerScrimReach = 0.6f
+
+/** How much of a banner's width its type takes over a photo: the side the start scrim darkens. */
+private const val ShopBannerTypeWidth = ShopBannerScrimReach
+
+private const val ShopBannerScrimSamples = 6
 
 /**
  * A coffee's bag: the Commons [file] at [width] px, cropped to the frame [modifier] sets and
