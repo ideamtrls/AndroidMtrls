@@ -60,8 +60,15 @@ internal const val OverlayCloseLabel: String = "Close"
  *   spec and out with its fast effects spec. Input is ignored while it fades out.
  * - **Dismissal**: back, and a tap anywhere the content doesn't take, call [onDismissRequest].
  *   The area around the content is one "Close" button for TalkBack, after the content.
- * - **A fresh context**: the content is solid and enabled whatever surrounds the call: no backdrop
- *   to frost over, [AMSurfaceStyle.Elevated], enabled controls, `onSurface` content.
+ * - **A fresh context**: the content is elevated and enabled whatever surrounds the call: no art to
+ *   sample, [AMSurfaceStyle.Elevated], enabled controls, `onSurface` content. The app's surface
+ *   setting carries in.
+ * - **Frost over its own blur**: the window's blur-behind is the blur, so in a frosted app a
+ *   frosted surface in it (a tile, the spotlight's card) draws the frosted fill, edge and shadow
+ *   straight over the blurred, washed screen and samples nothing; while the system has
+ *   cross-window blur off it draws solid ([LocalAMWindowBlur]). For a moment after cross-window
+ *   blur comes back the platform's blur lags the flag, and a faint ghost of the sharp screen shows
+ *   through the frost while text on it still holds.
  * - It reports to the overlay registry while [visible].
  */
 @Composable
@@ -92,8 +99,9 @@ internal fun AMOverlayWindow(
         onDismissRequest = { if (visible) dismiss() },
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
-        BlurBehind(progress)
-        ProvideOverlayWindowLocals {
+        val blurEnabled by rememberCrossWindowBlurEnabled()
+        BlurBehind(progress, blurEnabled)
+        ProvideOverlayWindowLocals(windowBlur = blurEnabled) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = progress.value }.background(AMTheme.Overlay.wash)) {
                 DismissCatcher(onDismiss = { if (visible) dismiss() })
                 content()
@@ -105,20 +113,30 @@ internal fun AMOverlayWindow(
 }
 
 /**
- * The fresh context an overlay window's content starts from: nothing to frost over (a window can't
- * sample the screen behind it), no art under it and no scene root its art could stand for, cards elevated and controls enabled whatever the presenting screen
- * set, no sheet's surface under the controls (a sheet sets its own inside), and `onSurface`
- * content.
+ * The fresh context an overlay window's content starts from: no art to sample (a window can't
+ * sample the screen behind it), no art under it and no scene root its art could stand for, cards
+ * elevated and controls enabled whatever the presenting screen set, content lying on the window's
+ * own page rather than on any surface around the call (a sheet sets its own inside), and
+ * `onSurface` content. The app's surface setting carries in.
+ *
+ * [windowBlur] says what a frosted surface in it lies over ([LocalAMWindowBlur]): the blurred
+ * window passes whether its blur-behind is on, so the surface frosts over that blur, or draws solid
+ * while it's off; any other window passes null, and a frosted surface in it is frost over the page
+ * color.
+ *
+ * @param windowBlur the blurred window's blur-behind: true while the system allows cross-window
+ *   blur, false while it doesn't, null for a window with no blur-behind (a sheet, a banner's
+ *   window, an alert, the loading overlay's dialog).
  */
 @Composable
-internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
+internal fun ProvideOverlayWindowLocals(windowBlur: Boolean? = null, content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAMBackdrop provides null,
         LocalAMSceneBackdrops provides null,
         LocalAMArtTone provides null,
-        LocalAMSurfaceFill provides AMSurfaceFill.Solid,
         LocalAMEnabled provides true,
-        LocalAMOnPrimarySurface provides false,
+        LocalAMLiesOn provides LiesOn.Page,
+        LocalAMWindowBlur provides windowBlur,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,
     ) {
         ProvideAMSurfaceStyle(AMSurfaceStyle.Elevated, content)
@@ -126,15 +144,15 @@ internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
 }
 
 /**
- * The window's blur-behind, following [progress] (0 hidden, 1 shown) and the system's cross-window
- * blur setting, and its bar icons for the appearance. The wash over it is the window's content.
+ * The window's blur-behind, following [progress] (0 hidden, 1 shown) and whether the system allows
+ * cross-window blur ([blurEnabled]), and its bar icons for the appearance. The wash over it is the
+ * window's content.
  */
 @Composable
-private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>) {
+private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>, blurEnabled: Boolean) {
     val view = LocalView.current
     val window = (view.parent as? DialogWindowProvider)?.window ?: return
     val dark = AMTheme.isDark
-    val blurEnabled by rememberCrossWindowBlurEnabled()
     val blurPx = with(LocalDensity.current) { Style.ModalOverlay.BlurRadius.roundToPx() }
 
     DisposableEffect(window, view, dark) {

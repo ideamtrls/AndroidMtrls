@@ -1,17 +1,20 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
@@ -22,11 +25,11 @@ internal val ToolbarButtonEntry = ComponentEntry(
     id = "toolbarButton",
     category = CatalogCategory.Navigation,
     title = "Toolbar button",
-    summary = "A toolbar action, solid over a picture",
+    summary = "A toolbar action, a chip over a picture",
     icon = R.drawable.ic_radio_button_checked,
     keywords = listOf(
-        "AMToolbarButton", "IconButton", "glyph", "toolbar", "top app bar", "action", "solid", "art",
-        "backdrop", "destructive", "tooltip",
+        "AMToolbarButton", "IconButton", "glyph", "toolbar", "top app bar", "action", "chip", "solid",
+        "frosted", "art", "backdrop", "destructive", "tooltip",
     ),
 ) { ToolbarButtonPage() }
 
@@ -64,11 +67,33 @@ private val Photo: String
     get() = catalogPhoto("brooklyn", 800, 600)
 
 /**
- * The top of a photo's screen: a toolbar over the photo's blurred, washed colors, its buttons solid
- * (sharing unavailable, delete in the destructive color), over the photo itself.
+ * The top of a photo's screen: a toolbar over the photo's blurred, washed colors, its buttons chips
+ * in the app's surface setting (sharing unavailable, delete in the destructive color), over the
+ * photo itself.
  */
 @Composable
 private fun PhotoDetail() {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        PhotoScreen()
+        CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter).height(160.dp)) {
+            AMToolbar(
+                "Brooklyn",
+                navigationIcon = {
+                    AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
+                },
+                actions = {
+                    AMToolbarButton(painterResource(R.drawable.ic_share), "Share", onClick = ::share)
+                    AMToolbarButton(painterResource(R.drawable.ic_delete), "Delete photo", onClick = ::delete, destructive = true)
+                },
+                windowInsets = WindowInsets(0),
+            )
+        }
+    }
+}
+
+/** The photo's screen: the toolbar over the blurred photo, then the photo. */
+@Composable
+private fun PhotoScreen() {
     AMBackdrop(art = { PhotoArt() }, Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth()) {
             AMToolbar(

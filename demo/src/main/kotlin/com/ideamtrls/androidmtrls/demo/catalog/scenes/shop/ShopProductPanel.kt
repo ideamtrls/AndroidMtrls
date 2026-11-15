@@ -38,7 +38,6 @@ import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSegmentedControl
 import com.ideamtrls.androidmtrls.AMStepper
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
@@ -90,7 +89,7 @@ internal fun ShopProductPanel(model: ShopModel, id: String, onBack: () -> Unit) 
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.md)) {
                     // The stepper shows no value of its own, so its label spells the count out, as
                     // the bag does; the buttons carry the name, so TalkBack skips the label.
-                    Box(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
+                    Box(Modifier.fillMaxWidth().amCard()) {
                         AMStepper(
                             value = quantity,
                             onValueChange = { quantity = it },
@@ -117,7 +116,6 @@ internal fun ShopProductPanel(model: ShopModel, id: String, onBack: () -> Unit) 
                     product.guide.title,
                     expanded = showsGuide,
                     onExpandedChange = { showsGuide = it },
-                    fill = AMSurfaceFill.Frosted,
                 ) {
                     product.guide.steps.forEachIndexed { index, step ->
                         Text(
@@ -163,7 +161,7 @@ private fun ShopProductDetails(product: ShopProduct) {
     val labelWidth = with(density) {
         product.details.maxOf { measurer.measure(it.label, style).size.width }.toDp()
     }
-    AMSection("Details", fill = AMSurfaceFill.Frosted, inset = false) {
+    AMSection("Details", inset = false) {
         Column(verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
                 product.details.forEach { detail ->

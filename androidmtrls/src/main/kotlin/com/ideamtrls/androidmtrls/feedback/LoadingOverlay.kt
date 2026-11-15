@@ -23,6 +23,10 @@ import androidx.compose.ui.window.DialogProperties
  * step. While [visible], a dialog window covers the screen with the platform's dim and holds a
  * card, centered, with Material's circular progress indicator over [message].
  *
+ * The card is [amCard], in the app's surface setting ([AMTheme.surfaceFill]). The dialog is a
+ * window of its own and has no art of the screen under it to sample, so in a frosted app the card
+ * is frost over the page color.
+ *
  * ```kotlin
  * var saving by remember { mutableStateOf(false) }
  * AMButton("Save", onClick = { scope.launch { saving = true; save(); saving = false } })
@@ -53,25 +57,29 @@ public fun AMLoadingOverlay(
             usePlatformDefaultWidth = false,
         ),
     ) {
-        val spacing = AMTheme.tokens.spacing
-        // The window fills the screen, so the card's shadow has room on every side.
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = spacing.xl)
-                    .amCard(padding = PaddingValues(spacing.lg))
-                    .semantics(mergeDescendants = true) {},
-                verticalArrangement = Arrangement.spacedBy(spacing.md),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                CircularProgressIndicator()
-                Text(
-                    message ?: "Loading",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
+        // The dialog is a window of its own: its card starts from the window's fresh context, with
+        // no art from the screen under it to sample.
+        ProvideOverlayWindowLocals {
+            val spacing = AMTheme.tokens.spacing
+            // The window fills the screen, so the card's shadow has room on every side.
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.xl)
+                        .amCard(padding = PaddingValues(spacing.lg))
+                        .semantics(mergeDescendants = true) {},
+                    verticalArrangement = Arrangement.spacedBy(spacing.md),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    CircularProgressIndicator()
+                    Text(
+                        message ?: "Loading",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }

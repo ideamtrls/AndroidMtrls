@@ -45,9 +45,8 @@ import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSkeleton
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amArtBackdrop
 import com.ideamtrls.androidmtrls.amArtText
@@ -300,7 +299,7 @@ internal fun ShopProductCard(
     Column(
         modifier
             .fillMaxWidth()
-            .amCard(fill = AMSurfaceFill.Frosted)
+            .amCard()
             .then(if (loading) Modifier.clearAndSetSemantics {} else interaction),
     ) {
         if (loading) {
@@ -314,7 +313,7 @@ internal fun ShopProductCard(
                 AMSkeleton.Text(product.priceLabel, style = priceStyle, maxLines = 1)
             } else {
                 Text(product.name, style = nameStyle, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                ProvideAMOnSurface {
                     Text(product.priceLabel, style = priceStyle, color = AMTheme.secondaryText, maxLines = 1)
                 }
             }

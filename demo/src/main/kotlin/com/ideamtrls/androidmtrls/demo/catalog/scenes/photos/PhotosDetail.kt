@@ -28,10 +28,9 @@ import com.ideamtrls.androidmtrls.AMPanelChrome
 import com.ideamtrls.androidmtrls.AMPausedScrim
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSkeleton
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amCrossfade
 import com.ideamtrls.androidmtrls.amPausedBackdrop
@@ -130,13 +129,10 @@ private fun PhotosCaption(photo: PhotosItem, onFavorite: () -> Unit) {
         Modifier
             .padding(start = spacing.lg, top = spacing.md, end = spacing.lg)
             .fillMaxWidth()
-            .amCard(
-                fill = AMSurfaceFill.Frosted,
-                padding = PaddingValues(start = spacing.lg, top = spacing.xs, end = spacing.xs, bottom = spacing.xs),
-            ),
+            .amCard(padding = PaddingValues(start = spacing.lg, top = spacing.xs, end = spacing.xs, bottom = spacing.xs)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+        ProvideAMOnSurface {
             Text(
                 photo.captionDate,
                 Modifier.weight(1f),

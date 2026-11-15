@@ -51,12 +51,15 @@ import androidx.compose.ui.semantics.semantics
  * by `spacing.md`, growing and fading in with Material's standard motion. A row placed there keeps
  * its own row padding on top of that inset.
  *
+ * The card is [amCard], so its fill is the app's surface setting ([AMTheme.surfaceFill]): solid
+ * in a solid app; in a frosted app, frosted over the backdrop and the tint on a sheet. The header
+ * and the content lie on it ([ProvideAMOnSurface]).
+ *
  * @param title the header's title.
  * @param expanded whether the card is open.
  * @param onExpandedChange called with the state the user asks for.
  * @param modifier the card's placement.
  * @param icon a glyph before the title. Null shows none.
- * @param fill the card's fill, solid or frosted over art.
  * @param enabled whether the header takes taps. A disabled header keeps its place and dims; a
  *   disabled container (`LocalAMEnabled`) disables it too.
  * @param content what the card shows while it's open.
@@ -68,7 +71,6 @@ public fun AMDisclosureGroup(
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     icon: Painter? = null,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     enabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -80,7 +82,6 @@ public fun AMDisclosureGroup(
         expanded = expanded,
         onExpandedChange = onExpandedChange,
         modifier = modifier,
-        fill = fill,
         enabled = enabled,
         content = content,
     )
@@ -95,7 +96,6 @@ public fun AMDisclosureGroup(
  * @param expanded whether the card is open.
  * @param onExpandedChange called with the state the user asks for.
  * @param modifier the card's placement.
- * @param fill the card's fill, solid or frosted over art.
  * @param enabled whether the header takes taps. A disabled header keeps its place and dims; a
  *   disabled container (`LocalAMEnabled`) disables it too.
  * @param content what the card shows while it's open.
@@ -106,7 +106,6 @@ public fun AMDisclosureGroup(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     enabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -120,9 +119,9 @@ public fun AMDisclosureGroup(
         animationSpec = motion.defaultSpatialSpec(),
         label = "chevron",
     )
-    // The header and the body lie on the card's fill.
-    ProvideAMSurfaceFill(fill) {
-        Column(modifier.fillMaxWidth().amCard(fill = fill)) {
+    Column(modifier.fillMaxWidth().amCard()) {
+        // The header and the body lie on the card; the card stands where it's placed.
+        ProvideAMOnSurface {
             Row(
                 Modifier
                     .fillMaxWidth()

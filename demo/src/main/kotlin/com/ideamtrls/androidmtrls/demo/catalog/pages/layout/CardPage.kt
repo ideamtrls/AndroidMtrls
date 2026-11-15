@@ -17,16 +17,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMDivider
-import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMRowDefaults
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amRowPadding
 
@@ -38,7 +34,7 @@ internal val CardEntry = ComponentEntry(
     icon = R.drawable.ic_rectangle,
     keywords = listOf(
         "amCard", "amRowPadding", "AMRowDefaults", "surface", "container", "elevation", "padding", "row",
-        "shadow", "AMSurfaceStyle", "nested", "fill", "frosted", "glass", "AMSurfaceFill",
+        "shadow", "AMSurfaceStyle", "nested", "fill", "frosted", "AMSurfaceFill",
     ),
 ) { CardPage() }
 
@@ -69,18 +65,15 @@ private fun ProjectDetail() {
     val spacing = AMTheme.tokens.spacing
     var sendsReport by rememberSaveable { mutableStateOf(true) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-        AMBackdrop(
-            art = { AMRemoteImage(CatalogArt.Valley.url(AMTheme.isDark), contentDescription = null) },
-            modifier = Modifier.fillMaxWidth().height(200.dp).clip(MaterialTheme.shapes.large),
-        ) {
+        CatalogFrostedStage(Modifier.height(200.dp)) {
             Column(
                 Modifier
                     .align(Alignment.Center)
                     .padding(spacing.lg)
                     .fillMaxWidth()
-                    .amCard(fill = AMSurfaceFill.Frosted),
+                    .amCard(),
             ) {
-                ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                ProvideAMOnSurface {
                     TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
                 }
             }

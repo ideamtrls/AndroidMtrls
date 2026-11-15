@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,6 +55,14 @@ private val TagTopics = listOf("Payments", "Search", "Onboarding", "Android", "W
 /** A release's status board: each item's state as a tag, the build in monospace, then its topics. */
 @Composable
 private fun ReleaseStatus() {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        FrostedReleaseTags()
+        ReleaseBoard()
+    }
+}
+
+@Composable
+private fun ReleaseBoard() {
     val inset = AMTheme.tokens.spacing.lg
     Column(Modifier.fillMaxWidth().amCard()) {
         AMListRow(
@@ -84,6 +93,31 @@ private fun ReleaseStatus() {
         AMDivider(inset = inset)
         AMFlowLayout(Modifier.amRowPadding()) {
             TagTopics.forEach { topic -> AMTag(topic) }
+        }
+    }
+}
+
+/** A release's tags in a frosted card over a photo. */
+@Composable
+private fun FrostedReleaseTags() {
+    val spacing = AMTheme.tokens.spacing
+    CatalogFrostedStage {
+        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard()) {
+            AMListRow(
+                "Spring launch",
+                subtitle = "Ships Friday",
+                trailingContent = { AMTag("Live", icon = AMSemantic.Success.icon, tint = AMTagTint.Success) },
+            )
+            AMDivider(inset = spacing.lg)
+            AMListRow(
+                "Checkout flow",
+                subtitle = "Payments",
+                trailingContent = { AMTag("Delayed", icon = painterResource(R.drawable.ic_schedule), tint = AMTagTint.Warning) },
+            )
+            AMDivider(inset = spacing.lg)
+            AMFlowLayout(Modifier.amRowPadding()) {
+                TagTopics.take(3).forEach { topic -> AMTag(topic) }
+            }
         }
     }
 }

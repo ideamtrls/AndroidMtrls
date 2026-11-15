@@ -20,7 +20,6 @@ import com.ideamtrls.androidmtrls.AMMenuPicker
 import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSheet
-import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMTextEditor
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTextFieldAutofocus
@@ -29,7 +28,7 @@ import com.ideamtrls.androidmtrls.AMToggle
 import java.time.LocalDate
 
 /**
- * The event form, in a frosted sheet like the scene's cards: "New event" (Save alone) or "Edit
+ * The event form, in a sheet frosted over the month's art: "New event" (Save alone) or "Edit
  * event" (Delete and Save). It closes without asking; Save and Delete come from the model.
  */
 @Composable
@@ -39,7 +38,6 @@ internal fun CalendarEventSheet(model: CalendarModel) {
         model.showsEventSheet,
         onDismissRequest = model::closeEventSheet,
         title = if (draft == null || draft.isNew) "New event" else "Edit event",
-        surface = AMSheetSurface.Frosted,
     ) {
         if (draft != null) {
             CalendarEventForm(

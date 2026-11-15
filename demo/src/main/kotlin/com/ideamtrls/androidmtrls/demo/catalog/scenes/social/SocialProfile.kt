@@ -40,6 +40,7 @@ import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPanel
 import com.ideamtrls.androidmtrls.AMTabs
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amFloatingActions
 import java.text.NumberFormat
 
@@ -69,7 +70,7 @@ internal fun SocialProfile(model: SocialModel, userId: String, onBack: () -> Uni
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 SocialProfileHeader(user, model)
-                AMTabs(selectedTab, onSelectionChange = { selectedTab = it }, fill = socialFill()) {
+                AMTabs(selectedTab, onSelectionChange = { selectedTab = it }) {
                     tab(SocialProfileTab.Posts, "Posts") { SocialProfilePosts(user, model) }
                     tab(SocialProfileTab.About, "About") { SocialProfileAbout(user) }
                 }
@@ -81,38 +82,40 @@ internal fun SocialProfile(model: SocialModel, userId: String, onBack: () -> Uni
 @Composable
 private fun SocialProfileHeader(user: SocialUser, model: SocialModel) {
     val spacing = AMTheme.tokens.spacing
-    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         Modifier.fillMaxWidth().socialCard(PaddingValues(spacing.lg)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        AMAvatar(user.avatarUrl, user.name, Modifier.clearAndSetSemantics {}, size = AMAvatarSize.Large)
-        Text(
-            user.name,
-            Modifier.semantics { heading() },
-            style = MaterialTheme.typography.titleLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(user.handle, color = secondary, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-        Text(user.bio, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-        Row(
-            Modifier.padding(top = spacing.xs),
-            horizontalArrangement = Arrangement.spacedBy(spacing.xl),
-        ) {
-            SocialStat(model.followerCount(user), "Followers")
-            SocialStat(user.following, "Following")
-            SocialStat(model.posts(user.id).size, "Posts")
-        }
-        if (!user.isSelf) {
-            val following = model.isFollowed(user.id)
-            AMButton(
-                if (following) "Following" else "Follow",
-                onClick = { model.toggleFollow(user.id) },
-                modifier = Modifier.fillMaxWidth().padding(top = spacing.xs),
-                style = if (following) AMButtonStyle.Secondary() else AMButtonStyle.Primary(),
+        ProvideAMOnSurface {
+            val secondary = AMTheme.secondaryText
+            AMAvatar(user.avatarUrl, user.name, Modifier.clearAndSetSemantics {}, size = AMAvatarSize.Large)
+            Text(
+                user.name,
+                Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            Text(user.handle, color = secondary, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            Text(user.bio, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            Row(
+                Modifier.padding(top = spacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(spacing.xl),
+            ) {
+                SocialStat(model.followerCount(user), "Followers")
+                SocialStat(user.following, "Following")
+                SocialStat(model.posts(user.id).size, "Posts")
+            }
+            if (!user.isSelf) {
+                val following = model.isFollowed(user.id)
+                AMButton(
+                    if (following) "Following" else "Follow",
+                    onClick = { model.toggleFollow(user.id) },
+                    modifier = Modifier.fillMaxWidth().padding(top = spacing.xs),
+                    style = if (following) AMButtonStyle.Secondary() else AMButtonStyle.Primary(),
+                )
+            }
         }
     }
 }
@@ -126,7 +129,7 @@ private fun SocialStat(value: Int, label: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(formatted, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        Text(label, color = AMTheme.secondaryText, style = MaterialTheme.typography.bodySmall)
     }
 }
 

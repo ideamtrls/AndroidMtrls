@@ -99,14 +99,15 @@ public fun AMSecureField(
         isEnabled && hasText -> { { InputClearButton(state) } }
         else -> null
     }
+    val container = outlinedFieldContainer()
     OutlinedSecureTextField(
         state = state,
-        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)),
+        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)).then(container.modifier),
         enabled = isEnabled,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         trailingIcon = trailingIcon,
-        supportingText = supportingText?.let { { Text(it) } },
+        supportingText = supportingText?.let { { Text(it, container.supporting) } },
         isError = isError,
         inputTransformation = inputTransformation,
         textObfuscationMode = if (showRevealButton && revealed) {
@@ -116,5 +117,6 @@ public fun AMSecureField(
         },
         keyboardOptions = PasswordKeyboard.merge(keyboardOptions),
         onKeyboardAction = onKeyboardAction,
+        colors = container.colors,
     )
 }

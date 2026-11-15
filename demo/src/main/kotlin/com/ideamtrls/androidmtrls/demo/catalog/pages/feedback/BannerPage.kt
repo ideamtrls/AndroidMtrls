@@ -1,9 +1,13 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -11,14 +15,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMBanner
+import com.ideamtrls.androidmtrls.AMBannerHost
 import com.ideamtrls.androidmtrls.AMBannerItem
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 internal val BannerEntry = ComponentEntry(
@@ -39,7 +48,10 @@ private fun BannerPage() {
         BannerEntry,
         preview = { ShowBanner() },
     ) {
-        SuggestName()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedBanner()
+            SuggestName()
+        }
     }
 }
 
@@ -60,6 +72,35 @@ private fun ShowBanner() {
     )
     AMBanner(banner, onDismissRequest = { banner = null })
 }
+
+/**
+ * A banner in a host inside a frosted stage: the host's banner layer comes down over the photo,
+ * above a frosted card holding the project's name field.
+ */
+@Composable
+private fun FrostedBanner() {
+    val spacing = AMTheme.tokens.spacing
+    val name = rememberTextFieldState()
+    var banner by remember {
+        mutableStateOf<AMBannerItem?>(
+            AMBannerItem("Try “Harbor Lights”", message = "Tap to use this name.", duration = 1.hours),
+        )
+    }
+    CatalogFrostedStage(Modifier.height(FrostedStageHeight)) {
+        AMBannerHost(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize()) {
+                Column(Modifier.align(Alignment.BottomCenter).padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
+                    ProvideAMOnSurface {
+                        AMTextField(name, label = "Project name", placeholder = "Untitled")
+                    }
+                }
+            }
+            AMBanner(banner, onDismissRequest = { banner = null }, onClick = { name.setTextAndPlaceCursorAtEnd("Harbor Lights") })
+        }
+    }
+}
+
+private val FrostedStageHeight = 330.dp
 
 /** A name field whose suggestion arrives as a banner; tapping the banner fills the field. */
 @Composable

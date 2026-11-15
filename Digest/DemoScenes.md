@@ -1,7 +1,7 @@
 ---
 scope: The rules the demo's six Showcase scenes (Social, Music, Photos, Calendar, Shop, Account) share — where scene code lives, scenes vs pages, presentation and back, panels and route types, page headers, sentence case, sheets and the discard guard, the light/dark chip, the remote, motion, rows, banners and toasts, state and cancellation, photos
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/**, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/showcase/**]
-keywords: [Scenes, scene rules, Showcase, ShowcasePages, socialScene, musicScene, photosScene, calendarScene, shopScene, accountScene, catalog/scenes, scene entry, AMScene, roots form, overlays slot, AMKeepsPlace, amStatusBarEdge, AMStatusBarIcons, landing view, back order, Exit tile, logout, LocalCatalogNavigator, panels, NavDisplay, route type, SocialRoute, MusicRoute, PhotosRoute, ShopRoute, AMPanel, AMPanelChrome, AMArtPanelChrome, AMPageHeader, navigationIcon, exitUntilCollapsedScrollBehavior, AMBackdrop, NavigationBackHandler, select mode, step screen, field card, outlined fields, sentence case, AMSheet title, discard guard, amDiscardGuard, SceneAppearanceButton, light/dark chip, remote, AMFloatingActions, Actions, AMActionGrid, AMActionGridRow, active tile, no badges, tile titles, amInstantSwitch, amCrossfade, motion, AMListRow, AMSection Rows, bare rows, inset divider, AMBanner, AMToast, toast above the button, scene model, rememberSaveable, Saver, rememberCoroutineScope, cancellation, cancelPendingWork, FAB clearance, AMRemoteImage, AMAvatar, commonsPhoto]
+keywords: [Scenes, scene rules, surfaceFill, frosted app, AMTheme(surfaceFill), Showcase, ShowcasePages, socialScene, musicScene, photosScene, calendarScene, shopScene, accountScene, catalog/scenes, scene entry, AMScene, roots form, overlays slot, AMKeepsPlace, amStatusBarEdge, AMStatusBarIcons, landing view, back order, Exit tile, logout, LocalCatalogNavigator, panels, NavDisplay, route type, SocialRoute, MusicRoute, PhotosRoute, ShopRoute, AMPanel, AMPanelChrome, AMArtPanelChrome, AMPageHeader, navigationIcon, exitUntilCollapsedScrollBehavior, AMBackdrop, NavigationBackHandler, select mode, step screen, field card, outlined fields, sentence case, AMSheet title, discard guard, amDiscardGuard, SceneAppearanceButton, light/dark chip, remote, AMFloatingActions, Actions, AMActionGrid, AMActionGridRow, active tile, no badges, tile titles, amInstantSwitch, amCrossfade, motion, AMListRow, AMSection Rows, bare rows, inset divider, AMBanner, AMToast, toast above the button, scene model, rememberSaveable, Saver, rememberCoroutineScope, cancellation, cancelPendingWork, FAB clearance, AMRemoteImage, AMAvatar, commonsPhoto]
 updated: 2026-11-14
 ---
 
@@ -26,6 +26,7 @@ The rules every Showcase scene follows. A scene is a small, realistic app built 
 
 - A scene is a catalog entry pushed over the list (`CatalogNavigator.open`), so Navigation 3 pushes and pops it with predictive back.
 - **Its root is `AMScene`'s roots form** (Social, Music, Photos, Calendar, Shop): each root's place is saved and restored, and the scene's own overlays (sheets, alerts, the spotlight, toasts) go in its `overlays` slot, composed beside the roots so a root switch never closes one; a scene with art behind everything wraps the whole `AMScene` in its `AMBackdrop` (Shop's beans). Account uses the plain form, with `AMKeepsPlace` directly under its sign-in flow for the signed-in views.
+- **A scene root sets the app's surface setting**: a frosted scene wraps its root's body, outside its backdrop, in `AMTheme(surfaceFill = AMSurfaceFill.Frosted)`, so it's a frosted app from the root (`Foundations.md`). Shop, Social, Music, Photos, Calendar and Account (Scrollies) all do. No scene passes a fill to a card, section, disclosure group, list card, tabs or button: those, and the toolbar chips and the +, take their look from the setting.
 - **Under the status bar.** A root with no top bar puts `Modifier.amStatusBarEdge()` on its scrolling content, so rows fade out under the status bar instead of being cut off (Calendar's months view). The scenes' art is washed toward the mode, so the status bar's icons are the appearance's everywhere and no scene claims them.
 - **Back follows the library's order**: an alert, then the spotlight or the remote, then a sheet, then the current root's panels, then the landing view (an instant swap back to it), then out of the scene to the catalog. A scene adds a back handler (`NavigationBackHandler` from navigationevent-compose) only for a flow or mode of its own: Account's sign-in steps (standing aside on the flow's first step) and Photos' select mode (back ends it first).
 - **Every remote keeps an Exit tile** (`logout`, "Exit"), folded into the menu's last row, which closes the menu, cancels the scene's pending work (Music stops its playback) and calls `LocalCatalogNavigator.current.back()`.
@@ -38,7 +39,7 @@ The rules every Showcase scene follows. A scene is a small, realistic app built 
 
 ## Headers
 
-- **No navigation chrome on roots.** Every scene view carries its own `AMPageHeader` (Material's large top app bar, transparent at rest and, once scrolled, the page color or the frosted fill over a backdrop, which keeps scrolled content from reading through the status bar), in a `Scaffold` with the content scrolling under it: on the page color (Account), or transparent over the scene's `AMBackdrop` (Social, Music, Photos, Calendar, Shop).
+- **No navigation chrome on roots.** Every scene view carries its own `AMPageHeader` (Material's large top app bar, transparent at rest and, once scrolled, the page color or the frosted fill over a backdrop, which keeps scrolled content from reading through the status bar), in a `Scaffold` with the content scrolling under it: transparent over the scene's `AMBackdrop` (Social, Music, Photos, Calendar, Shop, Account).
 - The exceptions: Account's intro leads with the company's logo; Calendar's months view is titled only by its year section headers; the Music player is named by its cover and controls.
 - **A step screen with a back button has one header**: `AMPageHeader(title, navigationIcon = { back }, scrollBehavior = exitUntilCollapsedScrollBehavior())`, Material's large top app bar with the back arrow in its top row and the title under it, collapsing as the page scrolls. A step's subtitle is the first line of its scrolling content.
 
@@ -75,7 +76,7 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 ## Banners and toasts
 
 - They go through `AMScene`'s own hosts: a scene calls `AMBanner` and `AMToast` from inside its `AMScene`, so banners come down at the top of the screen and toasts rise above the floating action button. A toast posted inside a sheet shows in the sheet.
-- Toasts are Material's snackbar: text only, no glyph.
+- Toasts are Material's snackbar, its container in the scene's surface setting: text only, no glyph.
 
 ## State and cancellation
 
@@ -86,4 +87,4 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 ## Photos and art
 
 - Pictures load through the library's image pipeline (`AMRemoteImage`, `AMAvatar`, the art modifiers) from each scene's own URLs: Wikimedia Commons files through `commonsPhoto` (Social's people and posts, Calendar's month art, Shop's beans and bags, Photos' library), and the owner's site (Music). Scenes never use `catalogPhoto`, so `artwork night` leaves them as they are.
-- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the mode's colors.
+- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the fixed ink of the art's tone (white on dark art, black on light art).

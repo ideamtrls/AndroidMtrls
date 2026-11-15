@@ -15,6 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSpotlight
+import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 
@@ -55,32 +56,35 @@ internal fun MusicScene() {
     // Leaving the scene stops the music and lets go of the audio focus.
     DisposableEffect(model) { onDispose { model.stop() } }
 
-    AMScene(
-        current = model.rootView,
-        landing = MusicRootView.Artists,
-        onCurrentChange = { model.rootView = it },
-        floatingActions = {
-            AMFloatingActions(
-                model.showingMenu,
-                onExpandedChange = { model.showingMenu = it },
-                contentDescription = "Actions",
-            ) {
-                MusicMenu(
-                    model,
-                    onExit = {
-                        model.showingMenu = false
-                        model.stop()
-                        navigator.back()
-                    },
-                )
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMScene(
+            current = model.rootView,
+            landing = MusicRootView.Artists,
+            onCurrentChange = { model.rootView = it },
+            floatingActions = {
+                AMFloatingActions(
+                    model.showingMenu,
+                    onExpandedChange = { model.showingMenu = it },
+                    contentDescription = "Actions",
+                ) {
+                    MusicMenu(
+                        model,
+                        onExit = {
+                            model.showingMenu = false
+                            model.stop()
+                            navigator.back()
+                        },
+                    )
+                }
+            },
+            overlays = { MusicOverlays(model) },
+            backStack = { root -> if (root == MusicRootView.Artists) model.backStack else emptyList<MusicRoute>() },
+        ) { root ->
+            when (root) {
+                MusicRootView.Artists -> MusicArtistsStack(model)
+                MusicRootView.Player -> MusicPlayerView(model)
             }
-        },
-        overlays = { MusicOverlays(model) },
-        backStack = { root -> if (root == MusicRootView.Artists) model.backStack else emptyList<MusicRoute>() },
-    ) { root ->
-        when (root) {
-            MusicRootView.Artists -> MusicArtistsStack(model)
-            MusicRootView.Player -> MusicPlayerView(model)
         }
     }
 }
@@ -88,7 +92,7 @@ internal fun MusicScene() {
 /**
  * The Artists root view: the Navigation 3 stack of the Artists page and the panels it pushes. Each
  * page sits on its own backdrop (the Artists page and the artist page on their art rows, the album
- * page on its cover's art), so its light/dark chip and toolbar buttons are solid and its frosted
+ * page on its cover's art), so its light/dark chip and toolbar buttons are chips and its frosted
  * surfaces blur its own art; the page color behind them shows while Navigation 3 moves between
  * pages.
  */

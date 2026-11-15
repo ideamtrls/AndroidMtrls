@@ -16,7 +16,7 @@ import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMToggle
 
 /**
- * Margin's settings: the account, notifications, reading, privacy, storage and version, each a
+ * The Scrollies settings: the account, notifications, reading, privacy, storage and version, each a
  * section header over a card of bare rows, then "Sign out".
  */
 @Composable

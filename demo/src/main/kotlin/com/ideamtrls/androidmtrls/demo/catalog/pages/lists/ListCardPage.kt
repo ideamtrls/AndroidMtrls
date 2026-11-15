@@ -79,6 +79,13 @@ private fun Tasks() {
             "Field survey wrapped early",
             subtitle = "The rain held off until evening, which gave the crew a clean window to finish the eastern fence line.",
         )
+        CatalogFrostedStage {
+            AMListCard(
+                "Write the release notes",
+                subtitle = "Due Friday · Docs",
+                modifier = Modifier.padding(spacing.lg),
+            )
+        }
     }
 }
 

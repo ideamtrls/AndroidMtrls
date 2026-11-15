@@ -42,38 +42,22 @@ import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMListRow
 import com.ideamtrls.androidmtrls.AMRemoteImage
-import com.ideamtrls.androidmtrls.AMSheetSurface
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 
 // Surfaces
 
-/**
- * Social's page surfaces, its cards and the profile's tabs: solid in light mode, frosted in dark
- * mode, where glass over the slate backdrop reads better than black cards.
- */
-@Composable
-@ReadOnlyComposable
-internal fun socialFill(): AMSurfaceFill = if (AMTheme.isDark) AMSurfaceFill.Frosted else AMSurfaceFill.Solid
-
-/** The sheets follow the cards: solid in light mode, frosted in dark mode. What they hold stays solid. */
-@Composable
-@ReadOnlyComposable
-internal fun socialSheetSurface(): AMSheetSurface = if (AMTheme.isDark) AMSheetSurface.Frosted else AMSheetSurface.Primary
-
-/** A card in the scene's fill for the appearance showing. */
+/** A card on the scene's backdrop, in the app's surface setting: solid, the library's default. */
 @Composable
 @ReadOnlyComposable
 internal fun Modifier.socialCard(padding: PaddingValues = PaddingValues(0.dp)): Modifier =
-    amCard(fill = socialFill(), padding = padding)
+    amCard(padding = padding)
 
 /**
  * The one background behind the whole scene, so it always looks like itself: a light
  * social-network blue running into a deeper one in light mode, and slate ink running into a
  * lighter slate in dark mode, from the top start corner to the bottom end corner. It's an
- * [AMBackdrop], so the scene's frosted cards and sheets blur it. Text on it uses the scheme's
- * `onSurface`.
+ * [AMBackdrop], so the scene's frosted sheets blur it. Text on it uses the scheme's `onSurface`.
  */
 @Composable
 internal fun SocialBackdrop(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -130,7 +114,7 @@ internal fun SocialIdentityHeader(
 @Composable
 private fun SocialIdentityLine(author: SocialUser, timestamp: String) {
     val spacing = AMTheme.tokens.spacing
-    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val secondary = AMTheme.secondaryText
     Row(Modifier.fillMaxWidth()) {
         Text(author.name, Modifier.alignByBaseline(), style = MaterialTheme.typography.titleMedium, maxLines = 1)
         Spacer(Modifier.width(spacing.xs))
@@ -157,7 +141,7 @@ private fun SocialIdentityStack(author: SocialUser, timestamp: String, modifier:
         )
         Text(
             "${author.handle} · $timestamp",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AMTheme.secondaryText,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -217,7 +201,7 @@ internal fun SocialPostRow(
     onClick: () -> Unit,
     showsAuthor: Boolean = true,
 ) {
-    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val secondary = AMTheme.secondaryText
     if (showsAuthor) {
         val author = model.user(post.authorId)
         AMListRow(

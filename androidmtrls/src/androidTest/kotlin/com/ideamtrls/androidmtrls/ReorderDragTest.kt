@@ -69,7 +69,7 @@ class ReorderDragTest {
         val art = ImageBitmap(4, 4)
         val remove = ColorPainter(Color.Gray)
         rule.setContent {
-            AMTheme {
+            AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
                 pageScroll = rememberScrollState()
                 AMArtRowsBackdrop(Modifier.height(600.dp).testTag(Touched)) {
                     Column(Modifier.fillMaxSize().verticalScroll(pageScroll).amArtRows()) {
@@ -77,7 +77,7 @@ class ReorderDragTest {
                             items = pageNames,
                             key = { it },
                             onMove = onMove,
-                            modifier = Modifier.amCard(AMSurfaceFill.Frosted).testTag(List),
+                            modifier = Modifier.amCard().testTag(List),
                             endAction = { name -> AMSwipeAction("Remove", remove, AMSemantic.Destructive) { onRemove(name) } },
                         ) { name ->
                             AMListRow(name, Modifier.amArtRow(art))

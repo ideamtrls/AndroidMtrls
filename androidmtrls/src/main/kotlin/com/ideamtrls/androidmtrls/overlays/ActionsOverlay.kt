@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
  * Back, and a tap on the blur (between tiles too), call [onDismissRequest]; set your state to hide
  * it. A tile that acts should hide it too. Opening and closing it changes nothing underneath.
  *
- * Its content is always solid and enabled, whatever the screen behind it uses, and screen readers
- * stay inside it while it's up. While [visible] it reports to the nearest scene, so the floating
- * action button fades out of its way.
+ * Its content is always enabled, whatever the screen behind it sets, and in the app's surface
+ * setting; screen readers stay inside it while it's up. While [visible] it reports to the nearest
+ * scene, so the floating action button fades out of its way.
  *
  * @param visible whether the overlay is up.
  * @param onDismissRequest called on back and on a tap outside the content.

@@ -29,6 +29,7 @@ import com.ideamtrls.androidmtrls.AMProgressViewStyle
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -42,12 +43,14 @@ internal fun AccountSetup(model: AccountModel) {
             // The profile is the last of the three create-account steps (account details, code,
             // profile), with the first two done.
             Box(Modifier.fillMaxWidth().amCard()) {
-                AMProgressView(
-                    "Last step",
-                    progress = { 2f / 3f },
-                    valueLabel = "Step 3 of 3",
-                    style = AMProgressViewStyle.Bar,
-                )
+                ProvideAMOnSurface {
+                    AMProgressView(
+                        "Last step",
+                        progress = { 2f / 3f },
+                        valueLabel = "Step 3 of 3",
+                        style = AMProgressViewStyle.Bar,
+                    )
+                }
             }
             AccountSetupForm(
                 name = model.name,
@@ -85,15 +88,17 @@ internal fun AccountSetupForm(
                 size = AMAvatarSize.Large,
             )
             Box(Modifier.weight(1f).amCard(padding = PaddingValues(spacing.lg))) {
-                AMTextField(
-                    name,
-                    label = "Your name",
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        autoCorrectEnabled = false,
-                        imeAction = ImeAction.Done,
-                    ),
-                )
+                ProvideAMOnSurface {
+                    AMTextField(
+                        name,
+                        label = "Your name",
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            autoCorrectEnabled = false,
+                            imeAction = ImeAction.Done,
+                        ),
+                    )
+                }
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {

@@ -1,7 +1,5 @@
 package com.ideamtrls.androidmtrls
 
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
@@ -42,12 +40,10 @@ internal fun modeArtTone(): AMArtTone = artToneOf(AMTheme.isDark)
 internal fun artToneOf(dark: Boolean): AMArtTone = if (dark) AMArtTone.Dark else AMArtTone.Light
 
 /**
- * The ink of text lying on art of [tone] in mode [dark]: the scheme's own text colors on art in the
- * mode's tone (`onSurface`, `onSurfaceVariant` for [secondary]), which hold over the washed art;
- * on art of the other tone, [Style.ArtInk]'s fixed light or dark inks.
+ * The ink of text lying on art of [tone], whatever the mode or scheme: [Style.ArtInk]'s white and
+ * light gray on dark art, black and dark gray on light art ([secondary] takes the gray).
  */
-internal fun artInk(tone: AMArtTone, dark: Boolean, scheme: ColorScheme, secondary: Boolean): Color = when {
-    tone == artToneOf(dark) -> if (secondary) scheme.onSurfaceVariant else scheme.onSurface
+internal fun artInk(tone: AMArtTone, secondary: Boolean): Color = when {
     tone == AMArtTone.Dark -> if (secondary) Style.ArtInk.OnDarkSecondary else Style.ArtInk.OnDark
     else -> if (secondary) Style.ArtInk.OnLightSecondary else Style.ArtInk.OnLight
 }
@@ -63,13 +59,13 @@ internal fun artInkShadow(tone: AMArtTone): ShadowLevel =
 @Composable
 @ReadOnlyComposable
 internal fun artInk(secondary: Boolean = false, tone: AMArtTone? = null): Color =
-    artInk(tone ?: LocalAMArtTone.current ?: modeArtTone(), AMTheme.isDark, MaterialTheme.colorScheme, secondary)
+    artInk(tone ?: LocalAMArtTone.current ?: modeArtTone(), secondary)
 
 /**
  * [color] moved, keeping its hue, just far enough to hold 4.5:1 on the library's art of [tone]:
  * darker on light art (against its darkest, [Style.ArtInk.LightArtGround]), lighter on dark art
  * (against its brightest, [Style.ArtInk.DarkArtCeiling]). A color that already holds stays. For
- * colored text on art, such as a destructive action's red.
+ * colored text on art, such as a destructive action's red, which holds beside the fixed inks.
  */
 internal fun artInkHolding(color: Color, tone: AMArtTone): Color {
     val rgb = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))

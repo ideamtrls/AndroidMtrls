@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -29,6 +30,7 @@ import com.ideamtrls.androidmtrls.AMActionGrid
 import com.ideamtrls.androidmtrls.AMActionGridButton
 import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMFloatingActionButton
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMScene
@@ -59,7 +61,17 @@ private fun FloatingActionButtonPage() {
         loadedLayout = StageLayout.Fill,
         preview = { NotesScene() },
     ) {
-        MailScene()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            MailScene()
+            CatalogFrostedStage(
+                Modifier
+                    .padding(horizontal = StageLayout.PageGutter)
+                    .height(PhotoSceneHeight)
+                    .consumeWindowInsets(WindowInsets.safeDrawing),
+            ) {
+                AMFloatingActionButton("Compose", onClick = ::compose)
+            }
+        }
     }
 }
 
@@ -67,6 +79,9 @@ private fun FloatingActionButtonPage() {
 private fun compose() {}
 
 private fun search() {}
+
+/** The frosted + over a photo: its height. */
+private val PhotoSceneHeight = 220.dp
 
 /** The band's height: the scene's screen. */
 private val SceneHeight = 380.dp

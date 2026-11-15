@@ -24,8 +24,8 @@ import androidx.compose.ui.semantics.semantics
  * ```
  *
  * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) it's art text for the art's tone
- * ([amArtText]): `onSurface` on the library's art, which the art's wash holds it over, with a
- * shadow of the other tone, so it holds over the art.
+ * ([amArtText]): the tone's fixed ink (white on dark art, black on light art), which holds over the
+ * library's washed art, with a shadow of the other tone, so it holds over the art.
  *
  * It fills the width it's given and adds no padding: place it at the row inset.
  *

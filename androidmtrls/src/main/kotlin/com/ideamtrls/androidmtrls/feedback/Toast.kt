@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarVisuals
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -19,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,7 +55,11 @@ public class AMToastItem(
 
 /**
  * Shows [item] as a toast at the bottom of the window while it's non-null: Material's snackbar,
- * with its own look and motion and no action, above the navigation bar and the keyboard.
+ * with its own shape, shadow and motion and no action, above the navigation bar and the keyboard.
+ * Its container follows the app's surface setting ([AMTheme.surfaceFill]): Material's own in a
+ * solid app; in a frosted app frost over the page color, opaque, with `onSurface` text and the
+ * frosted edge around it, at the bottom of a sheet too, so the sheet's content never shows
+ * through it.
  *
  * It draws nothing where it's called: the nearest [AMToastHost] shows it. While a sheet is up, it
  * shows at the bottom of the sheet, over it, whether it was posted from the sheet or from the
@@ -144,10 +154,40 @@ internal fun ToastHost(
                 .padding(bottom = bottomClearance),
             contentAlignment = Alignment.BottomCenter,
         ) {
-            SnackbarHost(snackbars)
+            SnackbarHost(snackbars) { data ->
+                // In a frosted app the container follows the setting, the text is the surface's and
+                // the frosted edge outlines it; in a solid app it's Material's snackbar as it is.
+                val container = frostedContainerColor()
+                if (container.isSpecified) {
+                    FrostedSnackbar(data.visuals.message, container)
+                } else {
+                    Snackbar(data)
+                }
+            }
         }
     }
 }
+
+/**
+ * The toast's snackbar in a frosted app: Material's, on [container] with `onSurface` text and the
+ * frosted edge on its own shape. It's Material's content form, since the data form pads the
+ * modifier it's given by [SnackbarMargin] outside the snackbar, where an edge passed through it
+ * would be drawn; the same margin here places it as the data form does. A toast has no action or
+ * dismiss button, so the text is all it shows.
+ */
+@Composable
+private fun FrostedSnackbar(message: String, container: Color) {
+    val shape = SnackbarDefaults.shape
+    Snackbar(
+        modifier = Modifier.padding(SnackbarMargin).amHairline(shape, AMTheme.Frosted.edge),
+        shape = shape,
+        containerColor = container,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) { Text(message) }
+}
+
+/** The margin Material's snackbar keeps around itself in its host. */
+private val SnackbarMargin = 12.dp
 
 /** The nearest toast host, or null with none above. */
 internal val LocalAMToastHost = staticCompositionLocalOf<TransientHost<AMToastItem>?> { null }

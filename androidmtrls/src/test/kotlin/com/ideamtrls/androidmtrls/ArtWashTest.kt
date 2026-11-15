@@ -77,15 +77,32 @@ class ArtWashTest {
     }
 
     @Test
-    fun theDefaultsHoldTheModesTextOverAnyArt() {
+    fun textOnArtTakesTheFixedInkOfItsTone() {
+        assertEquals(Color.White, artInk(AMArtTone.Dark, secondary = false))
+        assertEquals(Color(0xFFD1D1D6), artInk(AMArtTone.Dark, secondary = true))
+        assertEquals(Color.Black, artInk(AMArtTone.Light, secondary = false))
+        assertEquals(Color(0xFF2C2C2E), artInk(AMArtTone.Light, secondary = true))
+    }
+
+    @Test
+    fun theFixedInksHoldOverAnyArt() {
         val ground = Style.ArtInk.LightArtGround
         val ceiling = Style.ArtInk.DarkArtCeiling
-        // onSurface and onSurfaceVariant of Material's baseline schemes.
-        assertTrue(contrast(luminanceOf(linear(Color(0xFF1D1B20))), ground) >= 4.5f)
-        assertTrue(contrast(luminanceOf(linear(Color(0xFFE6E0E9))), ceiling) >= 4.5f)
-        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), ceiling) >= 4.5f)
-        // Light mode's secondary holds 4.44:1 over a black picture, the darkest light art gets.
-        assertEquals(4.44f, contrast(luminanceOf(linear(Color(0xFF49454F))), ground), 0.01f)
+        fun on(ink: Color, art: Float) = contrast(luminanceOf(linear(ink)), art)
+        assertTrue(on(Color.White, ceiling) >= 7f)
+        assertEquals(8.42f, on(Color.White, ceiling), 0.01f)
+        assertTrue(on(Color(0xFFD1D1D6), ceiling) >= 4.5f)
+        assertEquals(5.54f, on(Color(0xFFD1D1D6), ceiling), 0.01f)
+        assertTrue(on(Color.Black, ground) >= 7f)
+        assertEquals(9.98f, on(Color.Black, ground), 0.01f)
+        assertTrue(on(Color(0xFF2C2C2E), ground) >= 4.5f)
+        assertEquals(6.62f, on(Color(0xFF2C2C2E), ground), 0.01f)
+    }
+
+    @Test
+    fun theFixedSecondaryInksAlreadyHold() {
+        assertEquals(Color(0xFFD1D1D6), artInkHolding(Color(0xFFD1D1D6), AMArtTone.Dark))
+        assertEquals(Color(0xFF2C2C2E), artInkHolding(Color(0xFF2C2C2E), AMArtTone.Light))
     }
 
     @Test
@@ -109,8 +126,8 @@ class ArtWashTest {
     }
 
     @Test
-    fun theAccentOnGlassHoldsOverTheWashedArt() {
-        // Material's baseline primary already holds on the glass in both modes, and stays.
+    fun theAccentOnFrostHoldsOverTheWashedArt() {
+        // Material's baseline primary already holds on the frost in both modes, and stays.
         val lightPrimary = Color(0xFF6750A4)
         val darkPrimary = Color(0xFFD0BCFF)
         assertEquals(lightPrimary, frostedTint(lightPrimary, dark = false))
@@ -122,6 +139,55 @@ class ArtWashTest {
         val held = frostedTint(brand, dark = false)
         assertEquals(4.5f, contrast(luminanceOf(linear(held)), frostedGround(dark = false)), 0.05f)
         assertTrue(held.blue > held.green && held.green > held.red)
+    }
+
+    @Test
+    fun frostOverThePageIsThePageMadeTranslucent() {
+        assertEquals(Color(0xFFFAFAFC), quantized(frostOverPage(dark = false)))
+        assertEquals(Color(0xFF0A0A0B), quantized(frostOverPage(dark = true)))
+    }
+
+    @Test
+    fun textHoldsOnTheTint() {
+        for (dark in listOf(false, true)) {
+            val secondary = if (dark) Color(0xFFD1D1D6) else Color(0xFF2C2C2E)   // Frosted.secondaryText
+            val onSurface = if (dark) Color(0xFFE6E0E9) else Color(0xFF1D1B20)   // baseline onSurface
+            assertTrue(contrast(luminanceOf(linear(secondary)), tintedGround(dark)) >= 4.5f)
+            assertTrue(contrast(luminanceOf(linear(onSurface)), tintedGround(dark)) >= 7f)
+            assertTrue(contrast(luminanceOf(linear(secondary)), luminanceOf(linear(frostOverPage(dark)))) >= 4.5f)
+        }
+    }
+
+    @Test
+    fun textHoldsOnFrostOverAWindowsBlur() {
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF2C2C2E))), windowFrostGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFD1D1D6))), windowFrostGround(dark = true)) >= 4.5f)
+    }
+
+    @Test
+    fun chipLabelsHold() {
+        // Baseline onSurfaceVariant (unselected label), onPrimary on primary (selected).
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), luminanceOf(linear(Style.Chip.QuietFillLight))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), luminanceOf(linear(Style.Chip.QuietFillDark))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), tintedGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), tintedGround(dark = true)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), frostedGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), frostedGround(dark = true)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color.White)), luminanceOf(linear(Color(0xFF6750A4)))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF381E72))), luminanceOf(linear(Color(0xFFD0BCFF)))) >= 4.5f)
+    }
+
+    @Test
+    fun tagLabelsHoldOnFrostAndTint() {
+        // Baseline surfaceContainerHighest (the neutral tag) and onSurface.
+        for (dark in listOf(false, true)) {
+            val container = if (dark) Color(0xFF36343B) else Color(0xFFE6E0E9)
+            val label = if (dark) Color(0xFFE6E0E9) else Color(0xFF1D1B20)
+            val fill = frostedTagFill(container, dark)
+            for (ground in listOf(frostedGround(dark), tintedGround(dark))) {
+                assertTrue(contrast(luminanceOf(linear(label)), luminanceOf(over(fill, ground))) >= 4.5f)
+            }
+        }
     }
 
     private fun washed(color: Color, dark: Boolean): Color {
@@ -141,11 +207,23 @@ class ArtWashTest {
 
     private fun quantize(value: Float): Float = Math.round(value.coerceIn(0f, 1f) * 255f) / 255f
 
+    private fun quantized(color: Color) = Color(quantize(color.red), quantize(color.green), quantize(color.blue), quantize(color.alpha))
+
     private fun linear(color: Color) = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
 
     private fun luminanceOf(rgb: FloatArray) = linearLuminance(rgb[0], rgb[1], rgb[2])
 
     private fun mix(a: Color, b: Color, t: Float) = Color(a.red + (b.red - a.red) * t, a.green + (b.green - a.green) * t, a.blue + (b.blue - a.blue) * t)
+
+    /** [fill] composited over a gray of [groundLuminance] in sRGB, as the GPU blends, in linear light. */
+    private fun over(fill: Color, groundLuminance: Float): FloatArray {
+        val gray = linearToSrgb(groundLuminance)
+        return linear(Color(
+            fill.red * fill.alpha + gray * (1f - fill.alpha),
+            fill.green * fill.alpha + gray * (1f - fill.alpha),
+            fill.blue * fill.alpha + gray * (1f - fill.alpha),
+        ))
+    }
 
     private fun contrast(a: Float, b: Float): Float = (max(a, b) + 0.05f) / (min(a, b) + 0.05f)
 

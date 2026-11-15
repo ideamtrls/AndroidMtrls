@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ChipColors
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,9 +87,12 @@ private val AMDatePickerComponents.showsTime: Boolean
  *   the chips move under the title (and wrap under each other if they must).
  * - **The chips** are Material's assist chips, each sized to its own text, so the value always shows
  *   in full: the date in the locale's medium style ("Nov 5, 2026"), the time in the locale's hours
- *   and minutes, following the phone's 12- or 24-hour setting ("9:41 AM", "09:41").
+ *   and minutes, following the phone's 12- or 24-hour setting ("9:41 AM", "09:41"). They keep their
+ *   outline and take a text field's container: the tint in a card or on a sheet in a frosted app,
+ *   the surface color on a sheet in a solid app, and clear elsewhere.
  * - **The picker opens in the spotlight** ([AMSpotlight]): the screen blurs and the field's [title]
- *   sits over a solid card holding Material's pickers. The date chip opens Material's calendar
+ *   sits over a card holding Material's pickers, in the app's surface setting (frost over the
+ *   window's blur in a frosted app, solid in a solid app). The date chip opens Material's calendar
  *   (`DatePicker` without its header or mode toggle, lying on the card); the time chip opens
  *   Material's clock dial (`TimePicker`). For [AMDatePickerComponents.DateAndTime] a row under the
  *   calendar ("Time" and the time chip) switches the card to the dial, and a row under the dial
@@ -129,6 +134,7 @@ public fun AMDatePicker(
                     onClick = { opened = DatePickerSpotlightPart.Calendar },
                     label = { Text(rememberDateText(value)) },
                     enabled = isEnabled,
+                    colors = datePickerChipColors(),
                 )
             }
             if (components.showsTime) {
@@ -136,6 +142,7 @@ public fun AMDatePicker(
                     onClick = { opened = DatePickerSpotlightPart.Dial },
                     label = { Text(rememberTimeText(value)) },
                     enabled = isEnabled,
+                    colors = datePickerChipColors(),
                 )
             }
         }
@@ -242,8 +249,19 @@ private fun DatePickerSpotlightContent(
 @Composable
 private fun DatePickerSwitchRow(label: String, value: String, onClick: () -> Unit) {
     InputControlRow(enabled = true, modifier = Modifier, label = { Text(label) }) {
-        AssistChip(onClick = onClick, label = { Text(value) })
+        AssistChip(onClick = onClick, label = { Text(value) }, colors = datePickerChipColors())
     }
+}
+
+/**
+ * A date or time chip's colors: Material's assist chip, enabled or not, its container a text
+ * field's ([fieldContainerColor]): the tint where it lies on a surface or a sheet in a frosted app,
+ * solid on a sheet in a solid app, and clear otherwise. Its outline stays.
+ */
+@Composable
+private fun datePickerChipColors(): ChipColors {
+    val container = fieldContainerColor(Color.Transparent)
+    return AssistChipDefaults.assistChipColors(containerColor = container, disabledContainerColor = container)
 }
 
 /** Reports each hour or minute [timeState] moves to, over the latest value, seconds cleared. */

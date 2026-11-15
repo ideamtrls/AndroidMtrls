@@ -52,8 +52,8 @@ import kotlin.math.roundToInt
 
 // The art recipe: a picture blurred until it reads as its colors, saturated so the averaged colors
 // stay vivid, frosted toward the mode (every pixel mixed evenly toward white in light mode, black
-// in dark mode), then saturated again to win back the color the frost took, so text in the mode's
-// own colors holds over it. The values are the art's own, not tokens.
+// in dark mode), then saturated again to win back the color the frost took, so the fixed inks of
+// text on art hold over it. The values are the art's own, not tokens.
 
 /** The saturation boost after the full blur, before the wash, so the averaged colors stay vivid. */
 private const val ArtSaturation = 2.2f
@@ -80,9 +80,9 @@ private val ArtRowBlend = 120.dp
 private val ArtRowBleed = 1000.dp
 
 /**
- * The art's defaults: its blur, and how far it's frosted toward the mode, so text in the mode's own
- * colors holds over any art, against Material's baseline static color scheme. An app with its own
- * scheme checks its colors against them.
+ * The art's defaults: its blur, and how far it's frosted toward the mode, so the fixed inks of text
+ * on art ([Style.ArtInk]) hold over any art. An app that colors text on art itself checks its
+ * colors against the art's extremes.
  */
 public object AMArtDefaults {
     /**
@@ -94,16 +94,16 @@ public object AMArtDefaults {
     /**
      * How far art is frosted toward white in light mode: every pixel mixed 70 % of the way to
      * white, so a black picture lands on gray `#B2B3B3`, the darkest light art gets
-     * ([Style.ArtInk.LightArtGround]). Over that, `onSurface` holds 8.18:1 and `onSurfaceVariant`
-     * 4.44:1, which is 4.5:1 over all but the darkest pictures.
+     * ([Style.ArtInk.LightArtGround]). Over that, art text's fixed inks hold 9.98:1 (black) and
+     * 6.62:1 (the dark gray for secondary text).
      */
     public const val LightWash: Float = 0.7f
 
     /**
      * How far art is frosted toward black in dark mode: every pixel mixed 70 % of the way to
      * black, so a white picture lands on gray `#4D4D4D`, and a saturated yellow, the brightest dark
-     * art gets ([Style.ArtInk.DarkArtCeiling]), a little above it. Under that, `onSurfaceVariant`
-     * holds 4.94:1 and `onSurface` 6.50:1.
+     * art gets ([Style.ArtInk.DarkArtCeiling]), a little above it. Under that, art text's fixed
+     * inks hold 8.42:1 (white) and 5.54:1 (the light gray for secondary text).
      */
     public const val DarkWash: Float = 0.7f
 }
@@ -111,8 +111,8 @@ public object AMArtDefaults {
 /**
  * Draws a picture behind this content as an **art backdrop**: the picture at [url], blurred so
  * heavily it reads as its colors, never its subject, saturated so those colors stay vivid, then
- * washed toward the mode, light in light mode and dark in dark mode, so text in the mode's own
- * colors holds over it. For the color behind an artwork-led screen (an album's page over its
+ * washed toward the mode, light in light mode and dark in dark mode, so the fixed inks of text on
+ * art hold over it. For the color behind an artwork-led screen (an album's page over its
  * cover), or a whole app's background (a photo behind every view).
  *
  * ```kotlin
@@ -136,12 +136,11 @@ public object AMArtDefaults {
  * - **The wash is a frost that follows the mode.** Every pixel is mixed evenly toward white in
  *   light mode, by [lightWash], or toward black in dark mode, by [darkWash], in sRGB, then
  *   saturated again to win back some of the color the frost took. At the defaults
- *   ([AMArtDefaults]) text in the mode's colors holds over any picture, so the art's tone is the
- *   mode's.
+ *   ([AMArtDefaults]) the fixed inks hold over any picture, so the art's tone is the mode's.
  * - **Lower washes are the app's call.** Lowering [lightWash] or [darkWash] shows more of the
  *   picture and gives up that guarantee: check every text on it, and give the [AMBackdrop] around
- *   it the tone the art then has ([AMArtTone]). Frosted glass over art an app chose not to wash
- *   (low washes, or a picture drawn without this modifier) is the app's to check too: the glass
+ *   it the tone the art then has ([AMArtTone]). Frost over art an app chose not to wash
+ *   (low washes, or a picture drawn without this modifier) is the app's to check too: the frost
  *   holds its contrast over the library's washed art only.
  * - **Blur.** By default the picture reads only as its colors. Lower [blurRadius] to keep its
  *   subject recognizable; both saturation boosts fade out with it, so a sharp picture keeps its
@@ -209,7 +208,7 @@ public fun Modifier.amArtBackdrop(
  * Draws the colors of the [amArtRow] rows inside this content behind it, at its full width: color
  * at the row level. Each row's picture, blurred, saturated and washed toward the mode with the art
  * backdrop's recipe, lies behind that row and scrolls with it; neighbors' colors blend into each
- * other halfway between them, with no line. Text in the mode's own colors holds over them.
+ * other halfway between them, with no line. The fixed inks of text on art hold over them.
  *
  * ```kotlin
  * Column(Modifier.verticalScroll(rememberScrollState()).amArtRows()) {
@@ -234,7 +233,7 @@ public fun Modifier.amArtBackdrop(
  * as that backdrop's art, behind the whole page.
  *
  * @param lightWash how far the rows' pictures are frosted toward white in light mode, from 0 to 1,
- *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frosted glass over
+ *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frost over
  *   them is the app's to check.
  * @param darkWash how far they're frosted toward black in dark mode, from 0 to 1. Below the
  *   default, the same holds.
@@ -247,9 +246,9 @@ public fun Modifier.amArtRows(
 /**
  * A region whose art is the art rows inside it: the colors of the [amArtRows] page in [content]
  * draw behind the whole region, the top app bar's place included, moving with the rows as they
- * scroll, and every [AMSurfaceFill.Frosted] surface in [content] blurs the colors under it, as it
- * would an [AMBackdrop]'s art. Section headers, page headers and the other components on it take
- * their over-art look for its [tone].
+ * scroll, and in a frosted app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) every surface in
+ * [content] standing on it blurs the colors under it, as it would an [AMBackdrop]'s art. Section
+ * headers, page headers and the other components on it take their over-art look for its [tone].
  *
  * ```kotlin
  * AMArtRowsBackdrop(Modifier.fillMaxSize()) {
@@ -339,12 +338,12 @@ public fun Modifier.amArtRow(image: ImageBitmap?): Modifier = this then ArtRowEl
  *
  * - **The tone** is [tone] when given, else the nearest art surface's ([AMBackdrop],
  *   [AMArtRowsBackdrop]), which is the mode's unless that surface was given one, else the mode's.
- * - **On art in the mode's tone**, which the library's washes guarantee ([AMArtDefaults]), the ink
- *   is the scheme's own text color, `onSurface`, or `onSurfaceVariant` for [secondary], so text on
- *   art reads like text on the page and holds 4.5:1 over the washed art.
- * - **On art of the other tone** (a lowered wash, sharp art, a scrim over a photo), the ink is
- *   white, or a light gray for [secondary], on dark art, and near-black, or a dark gray, on light
- *   art. Contrast there depends on the art; check it.
+ * - **The ink is fixed by the tone, in either mode:** white, or a light gray `#D1D1D6` for
+ *   [secondary], on dark art; black, or a dark gray `#2C2C2E`, on light art.
+ * - **On the library's washed art** they hold 8.42:1 and 5.54:1 on the brightest dark art, and
+ *   9.98:1 and 6.62:1 on the darkest light art ([AMArtDefaults]).
+ * - **On art of the other tone** (a lowered wash, sharp art, a scrim over a photo), contrast
+ *   depends on the art; check it.
  *
  * Put it on a text or on a group of them: everything it covers draws in the ink, glyphs included,
  * keeping their alpha, with the shadow drawn from the glyphs themselves.

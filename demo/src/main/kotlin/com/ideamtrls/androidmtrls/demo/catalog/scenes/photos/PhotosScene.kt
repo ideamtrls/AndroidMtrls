@@ -13,6 +13,8 @@ import com.ideamtrls.androidmtrls.AMAlertAction
 import com.ideamtrls.androidmtrls.AMAlertItem
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
+import com.ideamtrls.androidmtrls.AMSurfaceFill
+import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 
 internal val PhotosSceneEntry = ComponentEntry(
@@ -47,31 +49,34 @@ internal fun PhotosScene() {
     LaunchedEffect(model) { model.finishLoading() }
     DisposableEffect(model) { onDispose { model.cancelPendingWork() } }
 
-    AMScene(
-        current = model.rootView,
-        landing = PhotosView.Library,
-        onCurrentChange = { model.rootView = it },
-        floatingActions = {
-            AMFloatingActions(
-                model.showsMenu,
-                onExpandedChange = { if (it) model.openMenu() else model.closeMenu() },
-                contentDescription = "Actions",
-            ) {
-                PhotosMenu(
-                    model,
-                    onExit = {
-                        model.closeMenu()
-                        model.cancelPendingWork()
-                        navigator.back()
-                    },
-                )
-            }
-        },
-        backStack = { root -> model.stack(root) },
-    ) { root ->
-        PhotosRoot(model, root)
-        PhotosAlerts(model)
-        AMToast(model.toast, onDismissRequest = { model.toast = null })
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMScene(
+            current = model.rootView,
+            landing = PhotosView.Library,
+            onCurrentChange = { model.rootView = it },
+            floatingActions = {
+                AMFloatingActions(
+                    model.showsMenu,
+                    onExpandedChange = { if (it) model.openMenu() else model.closeMenu() },
+                    contentDescription = "Actions",
+                ) {
+                    PhotosMenu(
+                        model,
+                        onExit = {
+                            model.closeMenu()
+                            model.cancelPendingWork()
+                            navigator.back()
+                        },
+                    )
+                }
+            },
+            backStack = { root -> model.stack(root) },
+        ) { root ->
+            PhotosRoot(model, root)
+            PhotosAlerts(model)
+            AMToast(model.toast, onDismissRequest = { model.toast = null })
+        }
     }
 }
 

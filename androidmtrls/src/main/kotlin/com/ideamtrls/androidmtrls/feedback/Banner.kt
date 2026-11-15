@@ -10,7 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -51,9 +50,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.AccessibilityManager
 import androidx.compose.ui.platform.LocalAccessibilityManager
@@ -64,6 +67,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.dismiss
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -104,9 +108,12 @@ public class AMBannerItem(
 )
 
 /**
- * Shows [item] as a banner at the top of the window while it's non-null: a floating surface (white
- * in light mode, black in dark mode, the two-layer shadow and a hairline) just under the status
- * bar, over a fade of the surface color that keeps the status bar legible.
+ * Shows [item] as a banner at the top of the window while it's non-null: a floating surface in the
+ * app's surface setting with the two-layer shadow (solid with a hairline in both modes, or frosted
+ * with the frosted edge, over the art under it or frost over the page color with none) just under
+ * the status bar, over a band that keeps the status bar legible. The band is in the same setting
+ * (the surface color, or frost over the art under it or over the page color) and fades to clear
+ * below the card.
  *
  * It draws nothing where it's called: the nearest [AMBannerHost], at the root of the window, shows
  * it, so a banner posted from deep inside a screen still spans the screen. While a sheet is up, it
@@ -169,18 +176,23 @@ public fun AMBannerHost(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    BannerHost(modifier, overScreen = false, content)
+    BannerHost(modifier, overScreen = false, content = content)
 }
 
 /**
  * [AMBannerHost], or with [overScreen] the host of a window over a screen (a sheet's): while it's
  * composed it shows its screen's banners, and its own, in a window of its own at the top, over its
  * window, and the screen's host shows none.
+ *
+ * A screen's host lays its banners on the backdrop around it, or with none on the art the showing
+ * root of [sceneBackdrops] draws (a scene with several root views), so the band and the card frost
+ * that art as the scene's remote button does.
  */
 @Composable
 internal fun BannerHost(
     modifier: Modifier,
     overScreen: Boolean,
+    sceneBackdrops: AMSceneBackdrops? = null,
     content: @Composable () -> Unit,
 ) {
     val below = if (overScreen) LocalAMBannerHost.current else null
@@ -199,7 +211,7 @@ internal fun BannerHost(
     Box(modifier, propagateMinConstraints = true) {
         CompositionLocalProvider(LocalAMBannerHost provides host, content = content)
         if (!overScreen) {
-            BannerLayer(transition, WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal), Modifier.matchParentSize())
+            ScreenBannerLayer(transition, sceneBackdrops, Modifier.matchParentSize())
         } else if (transition.currentState != null || transition.targetState != null) {
             // Showing, or sliding away: in a window over this one.
             BannerWindow(transition)
@@ -212,10 +224,10 @@ internal val LocalAMBannerHost = staticCompositionLocalOf<TransientHost<AMBanner
 
 private const val NoBannerHost = "AMBanner shows in the nearest AMBannerHost: put one at the root of the window"
 
-/** The fade of the surface color behind a banner, from the window's top edge. */
+/** The band behind a banner in a host's own window, from the window's top edge to clear. */
 private val ScrimHeight = 220.dp
 
-/** Where the scrim starts fading from the solid surface color toward clear. */
+/** Where the band starts fading from opaque toward clear, as a share of its height. */
 private const val ScrimFadeStart = 0.2f
 
 /** The gap between the title and the message, so the two lines read as one statement. */
@@ -228,13 +240,29 @@ private val SwipeThreshold = 30.dp
 private val FlingVelocity = 125.dp
 
 /**
- * The scrim and the banner over a host: the scrim fades, the card slides from the top, clear of
+ * A screen host's banner layer, on the backdrop around the host or, with none, the art the showing
+ * root of [sceneBackdrops] draws. It's provided around the layer only: the content keeps its own,
+ * since a toolbar button there picks its form by whether it lies on art.
+ */
+@Composable
+private fun ScreenBannerLayer(
+    transition: Transition<TransientPosting<AMBannerItem>?>,
+    sceneBackdrops: AMSceneBackdrops?,
+    modifier: Modifier,
+) {
+    CompositionLocalProvider(LocalAMBackdrop provides (LocalAMBackdrop.current ?: sceneBackdrops?.showing)) {
+        BannerLayer(transition, WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal), modifier)
+    }
+}
+
+/**
+ * The band and the banner over a host: the band fades in, the card slides from the top, clear of
  * [insets]. The card changes in place when the same caller posts a new item, and slides out and in
  * between callers.
  *
- * In a host's own window the scrim is [ScrimHeight] tall over the content. In a window of its own
- * ([fitted]) the window is only as tall as the card's band, so the scrim fills the band instead:
- * solid behind the status bar, clear at the card's bottom.
+ * In a host's own window the band is [ScrimHeight] tall over the content, opaque for its top
+ * [ScrimFadeStart]. In a window of its own ([fitted]) the window is only as tall as the card's
+ * band, so the band fills it instead: opaque behind the status bar, clear at the card's bottom.
  */
 @Composable
 private fun BannerLayer(
@@ -244,9 +272,8 @@ private fun BannerLayer(
     fitted: Boolean = false,
 ) {
     val motion = MaterialTheme.motionScheme
-    val surface = AMTheme.Surface.primary
     val spacing = AMTheme.tokens.spacing
-    val solidTop = insets.asPaddingValues().calculateTopPadding()
+    val topInset = insets.asPaddingValues().calculateTopPadding()
     Box(modifier) {
         transition.AnimatedVisibility(
             visible = { it != null },
@@ -255,21 +282,9 @@ private fun BannerLayer(
             exit = fadeOut(motion.fastEffectsSpec()),
         ) {
             val scrim = if (fitted) {
-                Modifier.fillMaxSize().drawBehind {
-                    val solid = (solidTop.toPx() / size.height).coerceIn(0f, 1f)
-                    drawRect(Brush.verticalGradient(0f to surface, solid to surface, 1f to surface.copy(alpha = 0f)))
-                }
+                Modifier.fillMaxSize().bannerScrim { height -> topInset.toPx() / height }
             } else {
-                Modifier
-                    .fillMaxWidth()
-                    .height(ScrimHeight)
-                    .background(
-                        Brush.verticalGradient(
-                            0f to surface,
-                            ScrimFadeStart to surface,
-                            1f to surface.copy(alpha = 0f),
-                        ),
-                    )
+                Modifier.fillMaxWidth().height(ScrimHeight).bannerScrim { ScrimFadeStart }
             }
             Box(scrim)
         }
@@ -298,6 +313,27 @@ private fun BannerLayer(
 }
 
 /**
+ * The band behind a banner: a surface in the app's surface setting with no shadow or edge, opaque
+ * from its top down to the share of its height [opaqueTo] gives for its height in pixels, then
+ * fading to clear at its bottom. In a solid app it's the surface color; in a frosted app frost over the art
+ * under it, or over the page color with none. It lies on the page, so it isn't the tint.
+ *
+ * It draws the surface in a layer of its own, then keeps the surface only as far as an alpha mask
+ * of the fade reaches.
+ */
+private fun Modifier.bannerScrim(opaqueTo: Density.(height: Float) -> Float): Modifier =
+    graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            val opaque = opaqueTo(size.height).coerceIn(0f, 1f)
+            drawRect(
+                Brush.verticalGradient(0f to Color.Black, opaque to Color.Black, 1f to Color.Transparent),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+        .amControlSurface(RectangleShape, AMElevation.None, outline = false)
+
+/**
  * The banner of a host over a screen (a sheet's), in a window of its own at the top of the screen,
  * over the host's window: a popup that never takes focus or back and lets touches outside it
  * through. The window spans the card's band only, so the sheet under it keeps its touches. The
@@ -323,7 +359,12 @@ private fun BannerWindow(transition: Transition<TransientPosting<AMBannerItem>?>
             clippingEnabled = false,
         ),
     ) {
-        BannerLayer(transition, insets, Modifier.fillMaxWidth(), fitted = true)
+        // A window of its own at the top of the screen, not on the sheet: the band and the card
+        // start from the window's fresh context, lying on the page with no art to sample, so in a
+        // frosted app they're frost over the page color, opaque, never the sheet's tint.
+        ProvideOverlayWindowLocals {
+            BannerLayer(transition, insets, Modifier.fillMaxWidth(), fitted = true)
+        }
     }
 }
 
@@ -338,9 +379,9 @@ private object WindowTop : PopupPositionProvider {
 }
 
 /**
- * The banner itself: the role's glyph, then the title over the message, on the floating surface
- * with a hairline in both modes. It follows a drag up 1:1 and dismisses past [SwipeThreshold] (or
- * on a quick fling up); a shorter drag settles back.
+ * The banner itself: the role's glyph, then the title over the message, on the floating surface in
+ * the app's surface setting, outlined in both modes. It follows a drag up 1:1 and dismisses past
+ * [SwipeThreshold] (or on a quick fling up); a shorter drag settles back.
  */
 @Composable
 private fun BannerCard(posting: TransientPosting<AMBannerItem>, modifier: Modifier) {
@@ -376,9 +417,8 @@ private fun BannerCard(posting: TransientPosting<AMBannerItem>, modifier: Modifi
                     }
                 },
             )
-            // The hairline below is drawn in both modes, so the surface's own dark-mode one is off.
-            .amElevatedSurface(shape, hairline = Color.Transparent)
-            .amHairline(shape)
+            // In the app's surface setting, outlined in both modes when it's solid.
+            .amElevatedSurface(shape, alwaysOutlined = true)
             .clip(shape)
             .then(
                 if (caller.actionable) {

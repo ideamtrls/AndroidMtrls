@@ -29,7 +29,6 @@ import com.ideamtrls.androidmtrls.AMPanel
 import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSemantic
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMTimeline
@@ -63,7 +62,7 @@ internal fun ShopOrders(model: ShopModel) {
         ) {
             listOf("In progress" to inProgress, "Delivered" to delivered).forEach { (title, orders) ->
                 if (orders.isNotEmpty()) {
-                    AMSection(title, style = AMSectionStyle.Rows, fill = AMSurfaceFill.Frosted, inset = false) {
+                    AMSection(title, style = AMSectionStyle.Rows, inset = false) {
                         orders.forEach { order -> ShopOrderRow(order, model, dates, now) }
                     }
                 }
@@ -114,9 +113,9 @@ internal fun ShopOrderPanel(model: ShopModel, number: Int, onBack: () -> Unit) {
                     Text("Placed ${dates.long(order.placed)}", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                     AMTag(status.title, tint = status.tint)
                 }
-                AMSection("Tracking", fill = AMSurfaceFill.Frosted, inset = false) {
+                AMSection("Tracking", inset = false) {
                     val success = AMSemantic.Success.color
-                    val pending = AMTheme.selectionRing
+                    val pending = AMTheme.secondaryText
                     AMTimeline(
                         order.steps(now),
                         key = { it.status },
@@ -128,14 +127,14 @@ internal fun ShopOrderPanel(model: ShopModel, number: Int, onBack: () -> Unit) {
                         )
                     }
                 }
-                AMSection("Items", style = AMSectionStyle.Rows, fill = AMSurfaceFill.Frosted, inset = false) {
+                AMSection("Items", style = AMSectionStyle.Rows, inset = false) {
                     order.lines.forEach { line -> ShopOrderItemRow(line, model) }
                 }
-                AMSection("Delivery", style = AMSectionStyle.Rows, fill = AMSurfaceFill.Frosted, inset = false) {
+                AMSection("Delivery", style = AMSectionStyle.Rows, inset = false) {
                     AMLabeledContent("Method", order.delivery.title)
                     AMLabeledContent("Address", order.shipTo.summary)
                 }
-                AMSection("Summary", style = AMSectionStyle.Rows, fill = AMSurfaceFill.Frosted, inset = false) {
+                AMSection("Summary", style = AMSectionStyle.Rows, inset = false) {
                     ShopTotalsRows(order.subtotal, order.shipping)
                 }
             }

@@ -41,29 +41,9 @@ public enum class AMSheetHeight {
     Content,
 }
 
-/** What an [AMSheet]'s surface is made of. */
-public enum class AMSheetSurface {
-    /** The floating surface, [AMTheme.Surface.primary]: white in light mode, black in dark mode. */
-    Primary,
-
-    /**
-     * The page color, [AMTheme.Surface.page], for a sheet that holds cards (a grouped form), so
-     * they stand on it as they do on a page.
-     */
-    Page,
-
-    /**
-     * Glass, for an app whose pages use frosted cards: the art of the [AMBackdrop] the sheet is
-     * presented from (in an [AMScene]'s overlays, the backdrop the showing root draws), blurred
-     * under the frosted fill, with the frosted edge. What the sheet holds stays solid. With no
-     * backdrop to sample, it draws [Primary].
-     */
-    Frosted,
-}
-
 /**
- * A sheet: Material's modal bottom sheet wearing the floating surface, over a screen that stays as
- * it is, with no dimming behind it.
+ * A sheet: Material's modal bottom sheet with a frosted background, over a screen that stays as it
+ * is, with no dimming behind it.
  *
  * ```kotlin
  * var editing by rememberSaveable { mutableStateOf(false) }
@@ -76,14 +56,20 @@ public enum class AMSheetSurface {
  * - **Native behavior**: Material's sheet with its drag handle, shape, motion, drag to dismiss,
  *   tap outside to dismiss and predictive back. It slides in when [visible] turns true; setting
  *   [visible] false from code slides it away and never asks.
- * - **The style**: [surface] fills it with no tonal tint, the `Medium` two-layer shadow falls
- *   from its top edge, and a hairline outlines it in both modes. The screen behind isn't dimmed:
- *   the scrim is transparent, and still takes a tap outside.
+ * - **The style**: its background is frosted in either surface setting ([AMTheme.surfaceFill]):
+ *   the art of the [AMBackdrop] it's presented from (in an [AMScene]'s overlays, the backdrop the
+ *   showing root draws), blurred under the frosted fill, with the frosted edge in both modes and
+ *   the `Medium` two-layer shadow falling outside its shape. With no art to sample it's frost over
+ *   the page color, opaque. The screen behind isn't dimmed: the scrim is transparent, and still
+ *   takes a tap outside.
  * - **The discard guard**: while [Modifier.amDiscardGuard][amDiscardGuard] inside reports changes,
  *   a drag down, a tap outside and back raise "Discard changes?" instead of closing.
- * - **A fresh context**: what the sheet holds is solid and enabled whatever surrounds the call;
- *   cards in it float as they do on a page, and on a black sheet a filled button takes the
- *   brighter [AMTheme.controlOutline] in dark mode, as inside a card.
+ * - **A fresh context**: what the sheet holds is enabled whatever surrounds the call, and cards in
+ *   it float as they do on a page. What the sheet holds follows the app's setting: solid in a
+ *   solid app, tinted in a frosted app. Its pieces are embedded, as inside a card, so in a
+ *   frosted app a card or a button on it draws the tint ([AMTheme.Frosted.embeddedFill]), never
+ *   frost through frost, and in a solid app a filled button takes the brighter
+ *   [AMTheme.controlOutline] in dark mode.
  * - **Toasts and banners over it**: while the sheet is up, an [AMToast] shows at the sheet's
  *   bottom and an [AMBanner] at the top of the screen, over the sheet, whether posted from inside
  *   the sheet or from the screen under it, as the topmost window is the one the user sees.
@@ -101,8 +87,6 @@ public enum class AMSheetSurface {
  * @param title the sheet's heading under the drag handle, in `titleLarge`, read as a heading. Null
  *   shows none. Keep it null or not for the whole time the sheet is up; its text may change.
  * @param height [AMSheetHeight.Full] (the default) or [AMSheetHeight.Content].
- * @param surface the sheet's fill: [AMSheetSurface.Primary] (the default), [AMSheetSurface.Page]
- *   or, in an app with frosted cards, [AMSheetSurface.Frosted].
  * @param content what the sheet holds, in a column under the title.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,7 +97,6 @@ public fun AMSheet(
     modifier: Modifier = Modifier,
     title: String? = null,
     height: AMSheetHeight = AMSheetHeight.Full,
-    surface: AMSheetSurface = AMSheetSurface.Primary,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val guard = remember { AMDiscardGuardState() }
@@ -156,22 +139,17 @@ public fun AMSheet(
         )
     }
     val shape = BottomSheetDefaults.ExpandedShape
-    val frosted = surface == AMSheetSurface.Frosted
 
     ModalBottomSheet(
         onDismissRequest = {
             composed = false
             dismiss()
         },
-        modifier = modifier.sheetChrome(sheetState, shape, frosted, LocalAMBackdrop.current),
+        modifier = modifier.sheetChrome(sheetState, shape, LocalAMBackdrop.current),
         sheetState = sheetState,
         shape = shape,
-        containerColor = when (surface) {
-            AMSheetSurface.Primary -> AMTheme.Surface.primary
-            AMSheetSurface.Page -> AMTheme.Surface.page
-            // The glass is the chrome's.
-            AMSheetSurface.Frosted -> Color.Transparent
-        },
+        // The frost is the chrome's.
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
         scrimColor = Color.Transparent,
@@ -184,9 +162,9 @@ public fun AMSheet(
             .then(if (height == AMSheetHeight.Full) Modifier.fillMaxHeight() else Modifier)
         CompositionLocalProvider(LocalAMDiscardGuard provides guard) {
             ProvideOverlayWindowLocals {
-                // A black sheet lifts the controls on it the way a card does (Primary, and Frosted,
-                // which is solid without art); a page-colored one leaves them as on a page.
-                CompositionLocalProvider(LocalAMOnPrimarySurface provides (surface != AMSheetSurface.Page)) {
+                // The sheet is a surface its pieces are embedded in, as in a card: in a frosted app
+                // they draw the tint, in a solid app a filled button's outline steps up.
+                CompositionLocalProvider(LocalAMLiesOn provides LiesOn.Sheet) {
                     // The sheet is a window over the screen: while it's up, the screen's toasts and
                     // banners, and its own, show over it.
                     BannerHost(size, overScreen = true) {

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 internal val TextFieldEntry = ComponentEntry(
@@ -37,7 +38,10 @@ private fun TextFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { NameField() },
     ) {
-        ContactForm()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedContactCard()
+            ContactForm()
+        }
     }
 }
 
@@ -47,6 +51,25 @@ private fun NameField() {
     val name = rememberTextFieldState()
     Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(AMTheme.tokens.spacing.lg)) {
         AMTextField(name, label = "Full name", keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
+    }
+}
+
+/** Name and email in a frosted card over a photo. */
+@Composable
+private fun FrostedContactCard() {
+    val spacing = AMTheme.tokens.spacing
+    val name = rememberTextFieldState("Ada Lovelace")
+    val email = rememberTextFieldState()
+    CatalogFrostedStage {
+        Column(
+            Modifier.padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
+            verticalArrangement = Arrangement.spacedBy(spacing.md),
+        ) {
+            ProvideAMOnSurface {
+                AMTextField(name, label = "Full name")
+                AMTextField(email, label = "Email", keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+            }
+        }
     }
 }
 

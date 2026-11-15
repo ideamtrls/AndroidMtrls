@@ -2,8 +2,10 @@ package com.ideamtrls.androidmtrls.demo
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMRowDefaults
 import com.ideamtrls.androidmtrls.AMTabs
+import com.ideamtrls.androidmtrls.AMTabsScope
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amRowPadding
@@ -88,11 +91,28 @@ private fun openItem() {}
 @Composable
 private fun LibraryTabs() {
     var tab by rememberSaveable { mutableStateOf("albums") }
-    AMTabs(tab, onSelectionChange = { tab = it }, Modifier.fillMaxWidth().amCard()) {
-        tab("photos", "Photos", icon = { TabGlyph(R.drawable.ic_image) }) { LibraryRows(Photos) }
-        tab("albums", "Albums", icon = { TabGlyph(R.drawable.ic_photo_album) }) { LibraryRows(Albums) }
-        tab("shared", "Shared", icon = { TabGlyph(R.drawable.ic_group) }) { LibraryRows(Shared) }
+    var frostedTab by rememberSaveable { mutableStateOf("albums") }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        AMTabs(tab, onSelectionChange = { tab = it }, Modifier.fillMaxWidth().amCard()) {
+            libraryTabs()
+        }
+        CatalogFrostedStage {
+            AMTabs(
+                frostedTab,
+                onSelectionChange = { frostedTab = it },
+                Modifier.padding(AMTheme.tokens.spacing.lg).fillMaxWidth().amCard(),
+            ) {
+                libraryTabs()
+            }
+        }
     }
+}
+
+/** The library's three tabs, declared once for the card on the page and the one over a photo. */
+private fun AMTabsScope<String>.libraryTabs() {
+    tab("photos", "Photos", icon = { TabGlyph(R.drawable.ic_image) }) { LibraryRows(Photos) }
+    tab("albums", "Albums", icon = { TabGlyph(R.drawable.ic_photo_album) }) { LibraryRows(Albums) }
+    tab("shared", "Shared", icon = { TabGlyph(R.drawable.ic_group) }) { LibraryRows(Shared) }
 }
 
 @Composable

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -52,6 +53,13 @@ private fun EditTask() {
         }
         AMFormActions(destructive = { AMButton("Delete", onClick = ::delete, destructive = true) }) {
             AMButton("Save", onClick = ::save, enabled = title.text.isNotEmpty())
+        }
+        CatalogFrostedStage {
+            Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
+                AMFormActions(destructive = { AMButton("Delete", onClick = ::delete, destructive = true) }) {
+                    AMButton("Save", onClick = ::save)
+                }
+            }
         }
     }
 }

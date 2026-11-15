@@ -184,7 +184,7 @@ internal fun PhotosCountLine(count: Int, modifier: Modifier = Modifier, loading:
         when {
             count == 0 -> Text(" ", Modifier.clearAndSetSemantics {}, style = style)
             loading -> AMSkeleton.Text(photosCountLabel(count), style = style)
-            else -> Text(photosCountLabel(count), style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            else -> Text(photosCountLabel(count), style = style, color = AMTheme.secondaryText)
         }
     }
 }

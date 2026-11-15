@@ -24,9 +24,13 @@ import androidx.compose.ui.semantics.semantics
  * }
  * ```
  *
- * - **Its surface.** Standing on the page, the row fills itself with [AMTheme.Surface.primary],
- *   edge to edge with no corners or shadow; inside a card it draws no fill, so the card's
- *   rounded surface shows. Stack rows with `AMDivider(inset = spacing.lg)` between them.
+ * - **Its surface.** Standing on its own, the row fills itself edge to edge with no corners or
+ *   shadow, in the app's surface setting ([AMTheme.surfaceFill]): [AMTheme.Surface.primary] in a
+ *   solid app; in a frosted app, frosted on the backdrop and the tint on a sheet. Inside a card it
+ *   draws no fill, so the card's rounded surface shows. Its text and slots lie on the strip or the
+ *   card ([ProvideAMOnSurface]), off any art around it, so the subtitle takes the surface's
+ *   secondary text ([AMTheme.secondaryText]). Stack rows with `AMDivider(inset = spacing.lg)`
+ *   between them.
  * - **Rhythm.** 28 dp above and below the content and 16 dp at the sides ([AMRowDefaults]): one
  *   line makes an 80 dp row, a title and subtitle a 100 dp row. Text wraps; the row grows.
  * - **Taps.** Without [onClick] the row only draws. With it, the row is a button with Material's
@@ -118,34 +122,49 @@ public fun AMListRow(
             },
         )
     CompositionLocalProvider(LocalAMRowActions provides null) {
+        // The strip stands where the row is placed, and the row's text lies on the strip, off any
+        // art around it. Material composes the slots inside the list item's own node, which carries
+        // the strip, so the slots and the colors they take go on the strip one by one.
+        val colors = readOnSurface { AMRowDefaults.colors() }
+        val leading = slotOnSurface(leadingContent)
+        val trailing = slotOnSurface(trailingContent)
+        val supporting = slotOnSurface(supportingContent)
+        val headline: @Composable () -> Unit = { ProvideAMOnSurface(content) }
         if (onClick == null) {
             ListItem(
                 modifier = rowModifier,
                 enabled = isEnabled,
-                leadingContent = leadingContent,
-                trailingContent = trailingContent,
-                supportingContent = supportingContent,
-                colors = AMRowDefaults.colors(),
+                leadingContent = leading,
+                trailingContent = trailing,
+                supportingContent = supporting,
+                colors = colors,
                 shapes = AMRowDefaults.shapes(),
                 contentPadding = AMRowDefaults.contentPadding,
-                content = content,
+                content = headline,
             )
         } else {
             ListItem(
                 onClick = onClick,
                 modifier = rowModifier,
                 enabled = isEnabled,
-                leadingContent = leadingContent,
-                trailingContent = trailingContent,
-                supportingContent = supportingContent,
-                colors = AMRowDefaults.colors(),
+                leadingContent = leading,
+                trailingContent = trailing,
+                supportingContent = supporting,
+                colors = colors,
                 shapes = AMRowDefaults.shapes(),
                 contentPadding = AMRowDefaults.contentPadding,
-                content = content,
+                content = headline,
             )
         }
     }
 }
+
+/**
+ * [slot] lying on the surface a row's own node carries (a list card's card, a flat row's strip):
+ * wrapped in [ProvideAMOnSurface], or null for none. The row's node stays where the row is placed.
+ */
+internal fun slotOnSurface(slot: (@Composable () -> Unit)?): (@Composable () -> Unit)? =
+    slot?.let { content -> @Composable { ProvideAMOnSurface(content) } }
 
 /**
  * Names a list item's tap for TalkBack: its click action carrying [label], so TalkBack says

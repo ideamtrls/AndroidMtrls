@@ -57,14 +57,16 @@ public fun AMTextEditor(
     inputTransformation: InputTransformation? = null,
     enabled: Boolean = true,
 ) {
+    val container = outlinedFieldContainer()
     OutlinedTextField(
         state = state,
-        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)),
+        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)).then(container.modifier),
         enabled = resolveEnabled(enabled),
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         inputTransformation = inputTransformation,
         keyboardOptions = SentenceKeyboard,
         lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = minLines, maxHeightInLines = maxLines),
+        colors = container.colors,
     )
 }

@@ -54,7 +54,7 @@ private class Swatch(val name: String, val color: Color, val note: String? = nul
 private fun ColorSwatches() {
     val scheme = MaterialTheme.colorScheme
     val swatches = listOf(
-        Swatch("Floating surface", AMTheme.Surface.primary, "Cards, buttons and sheets: white, then black"),
+        Swatch("Floating surface", AMTheme.Surface.primary, "Cards and buttons: white, then black"),
         Swatch("Page", AMTheme.Surface.page, "Behind them: gray, then off-black"),
         Swatch("Text", scheme.onSurface, glyph = true),
         Swatch("Secondary text", scheme.onSurfaceVariant, glyph = true),

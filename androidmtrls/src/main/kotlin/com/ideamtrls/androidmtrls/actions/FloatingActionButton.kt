@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -106,9 +105,10 @@ public fun rememberAMFloatingActionButtonState(): AMFloatingActionButtonState =
  * [AMScene], which opens the remote from it and fades it out of the way while any overlay is up;
  * a button placed by hand gets none of that.
  *
- * It wears the floating surface (white in light mode, black in dark mode), the circle's two-layer
- * shadow and a hairline in both modes, and it's always solid: the + stays obvious over any
- * backdrop. A tap ripples and calls [onClick].
+ * It wears the floating surface in the app's surface setting ([AMTheme.surfaceFill]) with the
+ * circle's two-layer shadow: in a solid app white in light mode and black in dark mode, with a
+ * hairline in both modes; in a frosted app frosted over the backdrop, with the frosted edge. A tap
+ * ripples and calls [onClick].
  *
  * **It always moves.** A long press (the system's long-press timeout) lifts it, with a haptic: it
  * grows a little and casts a deeper shadow. While lifted it follows the finger, and where it's let
@@ -202,13 +202,12 @@ public fun AMFloatingActionButton(
                     scaleX = scale
                     scaleY = scale
                 }
-                // The hairline below is drawn in both modes, so the surface's own dark-mode one is off.
+                // In the app's surface setting, outlined in both modes when it's solid.
                 .amElevatedSurface(
                     CircleShape,
                     if (lifted) AMElevation.Medium else AMElevation.Low,
-                    hairline = Color.Transparent,
+                    alwaysOutlined = true,
                 )
-                .amHairline(CircleShape)
                 .clip(CircleShape)
                 .indication(interactions, ripple()),
             contentAlignment = Alignment.Center,

@@ -41,7 +41,6 @@ import com.ideamtrls.androidmtrls.AMPanel
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMRemoteImageFallback
 import com.ideamtrls.androidmtrls.AMReorderableCardList
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
 import com.ideamtrls.androidmtrls.amFloatingActions
@@ -92,7 +91,7 @@ internal fun PhotosAlbums(model: PhotosModel) {
                         photosAlbumCountLabel(albums.size),
                         Modifier.padding(horizontal = spacing.lg),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AMTheme.secondaryText,
                     )
                     // The cards carry the page gutter as their own margins, so the list runs edge
                     // to edge; in the scrolling page it's as tall as its cards and scrolls with
@@ -121,7 +120,6 @@ private fun PhotosAlbumCard(model: PhotosModel, album: PhotosAlbum) {
     AMListCard(
         leadingContent = { PhotosAlbumCover(model.cover(album), 56.dp, MaterialTheme.shapes.small) },
         supportingContent = { Text(photosCountLabel(album.photoIds.size)) },
-        fill = AMSurfaceFill.Frosted,
         onClick = { model.openAlbum(album.id) },
     ) {
         Text(album.name)

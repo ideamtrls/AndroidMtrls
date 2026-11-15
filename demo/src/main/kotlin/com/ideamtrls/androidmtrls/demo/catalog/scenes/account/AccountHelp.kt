@@ -19,7 +19,7 @@ import com.ideamtrls.androidmtrls.AMDisclosureGroup
 import com.ideamtrls.androidmtrls.AMTheme
 
 /**
- * Margin's help, under the sheet's "Help" title: common account questions, each a card that folds
+ * The Scrollies help, under the sheet's "Help" title: common account questions, each a card that folds
  * open to its answer.
  */
 @Composable
@@ -37,7 +37,7 @@ internal fun AccountHelpSheet() {
                     Text(
                         answer,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AMTheme.secondaryText,
                     )
                 }
             }

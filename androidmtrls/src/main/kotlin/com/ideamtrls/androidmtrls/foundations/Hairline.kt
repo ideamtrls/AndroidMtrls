@@ -1,6 +1,5 @@
 package com.ideamtrls.androidmtrls
 
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -20,14 +19,13 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
-import androidx.compose.ui.node.DelegatableNode
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.currentValueOf
-import androidx.compose.ui.node.findNearestAncestor
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.requireGraphicsContext
 import androidx.compose.ui.platform.InspectorInfo
@@ -42,9 +40,10 @@ import kotlin.math.max
  * Modifier.background(AMTheme.Surface.primary, CircleShape).amHairline(CircleShape)
  * ```
  *
- * For outlines that always show: sheets, tiles, the floating action button, the banner, avatars.
- * Solid cards draw their own, in dark mode only, where the shadow alone can't lift black off the
- * page.
+ * For outlines that always show on a surface you draw yourself: avatars, a chosen item's ring.
+ * The library's floating surfaces draw their own: a solid card or button in dark mode only, where
+ * the shadow alone can't lift black off the page; the floating action button, the remote's tiles
+ * and the banner in both modes; a frosted one, and a sheet, its frosted edge.
  *
  * @param shape the outline's shape: the surface's own.
  * @param color the line's color. Unspecified (the default) draws [AMTheme.selectionRing] for the
@@ -126,50 +125,46 @@ internal fun DrawScope.drawInsetOutline(shape: Shape, color: Color, width: Dp) {
 private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.Dark else Style.SelectionRing.Light
 
 /**
- * Whether the content lies on a floating surface that isn't in its layout tree: a sheet's
- * [AMSheetSurface.Primary] or [AMSheetSurface.Frosted] surface, which is a window of its own, so a
- * control inside can't find it by looking up the tree. The sheet provides it to its content; an
- * overlay window's fresh context resets it. Read through [sitsOnPrimarySurface].
- */
-internal val LocalAMOnPrimarySurface = compositionLocalOf { false }
-
-/**
- * Whether a solid control at this node sits on a black floating surface in dark mode, where the
- * selection ring would vanish against the black around it, so its outline steps up to
- * [AMTheme.controlOutline]: inside a card (any [NestingSurfaceKey] node above it in the layout tree,
- * flat or not), or on a sheet that says so ([LocalAMOnPrimarySurface]).
+ * The elevated surface every floating surface wears (cards, filled buttons, toolbar chips, tiles,
+ * the floating action button, the banner), drawn around the content in one place so the recipe
+ * never drifts. Its look is the app's surface setting ([AMTheme.surfaceFill], read while it draws)
+ * and where the surface stands ([surfaceLook]): solid in a solid app; in a frosted app frosted on
+ * the backdrop and, embedded in another surface ([isEmbedded]), the tint, unless it's [lifted].
  *
- * Call it only while the node is attached (in measure, layout or draw).
- */
-internal fun <T> T.sitsOnPrimarySurface(): Boolean
-    where T : DelegatableNode, T : CompositionLocalConsumerModifierNode =
-    currentValueOf(LocalAMOnPrimarySurface) || findNearestAncestor(NestingSurfaceKey) != null
-
-/**
- * The elevated surface every floating surface wears (cards, filled buttons, toolbar buttons,
- * tiles, sheets), drawn around the content in one place so the recipe never drifts:
- *
- * - [AMSurfaceFill.Solid]: [elevation]'s shadow cast by [shape], the shape filled with
- *   [AMTheme.Surface.primary], the content, then in dark mode only a hairline, where the shadow
- *   alone can't lift black off the page.
- * - [AMSurfaceFill.Frosted]: the shadow outside the shape only (under glass it would show
- *   through), the nearest [AMBackdrop]'s art under the shape blurred by
- *   [AMTheme.Frosted.blurRadius], the frosted fill, the content, then the frosted edge in both
- *   modes. With no backdrop, or before the art is placed, it draws the solid surface instead,
- *   never unblurred translucency.
+ * - **Solid**: [elevation]'s shadow cast by [shape], the shape filled with
+ *   [AMTheme.Surface.primary], the content, then a hairline: in dark mode only, where the shadow
+ *   alone can't lift black off the page, or in both modes with [alwaysOutlined].
+ * - **Frosted**: the shadow outside the shape only (under frost it would show through), the
+ *   nearest [AMBackdrop]'s art under the shape blurred by [AMTheme.Frosted.blurRadius], the
+ *   frosted fill, the content, then the frosted edge in both modes. With no backdrop, or before
+ *   the art is placed, the page color takes the art's place under the fill: frost over the page,
+ *   opaque, never unblurred translucency. In a blurred window (the remote's, the spotlight's) the
+ *   window's own blur-behind is the blur: the fill lies straight over it and samples nothing, and
+ *   while the system has cross-window blur off the surface draws solid ([frostPath]).
+ * - **Tinted**: the shadow outside the shape only, [AMTheme.Frosted.embeddedFill] in the shape
+ *   with no blur of its own, the content, then the frosted edge. A [lifted] surface is never
+ *   tinted.
  *
  * It doesn't clip the content. Anything the content draws in its own background (a press wash)
  * sits above the fill.
  *
- * @param hairline the dark-mode outline of the solid fill. Unspecified draws
- *   [AMTheme.selectionRing]; a solid control on a black card or sheet passes [AMTheme.controlOutline].
+ * @param hairline the solid look's outline. Unspecified draws [AMTheme.selectionRing]; a solid
+ *   control inside a black card or on a sheet passes [AMTheme.controlOutline].
+ * @param alwaysOutlined whether the solid look's hairline shows in both modes, for a surface that
+ *   always carries one (the floating action button, a tile, the banner). Frosted and tinted
+ *   surfaces always draw the frosted edge.
+ * @param lifted whether the surface is lifted off what holds it and follows a drag over its
+ *   neighbors (a reorderable list's dragged row). It's never the tint, which would let the rows it
+ *   passes over show through: in a frosted app it's frosted as on the backdrop even inside a card
+ *   or on a sheet, over the art's slice under it or frost over the page color, opaque.
  */
 internal fun Modifier.amElevatedSurface(
     shape: Shape,
     elevation: AMElevation = AMElevation.Low,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = amElevatedSurface(shape, elevation.shadowLevel, fill, hairline)
+    alwaysOutlined: Boolean = false,
+    lifted: Boolean = false,
+): Modifier = amElevatedSurface(shape, elevation.shadowLevel, hairline, alwaysOutlined, lifted)
 
 /**
  * [amElevatedSurface] casting a row of the shadow table that no [AMElevation] names: a shadow
@@ -178,23 +173,26 @@ internal fun Modifier.amElevatedSurface(
 internal fun Modifier.amElevatedSurface(
     shape: Shape,
     shadow: ShadowLevel,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = this then ElevatedSurfaceElement(shape, shadow, fill, hairline)
+    alwaysOutlined: Boolean = false,
+    lifted: Boolean = false,
+): Modifier = this then ElevatedSurfaceElement(shape, shadow, hairline, alwaysOutlined, lifted)
 
 private data class ElevatedSurfaceElement(
     val shape: Shape,
     val shadow: ShadowLevel,
-    val fill: AMSurfaceFill,
     val hairline: Color,
+    val alwaysOutlined: Boolean,
+    val lifted: Boolean,
 ) : ModifierNodeElement<ElevatedSurfaceNode>() {
-    override fun create() = ElevatedSurfaceNode(shape, shadow, fill, hairline)
+    override fun create() = ElevatedSurfaceNode(shape, shadow, hairline, alwaysOutlined, lifted)
 
     override fun update(node: ElevatedSurfaceNode) {
         node.shape = shape
         node.shadow = shadow
-        node.fill = fill
         node.hairline = hairline
+        node.alwaysOutlined = alwaysOutlined
+        node.lifted = lifted
         node.invalidateDraw()
     }
 
@@ -202,16 +200,18 @@ private data class ElevatedSurfaceElement(
         name = "amElevatedSurface"
         properties["shape"] = shape
         properties["shadow"] = shadow
-        properties["fill"] = fill
         properties["hairline"] = hairline
+        properties["alwaysOutlined"] = alwaysOutlined
+        properties["lifted"] = lifted
     }
 }
 
 private class ElevatedSurfaceNode(
     var shape: Shape,
     var shadow: ShadowLevel,
-    var fill: AMSurfaceFill,
     var hairline: Color,
+    var alwaysOutlined: Boolean,
+    var lifted: Boolean,
 ) : Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -225,28 +225,39 @@ private class ElevatedSurfaceNode(
 
     // A frosted surface that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        val backdrop = if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null
-        if (surface.position(coordinates, backdrop)) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(look()))) invalidateDraw()
     }
 
-    override fun ContentDrawScope.draw() = with(surface) {
-        drawSurface(
-            context = requireGraphicsContext(),
-            shape = shape,
-            shadow = shadow,
-            fill = fill,
-            hairline = hairline,
-            dark = currentValueOf(LocalAMDarkTheme) ?: false,
-            backdrop = if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null,
-            clipContent = false,
-        )
+    override fun ContentDrawScope.draw() {
+        val look = look()
+        with(surface) {
+            drawSurface(
+                context = requireGraphicsContext(),
+                shape = shape,
+                shadow = shadow,
+                look = look,
+                hairline = hairline,
+                dark = currentValueOf(LocalAMDarkTheme) ?: false,
+                backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
+                clipContent = false,
+                alwaysOutlined = alwaysOutlined,
+            )
+        }
+    }
+
+    /** The look here ([lookOf]); lifted, as on the backdrop wherever it stands, so never the tint. */
+    private fun look(): SurfaceLook {
+        val fill = currentValueOf(LocalAMSurfaceFill)
+        return if (lifted) surfaceLook(fill, embedded = false) else lookOf(fill)
     }
 }
 
 /**
  * The elevated surface's drawing, shared by every node that wears it ([Modifier.amElevatedSurface],
- * the card, a filled button's surface): the shape's shadows, the frosted slice of the art, and where the surface sits. A node
- * owns one, attaches and detaches it with itself, reports its position, and draws through it.
+ * the card, a control's surface ([amControlSurface])): the shape's shadows, the frosted slice of
+ * the art, and where the surface sits. A node owns one, attaches and detaches it with itself,
+ * reports its position, and draws the look it resolves through it.
  */
 internal class ElevatedSurfaceDrawer {
     private val shadows = ShapeShadows()
@@ -280,83 +291,128 @@ internal class ElevatedSurfaceDrawer {
     }
 
     /**
-     * Draws the surface around the content: frosted over [backdrop] when there is one and its art
-     * is placed, solid otherwise. With [clipContent] the content is clipped to [shape].
+     * Draws the surface around the content in [look]: solid, in [solidFill] (the surface color when
+     * unspecified); frosted on the path [frostPath] gives it (over [backdrop]'s art, over the page
+     * color while there's no art to sample, over the blur of the blurred window it's in, or, in
+     * that window while [windowBlur] is false, solid); or tinted. With [clipContent] the content is
+     * clipped to [shape]; with [outline] false it draws no hairline or edge. A solid surface's
+     * [hairline] (the selection ring when unspecified) shows in dark mode only, or in both modes
+     * with [alwaysOutlined].
+     *
+     * @param windowBlur the blurred window's blur-behind here ([LocalAMWindowBlur]): null outside
+     *   a blurred window.
      */
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
         shape: Shape,
         shadow: ShadowLevel,
-        fill: AMSurfaceFill,
+        look: SurfaceLook,
         hairline: Color,
         dark: Boolean,
         backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
         clipContent: Boolean,
+        outline: Boolean = true,
+        alwaysOutlined: Boolean = false,
+        solidFill: Color = Color.Unspecified,
     ) {
-        val level = shadow
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
-
-        if (fill == AMSurfaceFill.Frosted && backdrop != null) {
-            clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, level, dark) }
-            val radius = Style.Frosted.BlurRadius.toPx()
-            if (slice.draw(this, path, backdrop, coordinates, radius)) {
-                drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
-                drawClippedContent(path, clipContent)
-                drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width)
-                return
+        val frost = frostPathOf(look, backdrop, windowBlur)
+        if (look == SurfaceLook.Solid || frost == FrostPath.Solid) {
+            shadows.draw(this, context, shape, shadow, dark)
+            drawPath(path, solidFill.takeOrElse { if (dark) Style.Surface.Dark else Style.Surface.Light })
+            drawClippedContent(path, clipContent)
+            if (outline && (dark || alwaysOutlined)) {
+                drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(dark), Style.Hairline.Width)
             }
-        } else {
-            shadows.draw(this, context, shape, level, dark)
+            return
         }
-
-        // Solid, and frosted with nothing to sample yet.
-        drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
+        // Under frost or the tint the shadow would show through, so it falls outside the shape only.
+        clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, shadow, dark) }
+        drawTranslucentFill(path, frost, dark)
         drawClippedContent(path, clipContent)
-        if (dark) drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(true), Style.Hairline.Width)
+        if (outline) drawInsetOutline(shape, frostedEdge(dark), Style.Hairline.Width)
     }
 
     /**
      * Draws one row's [frame] of a card around the content, for a card a lazy list draws a row at
-     * a time: the card at `frame.card`, drawn as [drawSurface] draws it with the content clipped
-     * to its shape, and shown only inside `frame.band`, so slices laid edge to edge make one card.
+     * a time: the card at `frame.card`, drawn in [look] as [drawSurface] draws it with the content
+     * clipped to its shape, and shown only inside `frame.band`, so slices laid edge to edge make
+     * one card.
      */
     fun ContentDrawScope.drawSurfaceSlice(
         context: GraphicsContext,
         frame: CardSlice,
         shape: Shape,
         shadow: ShadowLevel,
-        fill: AMSurfaceFill,
+        look: SurfaceLook,
         dark: Boolean,
         backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
+        outline: Boolean = true,
     ) {
         val card = frame.card
         val path = Path().apply {
             addOutline(shape.createOutline(card.size, layoutDirection, this@drawSurfaceSlice))
             translate(card.topLeft)
         }
+        val frost = frostPathOf(look, backdrop, windowBlur)
         val content = this
         // Draws in the card's own frame, at the card's size, so its shadows and edges are the card's.
         fun DrawScope.inCard(block: DrawScope.() -> Unit) =
             inset(card.left, card.top, size.width - card.right, size.height - card.bottom, block)
-        val art = backdrop?.takeIf { fill == AMSurfaceFill.Frosted }
         clipRect(frame.band.left, frame.band.top, frame.band.right, frame.band.bottom) {
-            if (art != null) {
-                clipPath(path, ClipOp.Difference) { inCard { shadows.draw(this, context, shape, shadow, dark) } }
-            } else {
+            if (look == SurfaceLook.Solid || frost == FrostPath.Solid) {
                 inCard { shadows.draw(this, context, shape, shadow, dark) }
-            }
-            if (art != null && slice.draw(this, path, art, coordinates, Style.Frosted.BlurRadius.toPx())) {
-                drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
-                clipPath(path) { content.drawContent() }
-                inCard { drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width) }
-            } else {
-                // Solid, and frosted with nothing to sample yet.
                 drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
                 clipPath(path) { content.drawContent() }
-                if (dark) inCard { drawInsetOutline(shape, selectionRing(true), Style.Hairline.Width) }
+                if (outline && dark) inCard { drawInsetOutline(shape, selectionRing(true), Style.Hairline.Width) }
+            } else {
+                clipPath(path, ClipOp.Difference) { inCard { shadows.draw(this, context, shape, shadow, dark) } }
+                drawTranslucentFill(path, frost, dark)
+                clipPath(path) { content.drawContent() }
+                if (outline) inCard { drawInsetOutline(shape, frostedEdge(dark), Style.Hairline.Width) }
             }
         }
     }
+
+    /**
+     * The path a surface of [look] frosts on ([frostPath]), or null when it isn't frosted. Outside
+     * a blurred window it places the slice of [backdrop]'s art under the surface first, so
+     * [FrostPath.Sampled] means the slice is ready to draw; in a blurred window it samples nothing.
+     */
+    private fun DrawScope.frostPathOf(
+        look: SurfaceLook,
+        backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
+    ): FrostPath? {
+        if (look != SurfaceLook.Frosted) return null
+        val placed = windowBlur == null && backdrop != null &&
+            slice.place(this, backdrop, coordinates, Style.Frosted.BlurRadius.toPx())
+        return frostPath(placed, windowBlur)
+    }
+
+    /**
+     * The fill of a frosted or tinted surface in [shape]: the tint when it isn't frosted ([frost]
+     * null); frosted, the frosted fill over the art's slice blurred, over the page color while
+     * there's no art to sample, or straight over a blurred window's blur, which the platform's
+     * blur-behind supplies.
+     */
+    private fun DrawScope.drawTranslucentFill(shape: Path, frost: FrostPath?, dark: Boolean) {
+        when (frost) {
+            null -> {
+                drawPath(shape, if (dark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight)
+                return
+            }
+            FrostPath.Sampled -> slice.drawPlaced(this, shape)
+            FrostPath.OverPage -> drawPath(shape, if (dark) Style.Page.Dark else Style.Page.Light)
+            // The window's blur-behind is already under it; a solid one draws the solid look instead.
+            FrostPath.OverWindowBlur, FrostPath.Solid -> Unit
+        }
+        drawPath(shape, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
+    }
+
+    private fun frostedEdge(dark: Boolean): Color = if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight
 
     private fun ContentDrawScope.drawClippedContent(shape: Path, clip: Boolean) {
         if (clip) {

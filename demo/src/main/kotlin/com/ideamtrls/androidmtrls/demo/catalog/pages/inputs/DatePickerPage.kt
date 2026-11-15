@@ -13,6 +13,7 @@ import com.ideamtrls.androidmtrls.AMDatePicker
 import com.ideamtrls.androidmtrls.AMDatePickerComponents
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -49,8 +50,9 @@ private fun StartsPicker() {
 }
 
 /**
- * A trip's dates: departure from today on, a return day no earlier than it, a wake-up time, and a
- * booking time that can't change.
+ * A trip's dates in a card: departure from today on, a return day no earlier than it, a wake-up
+ * time, and a booking time that can't change. The rows lie on the card, so their chips take the
+ * tint under the catalog's frosted surfaces.
  */
 @Composable
 private fun TripDates() {
@@ -59,29 +61,31 @@ private fun TripDates() {
     var alarm by rememberSaveable { mutableStateOf(tripDay(1, 6, 30)) }
     val inset = AMTheme.tokens.spacing.lg
     Column(Modifier.fillMaxWidth().amCard()) {
-        AMDatePicker(
-            "Departs",
-            departs,
-            onValueChange = { departs = it },
-            dateRange = LocalDate.now()..LocalDate.MAX,
-        )
-        AMDivider(inset = inset)
-        AMDatePicker(
-            "Returns",
-            returns,
-            onValueChange = { returns = it },
-            components = AMDatePickerComponents.Date,
-            dateRange = departs.toLocalDate()..LocalDate.MAX,
-        )
-        AMDivider(inset = inset)
-        AMDatePicker(
-            "Wake-up alarm",
-            alarm,
-            onValueChange = { alarm = it },
-            components = AMDatePickerComponents.Time,
-        )
-        AMDivider(inset = inset)
-        AMDatePicker("Booked", tripDay(-7, 20, 15), onValueChange = {}, enabled = false)
+        ProvideAMOnSurface {
+            AMDatePicker(
+                "Departs",
+                departs,
+                onValueChange = { departs = it },
+                dateRange = LocalDate.now()..LocalDate.MAX,
+            )
+            AMDivider(inset = inset)
+            AMDatePicker(
+                "Returns",
+                returns,
+                onValueChange = { returns = it },
+                components = AMDatePickerComponents.Date,
+                dateRange = departs.toLocalDate()..LocalDate.MAX,
+            )
+            AMDivider(inset = inset)
+            AMDatePicker(
+                "Wake-up alarm",
+                alarm,
+                onValueChange = { alarm = it },
+                components = AMDatePickerComponents.Time,
+            )
+            AMDivider(inset = inset)
+            AMDatePicker("Booked", tripDay(-7, 20, 15), onValueChange = {}, enabled = false)
+        }
     }
 }
 

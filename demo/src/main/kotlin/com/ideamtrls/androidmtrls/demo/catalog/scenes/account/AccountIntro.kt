@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -42,14 +43,14 @@ import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
  * The first screen and the signed-out landing view: the light/dark chip at the end of its top
- * bar, Margin's logo in the room, and the two ways in.
+ * bar, the Scrollies logo in the room, and the two ways in.
  */
 @Composable
 internal fun AccountIntro(model: AccountModel) {
     val spacing = AMTheme.tokens.spacing
     Scaffold(
         topBar = { AMToolbar(actions = { SceneAppearanceButton() }) },
-        containerColor = AMTheme.Surface.page,
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { padding ->
         Column(
@@ -83,8 +84,8 @@ internal fun AccountIntro(model: AccountModel) {
 }
 
 /**
- * The logo of Margin, a made-up read-later company: a serif M on a tile, with a notebook's red
- * margin rule down its start side, over the name. One heading for TalkBack, "Margin". The tile
+ * The logo of Scrollies, a made-up read-later company: a serif S on a tile, with a notebook's red
+ * margin rule down its start side, over the name. One heading for TalkBack, "Scrollies". The tile
  * grows with the text size, the way large type does.
  */
 @Composable
@@ -95,7 +96,7 @@ private fun AccountLogo() {
     val ink = MaterialTheme.colorScheme.onSurface
     Column(
         Modifier.clearAndSetSemantics {
-            contentDescription = "Margin"
+            contentDescription = "Scrollies"
             heading()
         },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -104,7 +105,7 @@ private fun AccountLogo() {
         Box(Modifier.size(side).clip(tile).background(ink)) {
             val letterSize = with(density) { (side * 0.56f).toSp() }
             Text(
-                "M",
+                "S",
                 Modifier.align(Alignment.Center).offset(x = side * 0.06f),
                 color = AMTheme.Surface.primary,
                 style = TextStyle(
@@ -125,7 +126,7 @@ private fun AccountLogo() {
             )
         }
         Text(
-            "Margin",
+            "Scrollies",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,

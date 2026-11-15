@@ -20,9 +20,8 @@ import com.ideamtrls.androidmtrls.AMIconButton
 import com.ideamtrls.androidmtrls.AMIconButtonSize
 import com.ideamtrls.androidmtrls.AMSlider
 import com.ideamtrls.androidmtrls.AMSliderDecoration
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import kotlin.math.max
 
@@ -31,7 +30,8 @@ import kotlin.math.max
  * then one row of Shuffle · Previous · Play/Pause · Next · Repeat. The Player places it with
  * [musicControlsPlacement], and the remote shows the same card as the first row of its grid; both
  * put its bottom edge in the same place, so opening the remote on the Player leaves the controls
- * where they were. In the remote's window there's no art to frost over, so there it's solid.
+ * where they were. In the remote's window there's no art to sample, so there it's frost over the
+ * window's own blur, and solid while the system has cross-window blur off.
  *
  * The scrubber is a slider row that brings its own gutter and the row recipe's room above and
  * below it; the title takes `spacing.lg` at its sides, and the transport row is centered. With
@@ -44,9 +44,9 @@ internal fun MusicControlsCard(model: MusicModel, modifier: Modifier = Modifier)
     Column(
         modifier
             .fillMaxWidth()
-            .amCard(fill = AMSurfaceFill.Frosted, padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
+            .amCard(padding = PaddingValues(top = spacing.lg, bottom = spacing.sm)),
     ) {
-        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+        ProvideAMOnSurface {
             MusicControlsHeading(track, model)
             MusicScrubber(track, model)
             MusicTransport(model)

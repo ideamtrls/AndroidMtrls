@@ -65,6 +65,22 @@ public fun AMScene(
     containerColor: Color = AMTheme.Surface.page,
     content: @Composable () -> Unit,
 ) {
+    SceneRoot(modifier, floatingActions, containerColor, sceneBackdrops = null, content)
+}
+
+/**
+ * The scene's root, [AMScene]'s body: the overlay registry, the window's banner and toast hosts,
+ * and the content with the remote over it. The roots form passes its [sceneBackdrops], so the
+ * scene's banners lie on the showing root's art while no backdrop is around the scene.
+ */
+@Composable
+private fun SceneRoot(
+    modifier: Modifier,
+    floatingActions: (@Composable () -> Unit)?,
+    containerColor: Color,
+    sceneBackdrops: AMSceneBackdrops?,
+    content: @Composable () -> Unit,
+) {
     val registry = remember { AMOverlayRegistry() }
     // Toasts clear the button's resting place: its height and its gap above the navigation bar.
     val toastClearance = if (floatingActions != null) {
@@ -76,7 +92,7 @@ public fun AMScene(
         LocalAMOverlayRegistry provides registry,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,
     ) {
-        AMBannerHost(modifier.fillMaxSize().background(containerColor)) {
+        BannerHost(modifier.fillMaxSize().background(containerColor), overScreen = false, sceneBackdrops = sceneBackdrops) {
             ToastHost(Modifier.fillMaxSize(), toastClearance) {
                 Box(Modifier.fillMaxSize(), propagateMinConstraints = true) {
                     content()
@@ -138,10 +154,17 @@ public fun AMScene(
  *   (so they report to its overlay registry and show in its hosts) and outside every root, so a
  *   switch of root never takes down an open sheet, nor cuts one sliding away. Overlays a single
  *   root owns can stay in that root.
- * - **Overlays lie on the showing root's art.** A frosted sheet in [overlays] samples the backdrop
- *   the showing root draws, the outermost [AMBackdrop] or [AMArtRowsBackdrop] of the root or of the
+ * - **Overlays lie on the showing root's art.** A sheet in [overlays] frosts the backdrop the
+ *   showing root draws, the outermost [AMBackdrop] or [AMArtRowsBackdrop] of the root or of the
  *   panel on top, and follows it as roots switch, panels come and go and the art changes. While
- *   the root draws none, it samples whatever backdrop is around the scene, or draws solid.
+ *   the root draws none, it samples whatever backdrop is around the scene, or with none it's frost
+ *   over the page color.
+ * - **The remote's button lies on art too.** In a scene inside an [AMBackdrop] it frosts that
+ *   backdrop's art. A scene with none, whose art is each page's own, lays it on the showing root's
+ *   art, as it does [overlays], so the frosted + blurs the page under it.
+ * - **So do the scene's banners.** The band behind a banner and the banner's card frost the same
+ *   art the + does: the backdrop around the scene, or with none the showing root's. Only the banner
+ *   layer lies on it; the roots keep their own backdrops.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -154,7 +177,8 @@ public fun AMScene(
  * @param landing the root the scene opens on, which back returns to before leaving the app.
  * @param onCurrentChange called with [landing] when back swaps to it. Apply it to [current].
  * @param modifier the scene's size and placement: usually the whole window.
- * @param floatingActions the remote's button and menu, an [AMFloatingActions]. Null shows none.
+ * @param floatingActions the remote's button and menu, an [AMFloatingActions], on the scene's
+ *   backdrop or, with none, on the showing root's art. Null shows none.
  * @param overlays what the whole scene presents over its roots, whichever is showing: its sheets,
  *   alerts, spotlight, loading overlay and toasts. Composed after the roots and before the remote,
  *   on the showing root's art. Null composes nothing.
@@ -178,7 +202,8 @@ public fun <T : Any> AMScene(
     content: @Composable (root: T) -> Unit,
 ) {
     val backdrops = remember { AMSceneBackdrops() }
-    AMScene(modifier, floatingActions, containerColor) {
+    val actions = floatingActions?.let { slot -> @Composable { SceneFloatingActions(backdrops, slot) } }
+    SceneRoot(modifier, actions, containerColor, backdrops) {
         CompositionLocalProvider(LocalAMSceneBackdrops provides backdrops) {
             AMKeepsPlace(current, landing, onCurrentChange, Modifier.fillMaxSize(), backStack, content)
         }
@@ -189,12 +214,26 @@ public fun <T : Any> AMScene(
 
 /**
  * The scene's overlays, on the art the showing root draws, or on the scene's own while it draws
- * none: frosted sheets among them sample it, from their own windows, by screen position.
+ * none: the sheets among them sample it, from their own windows, by screen position.
  */
 @Composable
 private fun SceneOverlays(backdrops: AMSceneBackdrops, overlays: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAMBackdrop provides (backdrops.showing ?: LocalAMBackdrop.current),
         content = overlays,
+    )
+}
+
+/**
+ * The scene's remote, on the backdrop around the scene, or, in a scene with none, on the art the
+ * showing root draws: its frosted button samples it in the scene's own window, by layout position.
+ * The scene's backdrop comes first because it lies still under the button while Navigation 3 fades
+ * and scales a root's pages.
+ */
+@Composable
+private fun SceneFloatingActions(backdrops: AMSceneBackdrops, floatingActions: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalAMBackdrop provides (LocalAMBackdrop.current ?: backdrops.showing),
+        content = floatingActions,
     )
 }

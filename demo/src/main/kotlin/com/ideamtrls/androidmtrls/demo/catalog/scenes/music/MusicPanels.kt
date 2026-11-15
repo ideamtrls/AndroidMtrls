@@ -45,9 +45,8 @@ import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMSectionHeader
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
@@ -153,7 +152,7 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
 /**
  * An album: its cover as an art card, Play and Shuffle, then its tracks in one frosted card, all
  * over its cover's art (the project photo's until the cover is read). The bar names the album over
- * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's glass samples
+ * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's frost samples
  * its art.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -193,8 +192,8 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 MusicPlayShuffleButtons(MusicQueueTarget.Album(album), model)
                 // Bare rows with inset dividers between them, in a frosted card that clips them,
                 // so the playing row's highlight rounds with it.
-                Column(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
-                    ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                Column(Modifier.fillMaxWidth().amCard()) {
+                    ProvideAMOnSurface {
                         tracks.forEachIndexed { index, track ->
                             if (index > 0) AMDivider(inset = spacing.lg)
                             MusicAlbumTrackRow(track, index, tracks, model)
@@ -265,9 +264,9 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
 private val MusicTrackNumberWidth = 28.dp
 
 /**
- * Play and Shuffle, frosted, in an [AMButtonPair]: Play plays [target] from its first song with
- * shuffle off, Shuffle with it on. Side by side at equal widths, or stacked when a label wouldn't
- * fit on one line at half the width.
+ * Play and Shuffle in an [AMButtonPair], in the scene's surface setting: Play plays [target] from
+ * its first song with shuffle off, Shuffle with it on. Side by side at equal widths, or stacked
+ * when a label wouldn't fit on one line at half the width.
  */
 @Composable
 private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel, modifier: Modifier = Modifier) {
@@ -279,7 +278,7 @@ private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel,
                 "Play",
                 onClick = { model.play(target, shuffled = false) },
                 icon = play,
-                style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
+                style = AMButtonStyle.Primary(),
             )
         },
         {
@@ -287,7 +286,7 @@ private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel,
                 "Shuffle",
                 onClick = { model.play(target, shuffled = true) },
                 icon = shuffle,
-                style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
+                style = AMButtonStyle.Secondary(),
             )
         },
         modifier,

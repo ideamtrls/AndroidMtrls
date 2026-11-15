@@ -12,18 +12,24 @@ display, collections) and the style values behind them. It has no app logic and 
 
 ## Two layers
 
-- **The native layer is Android's own.** Jetpack and Material 3 components keep their own shapes,
-  colors, type, motion and behavior: the Material type scale in the phone's font, a static Material
-  color scheme (never dynamic color), ripple, Android gestures, system and predictive back, edge to
-  edge, and saved and restored state.
+- **The native layer is Android's own.** Jetpack and Material 3 components keep Material's shapes,
+  outlines, type, motion and behavior: the Material type scale in the phone's font, ripple, Android
+  gestures, system and predictive back, edge to edge, and saved and restored state. Text and accent
+  colors come from a static Material color scheme (never dynamic color). The container colors of
+  Material's chips, fields, segmented buttons, date chips, snackbar and dialog follow the app's
+  surface setting.
 - **The style layer sits on top.** White and black floating surfaces on a tuned page, two-layer
   shadows and hairlines, cards, the remote (the floating action button and its tiles) as the app's
   main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color
-  under cards, frosted surfaces over art, folding, and quiet defaults.
-- **Where the line falls: stateless surfaces wear the style; stateful controls keep Material's
-  look.** Cards, buttons, sheets, tiles and the floating action button get the floating surface,
-  the shadow and the hairline. Switches, sliders, chips, text fields and pickers keep Material's
-  shapes and colors. When in doubt, the library leans Android.
+  under cards, folding, and quiet defaults. The screen is a backdrop layer (always frosty) and a surface
+  layer on it, solid or frosted by one setting, `AMTheme(surfaceFill = …)`.
+- **Where the line falls: stateless surfaces wear the style; native controls keep Material's
+  shapes, outlines and behavior and take the model's container colors.** Cards, buttons, tiles and
+  the floating action button get the floating surface, the shadow and the hairline; sheets get a
+  frosted background in either setting. Text fields, pickers, chips and segmented controls take
+  container colors from the app's surface setting (solid, frosted or the tint), a selected chip
+  takes `primary`, and switches, sliders and stepper buttons keep their own colors. When in doubt,
+  the library leans Android.
 
 ## What's in it
 
@@ -32,7 +38,7 @@ the one package.
 
 | Area | Main components |
 |---|---|
-| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frosted glass over art), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
+| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frost over art), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
 | `actions` | `AMButton` and `AMButtonStyle`, `AMIconButton`, `AMCardButton`, `AMFloatingActionButton`, `AMFloatingActions` (the remote), `AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`, `AMFormActions`, `AMCardActionRow` |
 | `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
 | `selection` | `AMSegmentedControl`, `AMMenuPicker`, `AMChipGroup`, `AMFlowLayout`, `AMCalendar`, `AMSelectionMark` and `Modifier.amSelectionCheck` |

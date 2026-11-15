@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * The style layer's raw values: the page, the floating surfaces, their shadows and outlines,
- * the frosted recipe, the remote's tile height and the modal overlay recipe.
+ * the frosted recipe, the quiet chip, the remote's tile height and the modal overlay recipe.
  *
  * These values are tuned, and this is the one place each lives. [AMTheme] and [AMElevation] are
  * the public way to read them; no component keeps a literal of its own instead.
@@ -24,9 +24,9 @@ internal object Style {
     }
 
     /**
-     * The floating surface: pure white in light mode, pure black in dark mode. Cards, filled
-     * buttons, sheets, tiles, the floating action button and the banner fill with it. Its
-     * tonal elevation is always 0; it lifts by shadow, never by tint.
+     * The floating surface: pure white in light mode, pure black in dark mode. Solid cards, filled
+     * buttons, tiles, the floating action button and the banner fill with it. Its tonal elevation
+     * is always 0; it lifts by shadow, never by tint.
      */
     object Surface {
         val Light = Color.White
@@ -34,17 +34,19 @@ internal object Style {
     }
 
     /**
-     * Text lying on art whose tone isn't the mode's (an app's lowered wash, sharp art, a scrim over
-     * a photo). On art in the mode's tone, text takes the scheme's own colors instead.
+     * Text lying on art takes a fixed ink by the art's tone, in either mode: white and a light gray
+     * on dark art, black and a dark gray on light art. They hold over the brightest dark art
+     * ([DarkArtCeiling]) at 8.42:1 and 5.54:1, and over the darkest light art ([LightArtGround])
+     * at 9.98:1 and 6.62:1.
      */
     object ArtInk {
-        /** On dark art in light mode: white, and a light gray for secondary text. */
+        /** On dark art: white, and a light gray for secondary text. */
         val OnDark = Color.White
         val OnDarkSecondary = Color(0xFFD1D1D6)
 
-        /** On light art in dark mode: near-black, and a dark gray for secondary text. */
-        val OnLight = Color(0xFF1C1C1E)
-        val OnLightSecondary = Color(0xFF48484A)
+        /** On light art: black, and a dark gray for secondary text. */
+        val OnLight = Color.Black
+        val OnLightSecondary = Color(0xFF2C2C2E)
 
         /**
          * The darkest the library's light-mode art gets at the default wash, as relative
@@ -89,8 +91,8 @@ internal object Style {
         )
 
         /**
-         * A solid toolbar button: [Low] fitted inside a top app bar's row. Material clips each of
-         * a bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
+         * A toolbar chip: [Low] fitted inside a top app bar's row. Material clips each of a
+         * bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
          * circle, where [Low]'s far layer would be cut into a hard edge. So the near layer stays
          * and the far layer is tight enough to have faded out (under 1 %) at the row's edge.
          */
@@ -144,9 +146,9 @@ internal object Style {
     }
 
     /**
-     * The dark-mode outline of a solid control inside a black card or sheet, a step brighter than
-     * the selection ring so the control still reads as raised. Light mode draws no outline; the
-     * light value matches the selection ring.
+     * The dark-mode outline of a solid control inside a black card or on a sheet, a step brighter
+     * than the selection ring so the control still reads as raised. Light mode draws no outline;
+     * the light value matches the selection ring.
      */
     object ControlOutline {
         val Light = Color(0xFFC7C7CC)
@@ -154,29 +156,53 @@ internal object Style {
     }
 
     /**
-     * The frosted surface over art: a pure Gaussian blur of what's behind, under a translucent
-     * surface fill, with a light edge in both modes. Where there's nothing to blur it draws the
-     * solid surface, never unblurred translucency.
+     * The frosted surface: a pure Gaussian blur of the art behind, under a translucent surface
+     * fill, with a light edge in both modes. With no art to blur it lies over the page color
+     * instead (frost over a flat color is that color made translucent), never over unblurred
+     * content. A piece embedded in a frosted surface draws the tint, with no blur of its own.
      */
     object Frosted {
         /** The fill over the blur: the surface color, translucent. */
         val FillLight = Color.White.copy(alpha = 0.6f)
         val FillDark = Color.Black.copy(alpha = 0.5f)
 
-        /** The outline, in place of the solid surface's dark-mode hairline. */
+        /**
+         * The tint an embedded piece draws over the frost it sits on (a card on a sheet, a button
+         * in a card): the surface color, translucent, with no blur of its own.
+         */
+        val EmbeddedFillLight = Color.White.copy(alpha = 0.6f)
+        val EmbeddedFillDark = Color.Black.copy(alpha = 0.5f)
+
+        /** The outline of frost and of the tint, in place of the solid surface's dark-mode hairline. */
         val EdgeLight = Color.White.copy(alpha = 0.6f)
         val EdgeDark = Color.White.copy(alpha = 0.15f)
 
-        /** A lifted row on the glass, over its fill. */
+        /** A lifted row on frost, over its fill. */
         val HighlightLight = Color.White.copy(alpha = 0.5f)
         val HighlightDark = Color.White.copy(alpha = 0.12f)
 
-        /** Secondary text on the glass, which holds its contrast over the tint. */
+        /**
+         * Secondary text on frost, on the tint and on a sheet: it holds 4.5:1 on frost over the
+         * library's washed art, on the tint over that frost, on frost over the page, and on frost
+         * over a blurred window's wash.
+         */
         val SecondaryTextLight = Color(0xFF2C2C2E)
         val SecondaryTextDark = Color(0xFFD1D1D6)
 
         /** The blur under the fill, as Android's blur radius: a Gaussian sigma of about 24. */
         val BlurRadius = 40.dp
+    }
+
+    /**
+     * A chip group's unselected chip in a solid app: an opaque gray one step off the page, away
+     * from the surface (the page is `#F2F2F7` / `#141416`), so the chip reads on the page, on a
+     * white or black card and on a sheet's frost alike, and stays quieter than a chosen chip's
+     * `primary`. Its label (`onSurfaceVariant`) holds 7.44:1 on it in light mode and 8.17:1 in
+     * dark mode. In a frosted app the chip is frost or the tint instead.
+     */
+    object Chip {
+        val QuietFillLight = Color(0xFFE5E5EA)
+        val QuietFillDark = Color(0xFF2C2C2E)
     }
 
     /**
@@ -209,8 +235,8 @@ internal object Style {
 
         /**
          * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode.
-         * Over sharp black art, `onSurface` (the spotlight's title) holds 5.99:1 in light mode;
-         * over sharp white art, 5.38:1 in dark mode. The blur only evens the screen out, so the
+         * Over sharp black art, the spotlight's title (the tone's fixed ink) holds 7.36:1 in light
+         * mode; over sharp white art, 7.00:1 in dark mode. The blur only evens the screen out, so the
          * wash holds alone where the system has cross-window blur off.
          */
         val WashLight = Color.White.copy(alpha = 0.6f)

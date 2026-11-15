@@ -60,6 +60,13 @@ private val AMTagTint.containerColor: Color
 private val AMTagTint.contentColor: Color
     @Composable @ReadOnlyComposable get() = semantic?.onContainerColor ?: MaterialTheme.colorScheme.onSurface
 
+/**
+ * A tag's color in a frosted app: [container] at the frosted fill's alpha, so the frost or the
+ * tint under the pill shows through and the label holds on both.
+ */
+internal fun frostedTagFill(container: Color, dark: Boolean): Color =
+    container.copy(alpha = (if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight).alpha)
+
 /** The glyph before a tag's label: small beside `labelMedium`. */
 private val TagIconSize = 16.dp
 
@@ -75,6 +82,9 @@ private val TagIconSize = 16.dp
  * - **Colors.** [AMTagTint.Neutral] is on-surface text on the scheme's highest surface
  *   container; the four status tints take their [AMSemantic] role's container and on-container
  *   colors, the same colors a banner of that role uses.
+ * - **Frosted app.** In a frosted app ([AMTheme.surfaceFill]) the pill is a frosted surface with
+ *   its light edge, under the tint's color at the frosted fill's alpha: on the backdrop it is a
+ *   frosted pill, embedded it is the color over the tint.
  * - **One line.** The label never wraps: in a tight row, the text beside it wraps instead. A
  *   row of several tags wraps itself: put them in an [AMFlowLayout].
  * - **Shape.** A full pill, `labelMedium` type, padded `spacing.sm` at the sides and `spacing.xs`
@@ -124,8 +134,16 @@ public fun AMTag(
     Row(
         modifier
             .semantics(mergeDescendants = true) {}
-            .clip(CircleShape)
-            .background(tint.containerColor)
+            .then(
+                if (AMTheme.surfaceFill == AMSurfaceFill.Frosted) {
+                    Modifier
+                        .amControlSurface(CircleShape, AMElevation.None)
+                        .clip(CircleShape)
+                        .background(frostedTagFill(tint.containerColor, AMTheme.isDark))
+                } else {
+                    Modifier.clip(CircleShape).background(tint.containerColor)
+                },
+            )
             .padding(horizontal = spacing.sm, vertical = spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(spacing.xs),
         verticalAlignment = Alignment.CenterVertically,

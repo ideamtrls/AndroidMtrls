@@ -1,6 +1,5 @@
 package com.ideamtrls.androidmtrls
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
@@ -242,7 +241,7 @@ private class GlyphShadowNode(var level: ShadowLevel, var tint: Color, var art: 
         art?.let { art ->
             val tone = art.tone ?: currentValueOf(LocalAMArtTone) ?: artToneOf(dark)
             level = artInkShadow(tone)
-            tint = artInk(tone, dark, currentValueOf(MaterialTheme.LocalMaterialTheme).colorScheme, art.secondary)
+            tint = artInk(tone, art.secondary)
         }
         glyphs.colorFilter = if (tint.isSpecified) ColorFilter.tint(tint, BlendMode.SrcIn) else null
         glyphs.record { this@draw.drawContent() }

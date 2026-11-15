@@ -22,7 +22,7 @@ import kotlin.math.min
 /**
  * A label and its value on one row: Material's `ListItem` at the row recipe's rhythm, [label] at
  * the start in `bodyLarge` and [value] at the end in `bodyLarge` and the surface's secondary
- * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on glass), read as
+ * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on frost), read as
  * a value rather than as a list item's small trailing note.
  *
  * ```kotlin
@@ -40,9 +40,11 @@ import kotlin.math.min
  * Neither ever breaks inside a word. Values wrap onto lines aligned to the end, and the two line up
  * on their first lines.
  *
- * The row only shows; it takes no taps. Like [AMListRow] it fills itself with
- * [AMTheme.Surface.primary] standing on the page and draws no fill inside a card. A screen reader
- * reads the label and the value together.
+ * The row only shows; it takes no taps. Like [AMListRow] it fills itself with the app's surface
+ * standing on its own ([AMTheme.Surface.primary] in a solid app; in a frosted app, frosted on the
+ * backdrop and the tint on a sheet) and draws no fill inside a card; the label and the value lie
+ * on the strip or the card ([ProvideAMOnSurface]). A screen reader reads the label and the value
+ * together.
  *
  * @param label what the value is.
  * @param value the value.
@@ -79,13 +81,15 @@ public fun AMLabeledContent(
         .amFlatSurface()
         .then(claimRowActions())
     CompositionLocalProvider(LocalAMRowActions provides null) {
+        // The strip stands where the row is placed; the label and the value lie on it, off any art
+        // around it, so the value takes the strip's secondary text.
         ListItem(
             modifier = rowModifier,
-            colors = AMRowDefaults.colors(),
+            colors = readOnSurface { AMRowDefaults.colors() },
             shapes = AMRowDefaults.shapes(),
             contentPadding = AMRowDefaults.contentPadding,
         ) {
-            LabeledContentLayout(label, value)
+            ProvideAMOnSurface { LabeledContentLayout(label, value) }
         }
     }
 }

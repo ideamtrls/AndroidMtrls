@@ -14,15 +14,15 @@ import com.ideamtrls.androidmtrls.AMListRow
 import com.ideamtrls.androidmtrls.AMReorderableRowList
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSheet
-import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
- * The Queue sheet, frosted like the scene's cards (glass over the art of the screen it opens on),
- * titled "Queue". It's one of the scene's overlays, so its glass samples the art of whichever page
- * shows (the Player, or the Artists stack's page on top), and a switch of root never cuts it.
+ * The Queue sheet, frost over the art of the screen it opens on, titled "Queue". It's one of the
+ * scene's overlays, so its frost samples the art of whichever page shows (the Player, or the
+ * Artists stack's page on top), and a switch of root never cuts it.
  */
 @Composable
 internal fun MusicQueueSheet(model: MusicModel) {
@@ -30,7 +30,6 @@ internal fun MusicQueueSheet(model: MusicModel) {
         model.showingQueue,
         onDismissRequest = { model.showingQueue = false },
         title = "Queue",
-        surface = AMSheetSurface.Frosted,
     ) {
         MusicQueueCard(model)
     }
@@ -56,25 +55,27 @@ private fun ColumnScope.MusicQueueCard(model: MusicModel) {
             .fillMaxWidth()
             .amCard(),
     ) {
-        model.currentTrack?.let { MusicNowPlayingRow(it, model) }
-        if (upNext.isNotEmpty()) {
-            AMReorderableRowList(
-                upNext,
-                key = { it.id },
-                onMove = model::moveUpNext,
-                modifier = Modifier.weight(1f, fill = false),
-                endAction = { entry ->
-                    AMSwipeAction("Remove", removeIcon, AMSemantic.Destructive, removesRow = true) {
-                        model.removeFromQueue(entry.id)
-                    }
-                },
-            ) { entry ->
-                val track = entry.track
-                AMListRow(
-                    track.title,
-                    subtitle = model.catalog.album(track.albumId)?.title,
-                    leadingContent = { MusicThumb(track.coverUrl, model.cover(track.albumId)) },
-                )
+        ProvideAMOnSurface {
+            model.currentTrack?.let { MusicNowPlayingRow(it, model) }
+            if (upNext.isNotEmpty()) {
+                AMReorderableRowList(
+                    upNext,
+                    key = { it.id },
+                    onMove = model::moveUpNext,
+                    modifier = Modifier.weight(1f, fill = false),
+                    endAction = { entry ->
+                        AMSwipeAction("Remove", removeIcon, AMSemantic.Destructive, removesRow = true) {
+                            model.removeFromQueue(entry.id)
+                        }
+                    },
+                ) { entry ->
+                    val track = entry.track
+                    AMListRow(
+                        track.title,
+                        subtitle = model.catalog.album(track.albumId)?.title,
+                        leadingContent = { MusicThumb(track.coverUrl, model.cover(track.albumId)) },
+                    )
+                }
             }
         }
     }

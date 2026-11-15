@@ -33,11 +33,12 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
 import kotlin.math.roundToInt
 
-// App-wide inspection settings: appearance, text size, layout direction. Persisted in
+// App-wide inspection settings: appearance, surfaces, text size, layout direction. Persisted in
 // SharedPreferences, edited from `InspectionMenu` (in the list's and every page's top app bar) and
 // the scenes' `SceneAppearanceButton`, and applied once at the root by `InspectionRoot`. Only those,
 // and the activity for its bar icons, read them, so a change re-renders those and whatever depends
@@ -47,6 +48,12 @@ internal enum class InspectionAppearance(val title: String, @param:DrawableRes v
     System("System", R.drawable.ic_contrast),
     Light("Light", R.drawable.ic_light_mode),
     Dark("Dark", R.drawable.ic_dark_mode),
+}
+
+/** The app's surface setting the catalog applies: solid surfaces, or frosted ones. */
+internal enum class InspectionSurfaces(val title: String, val fill: AMSurfaceFill) {
+    Solid("Solid", AMSurfaceFill.Solid),
+    Frosted("Frosted", AMSurfaceFill.Frosted),
 }
 
 /** System, or one of the font scales the system's own font size setting offers. */
@@ -75,6 +82,7 @@ internal enum class InspectionLayoutDirection(val title: String, val layoutDirec
 @Stable
 internal class Inspection(private val prefs: SharedPreferences) {
     private var storedAppearance by mutableStateOf(load(KeyAppearance, InspectionAppearance.System))
+    private var storedSurfaces by mutableStateOf(load(KeySurfaces, InspectionSurfaces.Solid))
     private var storedTextSize by mutableStateOf(load(KeyTextSize, InspectionTextSize.System))
     private var storedLayoutDirection by mutableStateOf(load(KeyLayoutDirection, InspectionLayoutDirection.Ltr))
 
@@ -83,6 +91,13 @@ internal class Inspection(private val prefs: SharedPreferences) {
         set(value) {
             storedAppearance = value
             prefs.edit { putString(KeyAppearance, value.name) }
+        }
+
+    var surfaces: InspectionSurfaces
+        get() = storedSurfaces
+        set(value) {
+            storedSurfaces = value
+            prefs.edit { putString(KeySurfaces, value.name) }
         }
 
     var textSize: InspectionTextSize
@@ -102,6 +117,9 @@ internal class Inspection(private val prefs: SharedPreferences) {
     val appliedAppearance: InspectionAppearance
         get() = LaunchOptions.appearance ?: appearance
 
+    val appliedSurfaces: InspectionSurfaces
+        get() = LaunchOptions.surfaces ?: surfaces
+
     /** The font scale to apply, or null to keep the system's. */
     val appliedFontScale: Float?
         get() = LaunchOptions.fontScale ?: textSize.fontScale
@@ -115,11 +133,13 @@ internal class Inspection(private val prefs: SharedPreferences) {
 
     val isDefault: Boolean
         get() = appliedAppearance == InspectionAppearance.System &&
+            appliedSurfaces == InspectionSurfaces.Solid &&
             appliedFontScale == null &&
             appliedLayoutDirection == InspectionLayoutDirection.Ltr
 
     fun reset() {
         appearance = InspectionAppearance.System
+        surfaces = InspectionSurfaces.Solid
         textSize = InspectionTextSize.System
         layoutDirection = InspectionLayoutDirection.Ltr
     }
@@ -129,6 +149,7 @@ internal class Inspection(private val prefs: SharedPreferences) {
 
     private companion object {
         const val KeyAppearance = "appearance"
+        const val KeySurfaces = "surfaces"
         const val KeyTextSize = "textSize"
         const val KeyLayoutDirection = "layoutDirection"
     }
@@ -147,7 +168,8 @@ internal val LocalInspection = staticCompositionLocalOf<Inspection> { error("Ins
 
 /**
  * Applies the inspection settings to everything below it: the appearance through [AMTheme]'s dark
- * flag (which every style color follows), the text size through [LocalDensity]'s font scale (with the platform's nonlinear scaling),
+ * flag (which every style color follows), the surfaces through its surface fill (a scene root's
+ * own frosted setting holds inside it), the text size through [LocalDensity]'s font scale (with the platform's nonlinear scaling),
  * and the layout direction through [LocalLayoutDirection]. Attach it once, at the root. The tree
  * below keeps its shape whatever the settings, so changing one never resets the screen's state.
  */
@@ -165,7 +187,7 @@ internal fun InspectionRoot(inspection: Inspection, content: @Composable () -> U
             Density(context.createConfigurationContext(scaled))
         }
     }
-    AMTheme(darkTheme = inspection.isDark()) {
+    AMTheme(darkTheme = inspection.isDark(), surfaceFill = inspection.appliedSurfaces.fill) {
         CompositionLocalProvider(
             LocalInspection provides inspection,
             LocalDensity provides density,
@@ -179,7 +201,7 @@ private enum class InspectionMenuPage { Main, TextSize, LayoutDirection }
 
 /**
  * The top app bar action that edits the inspection settings: an eye, filled while anything is off
- * its default. Appearance picks inline; text size and layout direction open their own lists in
+ * its default. Appearance and surfaces pick inline; text size and layout direction open their own lists in
  * the same menu. The list's top app bar and every page's carry it ([ComponentPage] does this for
  * you); the scenes carry [SceneAppearanceButton] instead.
  */
@@ -207,6 +229,15 @@ internal fun InspectionMenu() {
                             icon = option.icon,
                             selected = option == inspection.appliedAppearance,
                             onClick = { inspection.appearance = option; close() },
+                        )
+                    }
+                    HorizontalDivider()
+                    MenuLabel("Surfaces")
+                    InspectionSurfaces.entries.forEach { option ->
+                        OptionItem(
+                            title = option.title,
+                            selected = option == inspection.appliedSurfaces,
+                            onClick = { inspection.surfaces = option; close() },
                         )
                     }
                     HorizontalDivider()

@@ -37,22 +37,27 @@ import androidx.compose.ui.Modifier
  *
  * For a held item, the item form ([AMSpotlight] taking `item`) is usually handier.
  *
- * - **Where it sits**: low on the screen, where the remote's tiles sit. [content] lies on one solid
- *   card at the page gutters, an optional [title] above it in the section header's look over art
- *   (`onSurface`, which holds over the window's wash), and an
+ * - **Where it sits**: low on the screen, where the remote's tiles sit. [content] lies on one card
+ *   at the page gutters, an optional [title] above it in the section header's look over art
+ *   (the tone's fixed ink, which holds over the window's wash), and an
  *   optional row of tiles ([actions]) below it at the action grid's insets. When the card is taller
  *   than the room above the tiles (large text, a long list), it scrolls.
- * - **Always solid**: the card and the tiles are opaque whatever the screen behind uses, so a
- *   frosted card or a translucent row comes up as the clearest thing on the screen. A card the
- *   content brings nests in the spotlight's and draws nothing. Give [content] its own padding (a row
- *   on the row recipe brings its own); the card hugs the content's width and centers, so a
- *   full-width row fills the gutters and a narrower picker sits in the middle.
+ * - **The app's surface setting**: the card and the tiles follow [AMTheme.surfaceFill], whatever
+ *   the item was on the screen behind. In a solid app they're solid. In a frosted app they're frost
+ *   over the window's own blur, sampling nothing, and solid while the system has cross-window blur
+ *   off. For a moment after cross-window blur comes back the platform's blur lags, and a faint
+ *   ghost of the sharp screen shows through the frost while text on it still holds. [content]
+ *   lies on the card ([ProvideAMOnSurface]): its secondary text resolves from the card, and in a
+ *   frosted app a control with its own shape inside draws the tint. A card the content brings
+ *   nests in the spotlight's and draws nothing. Give [content] its own padding (a row on the row
+ *   recipe brings its own); the card hugs the content's width and centers, so a full-width row
+ *   fills the gutters and a narrower picker sits in the middle.
  * - **Its shadow**: the card casts the low shadow by default. An app whose cards are flat passes
- *   [AMElevation.None], so the card in focus keeps its fill, corners and dark-mode hairline but
- *   casts nothing, like the cards it came from; the tiles keep theirs, as the remote's do.
+ *   [AMElevation.None], so the card in focus keeps its fill, corners and outline but casts
+ *   nothing, like the cards it came from; the tiles keep theirs, as the remote's do.
  * - **A window**: like the actions overlay, it covers the whole screen from wherever it's called,
- *   sheets included, blurs what's behind (a dim where the system has cross-window blur off), fades
- *   with Material's motion and takes back first.
+ *   sheets included, blurs what's behind under the mode's wash (the wash alone where the system has
+ *   cross-window blur off), fades with Material's motion and takes back first.
  * - **Dismissal**: back, and a tap on the blur, call [onDismissRequest]. Nothing underneath
  *   changes unless a tile acts; each tile should hide the spotlight too. A picker that applies its
  *   value as it changes stays up until a tap outside; a menu closes when an option is picked.
@@ -277,7 +282,9 @@ private fun SpotlightLayout(
                 .padding(horizontal = spacing.lg),
             contentAlignment = Alignment.Center,
         ) {
-            Box(Modifier.amCard(elevation = elevation).verticalScroll(rememberScrollState())) { content() }
+            Box(Modifier.amCard(elevation = elevation).verticalScroll(rememberScrollState())) {
+                ProvideAMOnSurface(content)
+            }
         }
         if (actions != null) {
             Box(Modifier.fillMaxWidth().padding(horizontal = spacing.lg)) { actions() }

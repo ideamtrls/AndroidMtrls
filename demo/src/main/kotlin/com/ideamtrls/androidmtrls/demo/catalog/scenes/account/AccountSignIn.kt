@@ -25,6 +25,7 @@ import com.ideamtrls.androidmtrls.AMFormActions
 import com.ideamtrls.androidmtrls.AMSecureField
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /** The email keyboard: no capitals, no autocorrection. */
@@ -53,17 +54,19 @@ internal fun AccountSignIn(model: AccountModel, mode: AccountPhase) {
                 Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
-                AMTextField(
-                    model.email,
-                    label = "Email",
-                    keyboardOptions = AccountEmailKeyboard.copy(imeAction = ImeAction.Next),
-                )
-                AMSecureField(
-                    model.password,
-                    label = if (signsIn) "Password" else "Create a password",
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    onKeyboardAction = { model.submitCredentials() },
-                )
+                ProvideAMOnSurface {
+                    AMTextField(
+                        model.email,
+                        label = "Email",
+                        keyboardOptions = AccountEmailKeyboard.copy(imeAction = ImeAction.Next),
+                    )
+                    AMSecureField(
+                        model.password,
+                        label = if (signsIn) "Password" else "Create a password",
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        onKeyboardAction = { model.submitCredentials() },
+                    )
+                }
             }
             AMButton(
                 if (signsIn) "Sign in" else "Continue",
@@ -116,16 +119,18 @@ internal fun AccountForgotPasswordSheet(model: AccountModel) {
             "Enter the email on your account and we'll send a link to choose a new password.",
             Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AMTheme.secondaryText,
             textAlign = TextAlign.Center,
         )
         Box(Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
-            AMTextField(
-                email,
-                label = "Email",
-                keyboardOptions = AccountEmailKeyboard.copy(imeAction = ImeAction.Send),
-                onKeyboardAction = { send() },
-            )
+            ProvideAMOnSurface {
+                AMTextField(
+                    email,
+                    label = "Email",
+                    keyboardOptions = AccountEmailKeyboard.copy(imeAction = ImeAction.Send),
+                    onKeyboardAction = { send() },
+                )
+            }
         }
         AMFormActions {
             AMButton("Send link", onClick = send, enabled = canSend)

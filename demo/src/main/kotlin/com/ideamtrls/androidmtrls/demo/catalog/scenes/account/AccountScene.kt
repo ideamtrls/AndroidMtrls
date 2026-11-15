@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.navigationevent.NavigationEventInfo
@@ -40,6 +41,7 @@ import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMAlert
 import com.ideamtrls.androidmtrls.AMAlertAction
 import com.ideamtrls.androidmtrls.AMAlertItem
+import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMBanner
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMKeepsPlace
@@ -48,9 +50,11 @@ import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSheetHeight
+import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.AMToolbarButton
+import com.ideamtrls.androidmtrls.amArtBackdrop
 import com.ideamtrls.androidmtrls.amCrossfade
 import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amInstantSwitch
@@ -68,10 +72,10 @@ internal val AccountSceneEntry = ComponentEntry(
 ) { AccountScene() }
 
 /**
- * Account: onboarding, sign-in and settings for Margin, a read-later app. One [AccountModel] owns
+ * Account: onboarding, sign-in and settings for Scrollies, a read-later app. One [AccountModel] owns
  * the flow and every overlay. Signed out, the phases (intro, credentials, two-factor, setup) fade
- * in place inside the plain [AMScene]; signed in, Profile and Settings are the roots of an
- * [AMKeepsPlace], which the remote swaps instantly. Nothing pushes.
+ * in place inside the plain [AMScene] on its transparent container; signed in, Profile and Settings
+ * are the roots of an [AMKeepsPlace], which the remote swaps instantly. Nothing pushes.
  */
 @Composable
 internal fun AccountScene() {
@@ -84,24 +88,45 @@ internal fun AccountScene() {
     // Leaving the scene abandons whatever is still running, so nothing lands after it's gone.
     DisposableEffect(model) { onDispose { model.cancelPendingWork() } }
 
-    AMScene(
-        floatingActions = {
-            AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
-                AccountRemote(
-                    model,
-                    onClose = { showsRemote = false },
-                    onExit = {
-                        showsRemote = false
-                        model.cancelPendingWork()
-                        navigator.back()
-                    },
-                )
+    // The app is frosted, from its root, over the backdrop it sits on.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMBackdrop(art = { AccountBackdrop() }, Modifier.fillMaxSize()) {
+            AMScene(
+                containerColor = Color.Transparent,
+                floatingActions = {
+                    AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
+                        AccountRemote(
+                            model,
+                            onClose = { showsRemote = false },
+                            onExit = {
+                                showsRemote = false
+                                model.cancelPendingWork()
+                                navigator.back()
+                            },
+                        )
+                    }
+                },
+            ) {
+                if (model.isSignedIn) AccountSignedIn(model) else AccountSignedOut(model)
+                AccountOverlays(model)
             }
-        },
-    ) {
-        if (model.isSignedIn) AccountSignedIn(model) else AccountSignedOut(model)
-        AccountOverlays(model)
+        }
     }
+}
+
+/**
+ * The picture behind every screen of the app: a warm shelf of books (Wikimedia Commons,
+ * "Books HD (8314929977).jpg" by Abhi Sharma from India, CC BY 2.0),
+ * washed toward the mode at the library's defaults, so the screens read as one place and the
+ * frosted surfaces over it have art to blur.
+ */
+@Composable
+internal fun AccountBackdrop() {
+    Box(
+        Modifier.fillMaxSize().amArtBackdrop(
+            commonsPhoto("Books HD (8314929977).jpg", 1698),
+        ),
+    )
 }
 
 /**
@@ -257,7 +282,7 @@ internal fun AccountStepPage(
                 scrollBehavior = scrollBehavior,
             )
         },
-        containerColor = AMTheme.Surface.page,
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
     ) { padding ->
@@ -275,7 +300,7 @@ internal fun AccountStepPage(
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = AMTheme.secondaryText,
                 )
             }
             content()
@@ -300,7 +325,7 @@ internal fun AccountPage(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { AMPageHeader(title, actions = actions, scrollBehavior = scrollBehavior) },
-        containerColor = AMTheme.Surface.page,
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { padding ->
         Column(

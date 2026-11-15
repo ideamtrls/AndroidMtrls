@@ -2,7 +2,14 @@ package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,13 +18,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
+import com.ideamtrls.androidmtrls.AMToastHost
 import com.ideamtrls.androidmtrls.AMToastItem
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amRowPadding
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 internal val ToastEntry = ComponentEntry(
@@ -38,7 +49,10 @@ private fun ToastPage() {
         ToastEntry,
         preview = { ShowToast() },
     ) {
-        QueueCard()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedToast()
+            QueueCard()
+        }
     }
 }
 
@@ -49,6 +63,42 @@ private fun ShowToast() {
     AMButton("Show toast", onClick = { toast = AMToastItem("Link copied") }, modifier = Modifier.fillMaxWidth())
     AMToast(toast, onDismissRequest = { toast = null })
 }
+
+/**
+ * A toast in a host inside a frosted stage: the host's snackbar rises over the photo's bottom
+ * edge, under a frosted card of tracks. The stage is at least [FrostedStageHeight] tall and grows
+ * with the card, which keeps [ToastRoom] and the bottom inset the toast host pads by clear under
+ * it, so at large text the toast never covers the card.
+ */
+@Composable
+private fun FrostedToast() {
+    val spacing = AMTheme.tokens.spacing
+    var toast by remember { mutableStateOf<AMToastItem?>(AMToastItem("Added to queue", duration = 1.hours)) }
+    CatalogFrostedStage {
+        AMToastHost(Modifier.fillMaxWidth().heightIn(min = FrostedStageHeight)) {
+            Column(Modifier.fillMaxWidth().padding(spacing.lg)) {
+                Column(Modifier.fillMaxWidth().amCard()) {
+                    ProvideAMOnSurface {
+                        TrackRow("Harbor Lights", "The Lanterns")
+                        AMDivider(inset = spacing.lg)
+                        TrackRow("Low Tide", "Marlow Fields")
+                    }
+                }
+                Spacer(Modifier.height(ToastRoom))
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+            }
+            AMToast(toast, onDismissRequest = { toast = null })
+        }
+    }
+}
+
+private val FrostedStageHeight = 320.dp
+
+/**
+ * The toast's place under the card: Material's single-line snackbar, 48 dp, and the 12 dp margin
+ * it keeps above and below.
+ */
+private val ToastRoom = 72.dp
 
 /** Two tracks, and a button that adds them to the queue and confirms it with a toast. */
 @Composable
