@@ -110,8 +110,9 @@ internal enum class ShopGuide(val title: String, val steps: List<String>) {
 internal data class ShopDetail(val label: String, val value: String)
 
 /**
- * A coffee or a piece of gear. Its label art is typographic: the label title and footer in [ink]
- * on [color].
+ * A coffee or a piece of gear. A coffee's picture is its bag, the Wikimedia Commons file [photo]
+ * names; gear's label art is typographic: the label title and footer in [ink] on [color], which
+ * also fills a bag's frame while its photo loads.
  */
 @Immutable
 internal class ShopProduct(
@@ -133,6 +134,8 @@ internal class ShopProduct(
     val basePrice: Int,
     val color: Color,
     val ink: Color,
+    /** The bag's Commons file name, from [ShopBagPhotos]; null for gear. */
+    val photo: String? = null,
 ) {
     val isCoffee: Boolean get() = category != ShopCategory.Gear
 
@@ -320,6 +323,23 @@ private val ShopInkDark = Color(0xFF1C1A17)
 /** Label ink on dark colors. */
 private val ShopInkLight = Color(0xFFFFF8EE)
 
+/**
+ * Each coffee's bag photo, by product id: a Wikimedia Commons file name (the file's page there
+ * credits its author and license). One line per coffee, so a bag's photo changes here alone.
+ */
+private val ShopBagPhotos: Map<String, String> = mapOf(
+    "hambela" to "Coffeebag(kraft)-250g.jpg",
+    "gatomboya" to "Kaffepåse - 2023.jpg",
+    "night-ferry" to "Coffeebag(black)-250g.jpg",
+    "huila" to "Volcanica-Coffee-Bags.jpg",
+    "harbor-light" to "Union Hand-Roasted Coffee - Coffee Bag.jpg",
+    "kanzu" to "Roasted coffee packages from Bolivia.jpg",
+    "cerrado" to "Kaffepåse - 2024.jpg",
+    "atitlan" to "Try-Me Coffee New Orleans - 1 pound of Guatemala Antigua freshly roasted.jpg",
+    "decaf-colombia" to "Coffeebag(white)-250g.jpg",
+    "decaf-mexico" to "Rondo Kaffeepackung.jpg",
+)
+
 /** The catalog, in grid order: ten coffees, then three pieces of gear. */
 private val ShopProducts: List<ShopProduct> = listOf(
     shopCoffee(
@@ -388,7 +408,7 @@ private val ShopProducts: List<ShopProduct> = listOf(
 
 /**
  * A coffee: details Origin, Process and Roast, the roast on the label's footer ("DECAF · MEDIUM
- * ROAST" for a decaf), priced by its 250 g bag.
+ * ROAST" for a decaf), priced by its 250 g bag, pictured by its bag in [ShopBagPhotos].
  */
 private fun shopCoffee(
     id: String,
@@ -418,6 +438,7 @@ private fun shopCoffee(
         basePrice = dollars * 100,
         color = Color(color),
         ink = ink,
+        photo = ShopBagPhotos.getValue(id),
     )
 }
 

@@ -23,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
@@ -35,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPageHeader
+import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
@@ -59,23 +63,21 @@ internal fun TextStyle.shopFigures(): TextStyle = copy(fontFeatureSettings = "tn
 
 // The backdrop
 
-/** Roasted coffee beans, public domain, from Wikimedia Commons. */
-private val ShopBeansUrl = commonsPhoto("Roasted_coffee_beans.jpg")
+/**
+ * A frame packed with small roasted beans, from Wikimedia Commons (from Unsplash; the file's page
+ * credits its author and license), asked at its full 5472 px width so its light blur stays crisp.
+ */
+private val ShopBeansUrl = commonsPhoto("Coffee beans (Unsplash).jpg", 5472)
 
 /**
- * The scene's one background, so the whole app feels like a coffee shop: roasted beans as an art
- * backdrop, blurred only enough to soften them, so they still read as beans, and washed toward the
- * mode at the library's defaults, so the text on them holds. Light mode's lift already softens
- * them; dark mode blurs more, so the lowered highlights don't speckle the dark. It fills what holds
- * it: the art of an `AMBackdrop`.
+ * The scene's one background, so the whole app feels like a coffee shop: coffee beans as an art
+ * backdrop under a soft frost, blurred a little (24 dp) and frosted a little toward the mode in
+ * either mode (0.25), so the beans still read but soften. It fills what holds it: the art of an
+ * `AMBackdrop`.
  */
 @Composable
 internal fun ShopBackdrop() {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .amArtBackdrop(ShopBeansUrl, blurRadius = if (AMTheme.isDark) 17.dp else 3.5.dp),
-    )
+    Box(Modifier.fillMaxSize().amArtBackdrop(ShopBeansUrl, blurRadius = 24.dp, lightWash = 0.25f, darkWash = 0.25f))
 }
 
 // Root views
@@ -121,42 +123,80 @@ internal sealed interface ShopLabelStyle {
 }
 
 /**
- * A product's typographic label: its color with its ink type on it, one composable for every
- * surface so the art matches everywhere. It's packaging, not UI text, so its type is set in fixed
- * sizes that don't follow the font scale, and TalkBack skips it: the card or row around it names
- * the product.
+ * A product's picture, one composable for every surface so the art matches everywhere. A coffee
+ * shows its bag photo, on the label's color while it loads, with no type over it: the bag carries
+ * its own label, and the card or row around it names the product. Gear shows its typographic
+ * label: its color with its ink type on it. A banner keeps its kicker, title, blurb and price, over
+ * a coffee's photo in white on a dark scrim. Label type is packaging, not UI text, so it's set in
+ * fixed sizes that don't follow the font scale, and TalkBack skips the picture.
  */
 @Composable
 internal fun ShopLabelArt(product: ShopProduct, style: ShopLabelStyle, modifier: Modifier = Modifier) {
     val shapes = MaterialTheme.shapes
     val spacing = AMTheme.tokens.spacing
     val art = modifier.clearAndSetSemantics {}
+    val photo = product.photo
     when (style) {
-        ShopLabelStyle.Thumb -> Box(
-            art.size(ShopThumbSize).background(product.color, shapes.small),
-            contentAlignment = Alignment.Center,
-        ) {
-            ShopLabelText(product.labelTitle.take(1), product.ink, size = 20f, weight = FontWeight.Black)
+        ShopLabelStyle.Thumb -> if (photo != null) {
+            ShopBagPhoto(photo, width = 250, product.color, shapes.small, art.size(ShopThumbSize))
+        } else {
+            Box(art.size(ShopThumbSize).background(product.color, shapes.small), contentAlignment = Alignment.Center) {
+                ShopLabelText(product.labelTitle.take(1), product.ink, size = 20f, weight = FontWeight.Black)
+            }
         }
-        ShopLabelStyle.Tile -> Box(art.fillMaxWidth().aspectRatio(1f).background(product.color, shapes.small)) {
-            ShopLabel(product, brand = 9f, title = 26f, footer = 10f, Modifier.padding(spacing.md))
+        ShopLabelStyle.Tile -> if (photo != null) {
+            ShopBagPhoto(photo, width = 500, product.color, shapes.small, art.fillMaxWidth().aspectRatio(1f))
+        } else {
+            Box(art.fillMaxWidth().aspectRatio(1f).background(product.color, shapes.small)) {
+                ShopLabel(product, brand = 9f, title = 26f, footer = 10f, Modifier.padding(spacing.md))
+            }
         }
-        ShopLabelStyle.Hero -> Box(art.fillMaxWidth().aspectRatio(3f / 2f).background(product.color, shapes.large)) {
-            ShopLabel(product, brand = 11f, title = 48f, footer = 13f, Modifier.padding(spacing.xl))
+        ShopLabelStyle.Hero -> if (photo != null) {
+            ShopBagPhoto(photo, width = 1280, product.color, shapes.large, art.fillMaxWidth().aspectRatio(3f / 2f))
+        } else {
+            Box(art.fillMaxWidth().aspectRatio(3f / 2f).background(product.color, shapes.large)) {
+                ShopLabel(product, brand = 11f, title = 48f, footer = 13f, Modifier.padding(spacing.xl))
+            }
         }
         is ShopLabelStyle.Banner -> Box(art.fillMaxSize().background(product.color, shapes.large)) {
+            val ink = if (photo != null) Color.White else product.ink
+            if (photo != null) {
+                ShopBagPhoto(photo, width = 1280, product.color, shapes.large, Modifier.fillMaxSize())
+                Box(Modifier.fillMaxSize().background(ShopBannerScrim, shapes.large))
+            }
             Column(Modifier.fillMaxSize().padding(spacing.lg)) {
                 ShopLabelText(
-                    style.kicker.uppercase(Locale.getDefault()), product.ink.copy(alpha = 0.8f),
+                    style.kicker.uppercase(Locale.getDefault()), ink.copy(alpha = 0.8f),
                     size = 11f, weight = FontWeight.Bold, tracking = 1.5f,
                 )
                 Spacer(Modifier.weight(1f))
-                ShopLabelText(product.labelTitle, product.ink, size = 36f, weight = FontWeight.Black, shrinks = true)
-                ShopLabelText(style.blurb, product.ink.copy(alpha = 0.85f), size = 14f, weight = FontWeight.Medium, maxLines = 2)
-                ShopLabelText(product.priceLabel, product.ink, size = 13f, weight = FontWeight.SemiBold)
+                ShopLabelText(product.labelTitle, ink, size = 36f, weight = FontWeight.Black, shrinks = true)
+                ShopLabelText(style.blurb, ink.copy(alpha = 0.85f), size = 14f, weight = FontWeight.Medium, maxLines = 2)
+                ShopLabelText(product.priceLabel, ink, size = 13f, weight = FontWeight.SemiBold)
             }
         }
     }
+}
+
+/** Darkens a banner's photo under its type: lightly behind the kicker, most behind the title. */
+private val ShopBannerScrim = Brush.verticalGradient(
+    0f to Color.Black.copy(alpha = 0.45f),
+    0.35f to Color.Black.copy(alpha = 0.15f),
+    1f to Color.Black.copy(alpha = 0.75f),
+)
+
+/**
+ * A coffee's bag: the Commons [file] at [width] px, cropped to the frame [modifier] sets and
+ * clipped to [shape], on [color] while it loads.
+ */
+@Composable
+private fun ShopBagPhoto(file: String, width: Int, color: Color, shape: Shape, modifier: Modifier) {
+    AMRemoteImage(
+        commonsPhoto(file, width),
+        contentDescription = null,
+        modifier = modifier.clip(shape),
+        fallback = { Box(Modifier.fillMaxSize().background(color)) },
+    )
 }
 
 /** The tile and hero label: the brand over the label title and footer, at the given sizes (dp). */
