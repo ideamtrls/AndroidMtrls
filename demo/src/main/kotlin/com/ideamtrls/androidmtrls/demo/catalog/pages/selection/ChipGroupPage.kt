@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,10 @@ private fun ChipGroupPage() {
         ChipGroupEntry,
         preview = { GenreChips() },
     ) {
-        PlaceFilters()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedMoods()
+            PlaceFilters()
+        }
     }
 }
 
@@ -58,6 +62,22 @@ private val MoodIcons = mapOf(
     "Good coffee" to R.drawable.ic_coffee,
     "Live music" to R.drawable.ic_music_note,
 )
+
+/** Moods as chips straight on a photo, in a frosted app. */
+@Composable
+private fun FrostedMoods() {
+    var moods by rememberSaveable { mutableStateOf(setOf("Quiet", "Good coffee")) }
+    CatalogFrostedStage {
+        AMChipGroup(
+            Moods,
+            label = { it },
+            selection = moods,
+            onSelectionChange = { moods = it },
+            modifier = Modifier.padding(AMTheme.tokens.spacing.lg),
+            icon = { painterResource(MoodIcons.getValue(it)) },
+        )
+    }
+}
 
 /** A place finder's filters: one city, then any moods, each with its glyph. */
 @Composable

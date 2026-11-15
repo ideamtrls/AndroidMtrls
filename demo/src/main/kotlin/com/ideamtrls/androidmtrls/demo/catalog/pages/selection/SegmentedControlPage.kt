@@ -3,6 +3,7 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +36,10 @@ private fun SegmentedControlPage() {
         SegmentedControlEntry,
         preview = { RangePicker() },
     ) {
-        DocumentsFilter()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedRanges()
+            DocumentsFilter()
+        }
     }
 }
 
@@ -55,6 +59,21 @@ private fun RangePicker() {
         onSelectedChange = { range = it },
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** The range picker straight on a photo, in a frosted app. */
+@Composable
+private fun FrostedRanges() {
+    var range by rememberSaveable { mutableStateOf("Week") }
+    CatalogFrostedStage {
+        AMSegmentedControl(
+            Ranges,
+            label = { it },
+            selected = range,
+            onSelectedChange = { range = it },
+            modifier = Modifier.fillMaxWidth().padding(AMTheme.tokens.spacing.lg),
+        )
+    }
 }
 
 private enum class DocumentScope(val title: String) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.ImeAction
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMSecureField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 internal val SecureFieldEntry = ComponentEntry(
@@ -36,7 +37,10 @@ private fun SecureFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { PasswordField() },
     ) {
-        ChangePassword()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedPasswordCard()
+            ChangePassword()
+        }
     }
 }
 
@@ -49,6 +53,20 @@ private fun PasswordField() {
     val password = rememberTextFieldState()
     Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(AMTheme.tokens.spacing.lg)) {
         AMSecureField(password)
+    }
+}
+
+/** A password field in a frosted card over a photo. */
+@Composable
+private fun FrostedPasswordCard() {
+    val spacing = AMTheme.tokens.spacing
+    val password = rememberTextFieldState("correct horse")
+    CatalogFrostedStage {
+        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
+            ProvideAMOnSurface {
+                AMSecureField(password, label = "Password")
+            }
+        }
     }
 }
 

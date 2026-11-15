@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMSearchField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amRowPadding
 
@@ -34,7 +36,10 @@ private fun SearchFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { SearchStrip() },
     ) {
-        CitySearch()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedCitySearch()
+            CitySearch()
+        }
     }
 }
 
@@ -46,6 +51,25 @@ private fun SearchStrip() {
     val query = rememberTextFieldState()
     Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(AMTheme.tokens.spacing.lg)) {
         AMSearchField(query)
+    }
+}
+
+/** A search field in a frosted card over a photo, a few cities under it. */
+@Composable
+private fun FrostedCitySearch() {
+    val spacing = AMTheme.tokens.spacing
+    val query = rememberTextFieldState()
+    val text = query.text.toString().trim()
+    CatalogFrostedStage {
+        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard()) {
+            ProvideAMOnSurface {
+                AMSearchField(query, Modifier.padding(spacing.lg), placeholder = "Search cities")
+                Cities.take(3).filter { it.contains(text, ignoreCase = true) }.forEach { city ->
+                    AMDivider(inset = spacing.lg)
+                    Text(city, Modifier.amRowPadding(), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
     }
 }
 

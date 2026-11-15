@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.ideamtrls.androidmtrls.AMTextEditor
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 internal val TextEditorEntry = ComponentEntry(
@@ -30,7 +31,10 @@ private fun TextEditorPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { NoteEditor() },
     ) {
-        WeeklyUpdate()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+            FrostedNoteCard()
+            WeeklyUpdate()
+        }
     }
 }
 
@@ -45,6 +49,20 @@ private fun NoteEditor() {
     val note = rememberTextFieldState()
     Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(AMTheme.tokens.spacing.lg)) {
         AMTextEditor(note, label = "Note", placeholder = "Write a note…")
+    }
+}
+
+/** A note editor in a frosted card over a photo. */
+@Composable
+private fun FrostedNoteCard() {
+    val spacing = AMTheme.tokens.spacing
+    val note = rememberTextFieldState("Pick up the keys before noon.")
+    CatalogFrostedStage {
+        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
+            ProvideAMOnSurface {
+                AMTextEditor(note, label = "Note", minLines = 2)
+            }
+        }
     }
 }
 
