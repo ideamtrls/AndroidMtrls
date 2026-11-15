@@ -21,8 +21,8 @@ import androidx.lifecycle.compose.dropUnlessStarted
 /**
  * A panel: a screen pushed over the one you were on, under its own top app bar ([AMPanelChrome])
  * with a back arrow, its title and optional actions. The bar lies on the page at rest and takes
- * the page color once the content scrolls under it; inside an [AMBackdrop] its back arrow is solid
- * and it takes the frosted fill instead.
+ * the page color once the content scrolls under it; inside an [AMBackdrop] its back arrow is a
+ * chip and it takes the frosted fill instead.
  *
  * A panel is a Navigation 3 entry. The back stack is the app's own state; push a key to show a
  * panel and build the panel from the key, so what it shows is fixed when it's pushed and stays
@@ -98,7 +98,7 @@ public fun AMPanel(
  *
  * The back arrow is an [AMToolbarButton] with Material's `arrow_back`, mirrored in right-to-left
  * layouts, read as "Back", so it follows the same rule as the toolbar buttons in [actions]: a bare
- * glyph on a page, and solid inside an [AMBackdrop], a crucial control over the art. It calls
+ * glyph on a page, and a chip in the app's surface setting inside an [AMBackdrop]. It calls
  * [onBack] only while the bar's lifecycle is at least started: Navigation 3 lowers a popped
  * entry's lifecycle to created while it animates away, so the leaving panel's arrow takes no
  * second tap, and a panel still sliding in takes the first. The title
@@ -140,7 +140,7 @@ public fun AMPanelChrome(
         TopAppBar(
             title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             modifier = barModifier,
-            // A toolbar button, so it follows the toolbar's rule: solid over art, plain on a page.
+            // A toolbar button, so it follows the toolbar's rule: a chip over art, plain on a page.
             navigationIcon = { AMToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack)) },
             actions = actions ?: {},
             windowInsets = windowInsets,

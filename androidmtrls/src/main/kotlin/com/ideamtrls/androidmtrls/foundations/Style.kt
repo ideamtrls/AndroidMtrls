@@ -91,8 +91,8 @@ internal object Style {
         )
 
         /**
-         * A solid toolbar button: [Low] fitted inside a top app bar's row. Material clips each of
-         * a bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
+         * A toolbar chip: [Low] fitted inside a top app bar's row. Material clips each of a
+         * bar's rows to its bounds, and a 64 dp row leaves 12 dp around the button's 40 dp
          * circle, where [Low]'s far layer would be cut into a hard edge. So the near layer stays
          * and the far layer is tight enough to have faded out (under 1 %) at the row's edge.
          */

@@ -40,12 +40,12 @@ import androidx.compose.ui.unit.dp
  *
  * Fill its slots with [AMToolbarButton]s. Visual only: taps stay with the buttons in the slots.
  * The title and subtitle each take one line, ellipsized, in the bar's own type; the title stays
- * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn solid
- * and the title takes the fixed ink of the art's tone at rest (white on dark art, black on light
- * art); give a picture of your own the tone it has. Scrolled over the picture, the bar
- * fades in the picture under it blurred under [AMTheme.Frosted.fill], with the frosted edge along
- * its bottom (the solid surface until the art is placed), never a page band, and the title takes
- * the bar's own color.
+ * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn into
+ * chips in the app's surface setting and the title takes the fixed ink of the art's tone at rest
+ * (white on dark art, black on light art); give a picture of your own the tone it has. Scrolled
+ * over the picture, the bar fades in the picture under it blurred under [AMTheme.Frosted.fill],
+ * with the frosted edge along its bottom (the solid surface until the art is placed), never a
+ * page band, and the title takes the bar's own color.
  *
  * @param title the toolbar's title, one line.
  * @param modifier the toolbar's placement.
@@ -94,8 +94,8 @@ public fun AMToolbar(
  *
  * The bar sets the title's and the subtitle's type and color around what the slots emit, so
  * custom content stays on-system. Visual only: taps stay with the content in the slots. On a
- * picture ([AMBackdrop]) the toolbar's buttons turn solid, the title takes the ink of the art's
- * tone at rest, and scrolled content brings in the frosted fill.
+ * picture ([AMBackdrop]) the toolbar's buttons turn into chips, the title takes the ink of the
+ * art's tone at rest, and scrolled content brings in the frosted fill.
  *
  * @param modifier the toolbar's placement.
  * @param subtitle a line under the title. Null shows none.
@@ -173,7 +173,7 @@ public fun AMToolbar(
  *
  * The bar keeps Material's height whatever it holds, so content under it sits where it would under
  * a titled one, and TalkBack reads only its buttons. Fill its slots with [AMToolbarButton]s; on a
- * picture they turn solid.
+ * picture they turn into chips.
  *
  * @param modifier the toolbar's placement.
  * @param navigationIcon the button at the start, such as back or a menu. Null shows none.
@@ -203,11 +203,12 @@ public fun AMToolbar(
 
 /**
  * A toolbar's button: Material's icon button, with a long-press tooltip naming it and a 48 dp
- * touch target. On a picture (inside an [AMBackdrop]) it's solid, a crucial control: a circle the
- * size of Material's icon button container wearing the floating surface, a shadow fitted inside
- * the bar's row (the bar clips its row, so a wider one would show a hard edge) and its dark-mode
- * hairline, the glyph in `onSurface`, so it stays the clearest thing over any art.
- * Everywhere else it's a bare glyph in the bar's content color.
+ * touch target. On a picture (inside an [AMBackdrop]) it's a chip that follows the app's surface
+ * setting ([AMTheme.surfaceFill]): a circle the size of Material's icon button container wearing
+ * the floating surface with a shadow fitted inside the bar's row (the bar clips its row, so a
+ * wider one would show a hard edge), the glyph in `onSurface`. In a solid app the chip is solid,
+ * with its dark-mode hairline; in a frosted app it's frosted over the art, with the frosted edge,
+ * and tinted where it's embedded. On the plain page it's a bare glyph in the bar's content color.
  *
  * ```kotlin
  * AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::pop)
@@ -222,8 +223,8 @@ public fun AMToolbar(
  * @param modifier the button's placement.
  * @param destructive colors the glyph in [AMSemantic.Destructive]'s color, for a removal.
  * @param enabled whether the button takes taps. Disabled (here, or by a disabling container
- *   around it), the glyph greys to Material's disabled color, and a solid button keeps its fill
- *   but casts no shadow.
+ *   around it), the glyph greys to Material's disabled color, and a chip keeps its fill but casts
+ *   no shadow.
  */
 @Composable
 public fun AMToolbarButton(
@@ -234,35 +235,35 @@ public fun AMToolbarButton(
     destructive: Boolean = false,
     enabled: Boolean = true,
 ) {
-    ToolbarButton(icon, contentDescription, onClick, solid = LocalAMBackdrop.current != null, modifier, destructive, enabled)
+    ToolbarButton(icon, contentDescription, onClick, chip = LocalAMBackdrop.current != null, modifier, destructive, enabled)
 }
 
 /**
- * [AMToolbarButton] in the form the caller picks: [solid] for the crucial-control form, plain for
- * the bare glyph. The public button is solid exactly inside an [AMBackdrop]; a bar that is always
- * over art (the art panel's back) asks for solid everywhere.
+ * [AMToolbarButton] in the form the caller picks: [chip] for the chip in the app's surface
+ * setting, plain for the bare glyph. The public button is a chip exactly inside an [AMBackdrop]; a
+ * bar that is always over art (the art panel's back) asks for the chip everywhere.
  */
 @Composable
 internal fun ToolbarButton(
     icon: Painter,
     contentDescription: String,
     onClick: () -> Unit,
-    solid: Boolean,
+    chip: Boolean,
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
     enabled: Boolean = true,
 ) {
     val isEnabled = resolveEnabled(enabled)
     val destructiveColor = if (destructive && isEnabled) AMSemantic.Destructive.color else Color.Unspecified
-    if (!solid) {
+    if (!chip) {
         val color = destructiveColor.takeOrElse { LocalContentColor.current }
         CompositionLocalProvider(LocalContentColor provides color) {
             AMIconButton(icon, contentDescription, onClick, modifier, enabled = isEnabled)
         }
     } else {
-        // The 48 dp target is reserved outside the circle, so the surface hugs Material's 40 dp
-        // button inside it and taps still land across the whole target. A bar clips its row, so
-        // the shadow is the one fitted inside it.
+        // The chip, in the app's surface setting. The 48 dp target is reserved outside the circle,
+        // so the surface hugs Material's 40 dp button inside it and taps still land across the
+        // whole target. A bar clips its row, so the shadow is the one fitted inside it.
         Box(
             modifier
                 .minimumInteractiveComponentSize()

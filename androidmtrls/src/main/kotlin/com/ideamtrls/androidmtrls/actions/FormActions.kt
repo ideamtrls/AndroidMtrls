@@ -26,8 +26,9 @@ import androidx.compose.ui.Modifier
  *
  * Put plain [AMButton]s in the slots; the row owns their arrangement and their style, through
  * [LocalAMButtonStyle]: the commit button is [AMButtonStyle.Primary], the destructive one
- * [AMButtonStyle.Secondary], both solid at [elevation]. Mark the destructive button
- * `destructive = true` so its label takes the destructive color.
+ * [AMButtonStyle.Secondary], both at [elevation] and in the app's surface setting (tinted on a
+ * sheet in a frosted app). Mark the destructive button `destructive = true` so its label takes
+ * the destructive color.
  *
  * Each button keeps its own `enabled`, so Save can wait for a valid form while Delete stays live;
  * [enabled] = false turns off both at once (while a save is in flight), without touching either.

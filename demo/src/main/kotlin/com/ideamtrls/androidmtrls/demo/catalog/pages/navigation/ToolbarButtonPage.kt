@@ -22,11 +22,11 @@ internal val ToolbarButtonEntry = ComponentEntry(
     id = "toolbarButton",
     category = CatalogCategory.Navigation,
     title = "Toolbar button",
-    summary = "A toolbar action, solid over a picture",
+    summary = "A toolbar action, a chip over a picture",
     icon = R.drawable.ic_radio_button_checked,
     keywords = listOf(
-        "AMToolbarButton", "IconButton", "glyph", "toolbar", "top app bar", "action", "solid", "art",
-        "backdrop", "destructive", "tooltip",
+        "AMToolbarButton", "IconButton", "glyph", "toolbar", "top app bar", "action", "chip", "solid",
+        "frosted", "art", "backdrop", "destructive", "tooltip",
     ),
 ) { ToolbarButtonPage() }
 
@@ -64,8 +64,9 @@ private val Photo: String
     get() = catalogPhoto("brooklyn", 800, 600)
 
 /**
- * The top of a photo's screen: a toolbar over the photo's blurred, washed colors, its buttons solid
- * (sharing unavailable, delete in the destructive color), over the photo itself.
+ * The top of a photo's screen: a toolbar over the photo's blurred, washed colors, its buttons chips
+ * in the app's surface setting (sharing unavailable, delete in the destructive color), over the
+ * photo itself.
  */
 @Composable
 private fun PhotoDetail() {

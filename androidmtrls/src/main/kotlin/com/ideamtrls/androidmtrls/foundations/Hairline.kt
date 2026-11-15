@@ -39,9 +39,10 @@ import kotlin.math.max
  * Modifier.background(AMTheme.Surface.primary, CircleShape).amHairline(CircleShape)
  * ```
  *
- * For outlines that always show: sheets, tiles, the floating action button, the banner, avatars.
- * Solid cards draw their own, in dark mode only, where the shadow alone can't lift black off the
- * page.
+ * For outlines that always show on a surface you draw yourself: sheets, avatars, a chosen item's
+ * ring. The library's floating surfaces draw their own: a solid card or button in dark mode only,
+ * where the shadow alone can't lift black off the page; the floating action button, the remote's
+ * tiles and the banner in both modes; a frosted one its frosted edge.
  *
  * @param shape the outline's shape: the surface's own.
  * @param color the line's color. Unspecified (the default) draws [AMTheme.selectionRing] for the
@@ -123,14 +124,15 @@ internal fun DrawScope.drawInsetOutline(shape: Shape, color: Color, width: Dp) {
 private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.Dark else Style.SelectionRing.Light
 
 /**
- * The elevated surface every floating surface wears (cards, filled buttons, toolbar buttons,
- * tiles, sheets), drawn around the content in one place so the recipe never drifts. [fill] and
- * where the surface stands give its look ([surfaceLook]): a frosted surface embedded in another
- * surface ([isEmbedded]) draws the tint.
+ * The elevated surface every floating surface wears (cards, filled buttons, toolbar chips, tiles,
+ * the floating action button, the banner), drawn around the content in one place so the recipe
+ * never drifts. Its look is the app's surface setting ([AMTheme.surfaceFill], read while it draws)
+ * and where the surface stands ([surfaceLook]): solid in a solid app; in a frosted app frosted on
+ * the backdrop and, embedded in another surface ([isEmbedded]), the tint.
  *
  * - **Solid**: [elevation]'s shadow cast by [shape], the shape filled with
- *   [AMTheme.Surface.primary], the content, then in dark mode only a hairline, where the shadow
- *   alone can't lift black off the page.
+ *   [AMTheme.Surface.primary], the content, then a hairline: in dark mode only, where the shadow
+ *   alone can't lift black off the page, or in both modes with [alwaysOutlined].
  * - **Frosted**: the shadow outside the shape only (under frost it would show through), the
  *   nearest [AMBackdrop]'s art under the shape blurred by [AMTheme.Frosted.blurRadius], the
  *   frosted fill, the content, then the frosted edge in both modes. With no backdrop, or before
@@ -142,15 +144,18 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  * It doesn't clip the content. Anything the content draws in its own background (a press wash)
  * sits above the fill.
  *
- * @param hairline the dark-mode outline of the solid fill. Unspecified draws
- *   [AMTheme.selectionRing]; a solid control on a black card or sheet passes [AMTheme.controlOutline].
+ * @param hairline the solid look's outline. Unspecified draws [AMTheme.selectionRing]; a solid
+ *   control on a black card or sheet passes [AMTheme.controlOutline].
+ * @param alwaysOutlined whether the solid look's hairline shows in both modes, for a surface that
+ *   always carries one (the floating action button, a tile, the banner). Frosted and tinted
+ *   surfaces always draw the frosted edge.
  */
 internal fun Modifier.amElevatedSurface(
     shape: Shape,
     elevation: AMElevation = AMElevation.Low,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = amElevatedSurface(shape, elevation.shadowLevel, fill, hairline)
+    alwaysOutlined: Boolean = false,
+): Modifier = amElevatedSurface(shape, elevation.shadowLevel, hairline, alwaysOutlined)
 
 /**
  * [amElevatedSurface] casting a row of the shadow table that no [AMElevation] names: a shadow
@@ -159,23 +164,23 @@ internal fun Modifier.amElevatedSurface(
 internal fun Modifier.amElevatedSurface(
     shape: Shape,
     shadow: ShadowLevel,
-    fill: AMSurfaceFill = AMSurfaceFill.Solid,
     hairline: Color = Color.Unspecified,
-): Modifier = this then ElevatedSurfaceElement(shape, shadow, fill, hairline)
+    alwaysOutlined: Boolean = false,
+): Modifier = this then ElevatedSurfaceElement(shape, shadow, hairline, alwaysOutlined)
 
 private data class ElevatedSurfaceElement(
     val shape: Shape,
     val shadow: ShadowLevel,
-    val fill: AMSurfaceFill,
     val hairline: Color,
+    val alwaysOutlined: Boolean,
 ) : ModifierNodeElement<ElevatedSurfaceNode>() {
-    override fun create() = ElevatedSurfaceNode(shape, shadow, fill, hairline)
+    override fun create() = ElevatedSurfaceNode(shape, shadow, hairline, alwaysOutlined)
 
     override fun update(node: ElevatedSurfaceNode) {
         node.shape = shape
         node.shadow = shadow
-        node.fill = fill
         node.hairline = hairline
+        node.alwaysOutlined = alwaysOutlined
         node.invalidateDraw()
     }
 
@@ -183,16 +188,16 @@ private data class ElevatedSurfaceElement(
         name = "amElevatedSurface"
         properties["shape"] = shape
         properties["shadow"] = shadow
-        properties["fill"] = fill
         properties["hairline"] = hairline
+        properties["alwaysOutlined"] = alwaysOutlined
     }
 }
 
 private class ElevatedSurfaceNode(
     var shape: Shape,
     var shadow: ShadowLevel,
-    var fill: AMSurfaceFill,
     var hairline: Color,
+    var alwaysOutlined: Boolean,
 ) : Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -206,11 +211,11 @@ private class ElevatedSurfaceNode(
 
     // A frosted surface that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
-        val look = lookOf(fill)
+        val look = lookOf(currentValueOf(LocalAMSurfaceFill))
         with(surface) {
             drawSurface(
                 context = requireGraphicsContext(),
@@ -221,6 +226,7 @@ private class ElevatedSurfaceNode(
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
                 backdrop = backdropFor(look),
                 clipContent = false,
+                alwaysOutlined = alwaysOutlined,
             )
         }
     }
@@ -266,7 +272,9 @@ internal class ElevatedSurfaceDrawer {
     /**
      * Draws the surface around the content in [look]: solid; frosted over [backdrop]'s art, or over
      * the page color while there's no art to sample; or tinted. With [clipContent] the content is
-     * clipped to [shape]; with [outline] false it draws no hairline or edge.
+     * clipped to [shape]; with [outline] false it draws no hairline or edge. A solid surface's
+     * [hairline] (the selection ring when unspecified) shows in dark mode only, or in both modes
+     * with [alwaysOutlined].
      */
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
@@ -278,13 +286,16 @@ internal class ElevatedSurfaceDrawer {
         backdrop: AMBackdropSource?,
         clipContent: Boolean,
         outline: Boolean = true,
+        alwaysOutlined: Boolean = false,
     ) {
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
         if (look == SurfaceLook.Solid) {
             shadows.draw(this, context, shape, shadow, dark)
             drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
             drawClippedContent(path, clipContent)
-            if (outline && dark) drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(true), Style.Hairline.Width)
+            if (outline && (dark || alwaysOutlined)) {
+                drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(dark), Style.Hairline.Width)
+            }
             return
         }
         // Under frost or the tint the shadow would show through, so it falls outside the shape only.

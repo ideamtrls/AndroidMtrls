@@ -45,7 +45,6 @@ import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMSectionHeader
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amArtRows
@@ -265,9 +264,9 @@ private fun MusicAlbumTrackRow(track: MusicTrack, index: Int, album: List<MusicT
 private val MusicTrackNumberWidth = 28.dp
 
 /**
- * Play and Shuffle, frosted, in an [AMButtonPair]: Play plays [target] from its first song with
- * shuffle off, Shuffle with it on. Side by side at equal widths, or stacked when a label wouldn't
- * fit on one line at half the width.
+ * Play and Shuffle in an [AMButtonPair], in the scene's surface setting: Play plays [target] from
+ * its first song with shuffle off, Shuffle with it on. Side by side at equal widths, or stacked
+ * when a label wouldn't fit on one line at half the width.
  */
 @Composable
 private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel, modifier: Modifier = Modifier) {
@@ -279,7 +278,7 @@ private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel,
                 "Play",
                 onClick = { model.play(target, shuffled = false) },
                 icon = play,
-                style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
+                style = AMButtonStyle.Primary(),
             )
         },
         {
@@ -287,7 +286,7 @@ private fun MusicPlayShuffleButtons(target: MusicQueueTarget, model: MusicModel,
                 "Shuffle",
                 onClick = { model.play(target, shuffled = true) },
                 icon = shuffle,
-                style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
+                style = AMButtonStyle.Secondary(),
             )
         },
         modifier,

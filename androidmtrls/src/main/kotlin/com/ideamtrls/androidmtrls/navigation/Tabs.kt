@@ -75,7 +75,7 @@ public fun <T> AMTabs(
     val surface = if (AMTheme.surfaceFill == AMSurfaceFill.Solid) {
         Modifier.background(AMTheme.Surface.primary, shape)
     } else {
-        Modifier.amElevatedSurface(shape, AMElevation.None, fill = AMTheme.surfaceFill)
+        Modifier.amElevatedSurface(shape, AMElevation.None)
     }
     Column(modifier.then(surface).clip(shape)) {
         SecondaryTabRow(

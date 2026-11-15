@@ -88,7 +88,7 @@ internal fun MusicScene() {
 /**
  * The Artists root view: the Navigation 3 stack of the Artists page and the panels it pushes. Each
  * page sits on its own backdrop (the Artists page and the artist page on their art rows, the album
- * page on its cover's art), so its light/dark chip and toolbar buttons are solid and its frosted
+ * page on its cover's art), so its light/dark chip and toolbar buttons are chips and its frosted
  * surfaces blur its own art; the page color behind them shows while Navigation 3 moves between
  * pages.
  */

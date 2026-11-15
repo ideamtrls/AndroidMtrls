@@ -53,7 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.AccessibilityManager
 import androidx.compose.ui.platform.LocalAccessibilityManager
@@ -104,9 +103,10 @@ public class AMBannerItem(
 )
 
 /**
- * Shows [item] as a banner at the top of the window while it's non-null: a floating surface (white
- * in light mode, black in dark mode, the two-layer shadow and a hairline) just under the status
- * bar, over a fade of the surface color that keeps the status bar legible.
+ * Shows [item] as a banner at the top of the window while it's non-null: a floating surface in the
+ * app's surface setting with the two-layer shadow (solid with a hairline in both modes, or frosted
+ * with the frosted edge) just under the status bar, over a fade of the surface color that keeps
+ * the status bar legible.
  *
  * It draws nothing where it's called: the nearest [AMBannerHost], at the root of the window, shows
  * it, so a banner posted from deep inside a screen still spans the screen. While a sheet is up, it
@@ -323,7 +323,12 @@ private fun BannerWindow(transition: Transition<TransientPosting<AMBannerItem>?>
             clippingEnabled = false,
         ),
     ) {
-        BannerLayer(transition, insets, Modifier.fillMaxWidth(), fitted = true)
+        // A window of its own at the top of the screen, not on the sheet: the card starts from the
+        // window's fresh context, lying on the page with no art to sample, so in a frosted app it's
+        // frost over the page color, opaque, never the sheet's tint over a scrim fading to clear.
+        ProvideOverlayWindowLocals {
+            BannerLayer(transition, insets, Modifier.fillMaxWidth(), fitted = true)
+        }
     }
 }
 
@@ -338,9 +343,9 @@ private object WindowTop : PopupPositionProvider {
 }
 
 /**
- * The banner itself: the role's glyph, then the title over the message, on the floating surface
- * with a hairline in both modes. It follows a drag up 1:1 and dismisses past [SwipeThreshold] (or
- * on a quick fling up); a shorter drag settles back.
+ * The banner itself: the role's glyph, then the title over the message, on the floating surface in
+ * the app's surface setting, outlined in both modes. It follows a drag up 1:1 and dismisses past
+ * [SwipeThreshold] (or on a quick fling up); a shorter drag settles back.
  */
 @Composable
 private fun BannerCard(posting: TransientPosting<AMBannerItem>, modifier: Modifier) {
@@ -376,9 +381,8 @@ private fun BannerCard(posting: TransientPosting<AMBannerItem>, modifier: Modifi
                     }
                 },
             )
-            // The hairline below is drawn in both modes, so the surface's own dark-mode one is off.
-            .amElevatedSurface(shape, hairline = Color.Transparent)
-            .amHairline(shape)
+            // In the app's surface setting, outlined in both modes when it's solid.
+            .amElevatedSurface(shape, alwaysOutlined = true)
             .clip(shape)
             .then(
                 if (caller.actionable) {

@@ -16,7 +16,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -36,10 +35,11 @@ import androidx.compose.ui.text.style.TextOverflow
  *
  * The tile is [AMTheme.ActionGrid.tileHeight] (76 dp) tall whatever the font scale, so rows stay
  * even; its title takes one line and ends in an ellipsis when it's too long. It wears the floating
- * surface in `shapes.large` (white in light mode, black in dark mode, the shape's two-layer
- * shadow), always outlined by a hairline, and always solid: the remote's tiles stay obvious over
- * any backdrop. The glyph is Material's 24 dp; the title is `labelMedium`, `spacing.xs` below it.
- * A tap ripples inside the shape.
+ * surface in `shapes.large`, in the app's surface setting ([AMTheme.surfaceFill]), with the
+ * shape's two-layer shadow: in a solid app white in light mode and black in dark mode, outlined by
+ * a hairline in both modes; in a frosted app frosted, with the frosted edge. The glyph is
+ * Material's 24 dp; the title is `labelMedium`, `spacing.xs` below it. A tap ripples inside the
+ * shape.
  *
  * The title is `onSurface`, or [AMSemantic.Destructive] for an action that removes something. An
  * [active] tile (the view you're on, the filter that's chosen) is ringed in the color scheme's
@@ -133,13 +133,10 @@ public fun AMActionGridButton(
     Column(
         modifier
             .height(AMTheme.ActionGrid.tileHeight)
-            // The hairline below is drawn in both modes, so the surface's own dark-mode one is off.
-            .amElevatedSurface(shape, if (casts) elevation else AMElevation.None, hairline = Color.Transparent)
-            .amHairline(
-                shape,
-                color = if (active) scheme.primary else Color.Unspecified,
-                width = if (active) AMTheme.selectionRingWidth else AMTheme.hairlineWidth,
-            )
+            // The active tile's ring, drawn over everything the tile draws, its outline included.
+            .then(if (active) Modifier.amHairline(shape, scheme.primary, AMTheme.selectionRingWidth) else Modifier)
+            // In the app's surface setting, outlined in both modes when it's solid.
+            .amElevatedSurface(shape, if (casts) elevation else AMElevation.None, alwaysOutlined = true)
             .clip(shape)
             .clickable(enabled = isEnabled, role = Role.Button, onClick = onClick)
             .semantics { if (active) selected = true }

@@ -77,8 +77,9 @@ private fun PreviewButtons() {
 }
 
 /**
- * A playlist's actions: Play and Shuffle frosted over its picture, then Download (not available
- * offline yet) and Share, then Delete playlist.
+ * A playlist's actions: Play and Shuffle frosted over its picture (under a nested
+ * `AMTheme(surfaceFill = AMSurfaceFill.Frosted)`), then Download (not available offline yet) and
+ * Share, then Delete playlist, in the page's own setting.
  */
 @Composable
 private fun PlaylistActions() {
@@ -88,24 +89,27 @@ private fun PlaylistActions() {
             art = { AMRemoteImage(CatalogArt.Mountain.url(AMTheme.isDark), contentDescription = null) },
             modifier = Modifier.fillMaxWidth().height(220.dp).clip(MaterialTheme.shapes.large),
         ) {
-            Row(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(spacing.lg),
-                horizontalArrangement = Arrangement.spacedBy(spacing.md),
-            ) {
-                AMButton(
-                    "Play",
-                    onClick = ::play,
-                    modifier = Modifier.weight(1f),
-                    icon = painterResource(R.drawable.ic_play_arrow_filled),
-                    style = AMButtonStyle.Primary(fill = AMSurfaceFill.Frosted),
-                )
-                AMButton(
-                    "Shuffle",
-                    onClick = ::shuffle,
-                    modifier = Modifier.weight(1f),
-                    icon = painterResource(R.drawable.ic_shuffle),
-                    style = AMButtonStyle.Secondary(fill = AMSurfaceFill.Frosted),
-                )
+            // The pair stands in a frosted app of its own, so it's frosted over the picture.
+            AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+                Row(
+                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(spacing.lg),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.md),
+                ) {
+                    AMButton(
+                        "Play",
+                        onClick = ::play,
+                        modifier = Modifier.weight(1f),
+                        icon = painterResource(R.drawable.ic_play_arrow_filled),
+                        style = AMButtonStyle.Primary(),
+                    )
+                    AMButton(
+                        "Shuffle",
+                        onClick = ::shuffle,
+                        modifier = Modifier.weight(1f),
+                        icon = painterResource(R.drawable.ic_shuffle),
+                        style = AMButtonStyle.Secondary(),
+                    )
+                }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {

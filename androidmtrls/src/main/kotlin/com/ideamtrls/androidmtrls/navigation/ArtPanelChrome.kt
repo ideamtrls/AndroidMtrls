@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * A panel's top app bar over art: for a panel whose background is a picture, such as an album
- * page over its cover. Material's top app bar with a solid back button, then the title over the
+ * page over its cover. Material's top app bar with a back chip, then the title over the
  * subtitle.
  *
  * ```kotlin
@@ -47,12 +47,12 @@ import androidx.compose.ui.text.style.TextOverflow
  *   behind the status bar. The title and subtitle fade over to the on-surface text and
  *   [AMTheme.Frosted.secondaryText], and the status bar's icons follow the app's appearance. Outside an [AMBackdrop], or before the art is placed, the fill is the solid surface,
  *   never unblurred translucency.
- * - **The back button is always solid**, the solid form of [AMToolbarButton] (the floating
- *   surface with its shadow), so it stays the clearest thing over any picture, inside an
- *   [AMBackdrop] or not. It's Material's `arrow_back`, mirrored in right-to-left layouts, read as
- *   "Back", with a long-press tooltip naming it. It acts only while the panel is on the back
- *   stack, as [AMPanelChrome]'s arrow does: tapped again while its panel animates away, it does
- *   nothing.
+ * - **The back button is always a chip**, the chip form of [AMToolbarButton] (the floating
+ *   surface with its shadow, in the app's surface setting: solid in a solid app, frosted over the
+ *   art in a frosted one), inside an [AMBackdrop] or not. It's Material's `arrow_back`, mirrored
+ *   in right-to-left layouts, read as "Back", with a long-press tooltip naming it. It acts only
+ *   while the panel is on the back stack, as [AMPanelChrome]'s arrow does: tapped again while its
+ *   panel animates away, it does nothing.
  *
  * Place it inside the [AMBackdrop] whose art it sits on, so the frosted fill finds that art. The
  * fade uses Material's motion scheme. The panel itself is a Navigation 3 entry like any other
@@ -87,9 +87,9 @@ public fun AMArtPanelChrome(
     val titleContent: @Composable () -> Unit = {
         if (title != null) ArtBarText(title, scrolled, MaterialTheme.colorScheme.onSurface, secondary = false, Modifier.semantics { heading() })
     }
-    // Solid wherever the bar sits: a crucial control over any picture.
+    // A chip wherever the bar sits, in the app's surface setting.
     val backButton: @Composable () -> Unit = {
-        ToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack), solid = true)
+        ToolbarButton(painterResource(R.drawable.am_ic_arrow_back), PanelBackLabel, panelBack(onBack), chip = true)
     }
 
     FrostedBar(fill = { fill }, covers = scrolled, modifier) {
