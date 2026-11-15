@@ -171,6 +171,19 @@ class ArtWashTest {
         assertTrue(contrast(luminanceOf(linear(Color(0xFF381E72))), luminanceOf(linear(Color(0xFFD0BCFF)))) >= 4.5f)
     }
 
+    @Test
+    fun tagLabelsHoldOnFrostAndTint() {
+        // Baseline surfaceContainerHighest (the neutral tag) and onSurface.
+        for (dark in listOf(false, true)) {
+            val container = if (dark) Color(0xFF36343B) else Color(0xFFE6E0E9)
+            val label = if (dark) Color(0xFFE6E0E9) else Color(0xFF1D1B20)
+            val fill = frostedTagFill(container, dark)
+            for (ground in listOf(frostedGround(dark), tintedGround(dark))) {
+                assertTrue(contrast(luminanceOf(linear(label)), luminanceOf(over(fill, ground))) >= 4.5f)
+            }
+        }
+    }
+
     private fun washed(color: Color, dark: Boolean): Color {
         val pixels = floatArrayOf(color.red, color.green, color.blue, 1f)
         washTowardMode(pixels, dark, if (dark) AMArtDefaults.DarkWash else AMArtDefaults.LightWash)
@@ -195,6 +208,16 @@ class ArtWashTest {
     private fun luminanceOf(rgb: FloatArray) = linearLuminance(rgb[0], rgb[1], rgb[2])
 
     private fun mix(a: Color, b: Color, t: Float) = Color(a.red + (b.red - a.red) * t, a.green + (b.green - a.green) * t, a.blue + (b.blue - a.blue) * t)
+
+    /** [fill] composited over a gray of [groundLuminance] in sRGB, as the GPU blends, in linear light. */
+    private fun over(fill: Color, groundLuminance: Float): FloatArray {
+        val gray = linearToSrgb(groundLuminance)
+        return linear(Color(
+            fill.red * fill.alpha + gray * (1f - fill.alpha),
+            fill.green * fill.alpha + gray * (1f - fill.alpha),
+            fill.blue * fill.alpha + gray * (1f - fill.alpha),
+        ))
+    }
 
     private fun contrast(a: Float, b: Float): Float = (max(a, b) + 0.05f) / (min(a, b) + 0.05f)
 

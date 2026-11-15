@@ -60,6 +60,7 @@ AMTag { Text("v2.4.1", fontFamily = FontFamily.Monospace) }
 
 - **`AMTagTint`**: `Neutral` (`onSurface` on `surfaceContainerHighest`) and `Info`, `Success`, `Warning`, `Destructive`, which take their `AMSemantic` role's `containerColor` and `onContainerColor`, the same colors a banner of that role uses.
 - **The pill.** A full pill (`CircleShape`), padded `spacing.sm` at the sides and `spacing.xs` above and below, content `spacing.xs` apart and centered vertically, `labelMedium` through `ProvideTextStyle` and the content color through `LocalContentColor`, so custom content stays on-system. The glyph is 16 dp and decorative; the tag merges its semantics, so it reads as one piece.
+- **Frosted app.** With `AMTheme.surfaceFill == Frosted` the pill wears `amControlSurface(CircleShape, AMElevation.None)` (frost with its edge on the backdrop, the tint embedded) under `frostedTagFill(container, dark)`, the tint's container at `Style.Frosted.FillLight` / `FillDark`'s alpha. A solid app clips and fills as the container color.
 - **One line.** The string form's label is `maxLines = 1`, `softWrap = false`: a title beside it wraps instead. A row of tags wraps itself in an `AMFlowLayout` (`Selection.md`).
 - It only draws; tapping and toggling are Material's chips.
 
