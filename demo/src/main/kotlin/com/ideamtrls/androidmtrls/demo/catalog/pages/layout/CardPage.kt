@@ -17,14 +17,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMDivider
-import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMRowDefaults
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
@@ -69,22 +65,16 @@ private fun ProjectDetail() {
     val spacing = AMTheme.tokens.spacing
     var sendsReport by rememberSaveable { mutableStateOf(true) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-        AMBackdrop(
-            art = { AMRemoteImage(CatalogArt.Valley.url(AMTheme.isDark), contentDescription = null) },
-            modifier = Modifier.fillMaxWidth().height(200.dp).clip(MaterialTheme.shapes.large),
-        ) {
-            // A frosted app's card: the nested theme sets the app's surface setting for it alone.
-            AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
-                Column(
-                    Modifier
-                        .align(Alignment.Center)
-                        .padding(spacing.lg)
-                        .fillMaxWidth()
-                        .amCard(),
-                ) {
-                    ProvideAMOnSurface {
-                        TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
-                    }
+        CatalogFrostedStage(Modifier.height(200.dp)) {
+            Column(
+                Modifier
+                    .align(Alignment.Center)
+                    .padding(spacing.lg)
+                    .fillMaxWidth()
+                    .amCard(),
+            ) {
+                ProvideAMOnSurface {
+                    TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
                 }
             }
         }

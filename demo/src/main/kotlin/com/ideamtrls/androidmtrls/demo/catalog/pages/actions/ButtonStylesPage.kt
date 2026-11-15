@@ -7,18 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonStyle
-import com.ideamtrls.androidmtrls.AMRemoteImage
-import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 
 internal val ButtonStylesEntry = ComponentEntry(
@@ -77,39 +72,32 @@ private fun PreviewButtons() {
 }
 
 /**
- * A playlist's actions: Play and Shuffle frosted over its picture (under a nested
- * `AMTheme(surfaceFill = AMSurfaceFill.Frosted)`), then Download (not available offline yet) and
+ * A playlist's actions: Play and Shuffle frosted over its picture (in a `CatalogFrostedStage`), then Download (not available offline yet) and
  * Share, then Delete playlist, in the page's own setting.
  */
 @Composable
 private fun PlaylistActions() {
     val spacing = AMTheme.tokens.spacing
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-        AMBackdrop(
-            art = { AMRemoteImage(CatalogArt.Mountain.url(AMTheme.isDark), contentDescription = null) },
-            modifier = Modifier.fillMaxWidth().height(220.dp).clip(MaterialTheme.shapes.large),
-        ) {
-            // The pair stands in a frosted app of its own, so it's frosted over the picture.
-            AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
-                Row(
-                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(spacing.lg),
-                    horizontalArrangement = Arrangement.spacedBy(spacing.md),
-                ) {
-                    AMButton(
-                        "Play",
-                        onClick = ::play,
-                        modifier = Modifier.weight(1f),
-                        icon = painterResource(R.drawable.ic_play_arrow_filled),
-                        style = AMButtonStyle.Primary(),
-                    )
-                    AMButton(
-                        "Shuffle",
-                        onClick = ::shuffle,
-                        modifier = Modifier.weight(1f),
-                        icon = painterResource(R.drawable.ic_shuffle),
-                        style = AMButtonStyle.Secondary(),
-                    )
-                }
+        CatalogFrostedStage(Modifier.height(220.dp), art = CatalogArt.Mountain) {
+            Row(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(spacing.md),
+            ) {
+                AMButton(
+                    "Play",
+                    onClick = ::play,
+                    modifier = Modifier.weight(1f),
+                    icon = painterResource(R.drawable.ic_play_arrow_filled),
+                    style = AMButtonStyle.Primary(),
+                )
+                AMButton(
+                    "Shuffle",
+                    onClick = ::shuffle,
+                    modifier = Modifier.weight(1f),
+                    icon = painterResource(R.drawable.ic_shuffle),
+                    style = AMButtonStyle.Secondary(),
+                )
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {

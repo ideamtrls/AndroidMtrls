@@ -1,18 +1,24 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMBackdrop
+import com.ideamtrls.androidmtrls.AMRemoteImage
+import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 
 /**
@@ -67,6 +73,27 @@ internal fun Stage(layout: StageLayout = StageLayout.Floating, content: @Composa
     }
     val alignment = if (layout == StageLayout.Floating) Alignment.Start else Alignment.CenterHorizontally
     Column(modifier, horizontalAlignment = alignment) { content() }
+}
+
+/**
+ * A frosted app's bit of screen over [art], for the catalog's one deliberate demonstration of the
+ * other surface setting: the page's own demos follow the Surfaces setting, and this shows the
+ * frosted look whatever it is. The nested theme sets the setting for [content] alone, which sits
+ * on the photo (the art follows the appearance) as the pieces of a screen would. The caller pads
+ * the content and places it with [modifier].
+ */
+@Composable
+internal fun CatalogFrostedStage(
+    modifier: Modifier = Modifier,
+    art: CatalogArt = CatalogArt.Valley,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMBackdrop(
+            art = { AMRemoteImage(art.url(AMTheme.isDark), null) },
+            modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.large),
+        ) { content() }
+    }
 }
 
 /**

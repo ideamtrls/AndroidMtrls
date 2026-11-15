@@ -84,6 +84,13 @@ private fun WorkspaceSettings() {
     var pushAlerts by rememberSaveable { mutableStateOf(true) }
     var emailDigest by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
+        CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
+            AMSection("Notifications", Modifier.padding(spacing.lg).padding(top = spacing.sm), style = AMSectionStyle.Rows) {
+                SwitchRow("Push alerts", pushAlerts) { pushAlerts = it }
+                AMDivider(inset = spacing.lg)
+                SwitchRow("Email digest", emailDigest) { emailDigest = it }
+            }
+        }
         AMSection(
             "Notifications",
             footer = "Email digest sends one summary a day.",

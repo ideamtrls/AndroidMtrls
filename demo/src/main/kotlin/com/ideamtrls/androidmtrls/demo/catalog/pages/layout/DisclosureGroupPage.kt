@@ -3,6 +3,7 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -62,6 +63,7 @@ private fun OrderDetails() {
     var showsSummary by rememberSaveable { mutableStateOf(true) }
     var showsBilling by rememberSaveable { mutableStateOf(false) }
     var showsShipping by rememberSaveable { mutableStateOf(false) }
+    var showsFrosted by rememberSaveable { mutableStateOf(true) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
         AMDisclosureGroup("Order summary", showsSummary, onExpandedChange = { showsSummary = it }) {
             Detail("2 items, $48.00")
@@ -76,6 +78,16 @@ private fun OrderDetails() {
         }
         AMDisclosureGroup("Shipping details", showsShipping, onExpandedChange = { showsShipping = it }) {
             Detail("Standard delivery takes three to five business days.")
+        }
+        CatalogFrostedStage {
+            AMDisclosureGroup(
+                "Order summary",
+                showsFrosted,
+                onExpandedChange = { showsFrosted = it },
+                modifier = Modifier.padding(AMTheme.tokens.spacing.lg),
+            ) {
+                Detail("2 items, $48.00")
+            }
         }
     }
 }
