@@ -60,9 +60,11 @@ import androidx.compose.ui.unit.offset
  * [AMSurfaceStyle.Elevated] lifts a card inside a card again; [AMSurfaceStyle.Flat] flattens a
  * card anywhere.
  *
- * **Frosted.** With [AMSurfaceFill.Frosted] the card is glass over the art of the nearest
- * [AMBackdrop]; with no backdrop behind it, it draws solid. Put supporting text on it in
- * [AMTheme.Frosted.secondaryText].
+ * **Frosted.** With [AMSurfaceFill.Frosted] the card is frosted over the art of the nearest
+ * [AMBackdrop], or frost over the page color with no art behind it. On a sheet, or lifted again
+ * inside another card, it's embedded and draws the tint ([AMTheme.Frosted.embeddedFill]). Wrap what
+ * it holds in [ProvideAMOnSurface], so its supporting text ([AMTheme.secondaryText]) resolves from
+ * the card.
  *
  * Order it after the modifiers that size the card and before the content's own: `Modifier
  * .fillMaxWidth().amCard()`. The card adds no click handling; a clickable card puts its
@@ -152,7 +154,7 @@ private class CardSurfaceNode(
 
     // A frosted card that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdrop())) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
@@ -160,22 +162,21 @@ private class CardSurfaceNode(
             drawContent()
             return
         }
+        // A frosted card on a sheet, or lifted again inside another card, is embedded: it draws the tint.
+        val look = lookOf(fill)
         with(surface) {
             drawSurface(
                 context = requireGraphicsContext(),
                 shape = shape,
                 shadow = elevation.shadowLevel,
-                fill = fill,
+                look = look,
                 hairline = Color.Unspecified,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
-                backdrop = backdrop(),
+                backdrop = backdropFor(look),
                 clipContent = true,
             )
         }
     }
-
-    private fun backdrop(): AMBackdropSource? =
-        if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null
 }
 
 private data class CardPaddingElement(val padding: PaddingValues) : ModifierNodeElement<CardPaddingNode>() {
@@ -217,7 +218,7 @@ private val NoPadding = PaddingValues(0.dp)
 
 /**
  * One row's slice of a card that a lazy list draws a row at a time ([amSection]): the whole card's
- * surface (its shadow, fill, frosted glass and edge, as [amCard] draws them) cut to this row's band,
+ * surface (its shadow, fill, frost or tint and edge, as [amCard] draws them) cut to this row's band,
  * so rows laid edge to edge make one card. The [first] row takes the top corners and lets the
  * shadow out above it, the [last] the bottom corners and below; between them the sides run on into
  * the neighbors' slices. The content is clipped to the card's shape, and the slice is a card for
@@ -278,7 +279,7 @@ private class CardSliceNode(
 
     // A frosted slice that moves over its art (a scroll) samples a different part of it, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdrop())) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
@@ -287,21 +288,19 @@ private class CardSliceNode(
             return
         }
         val level = elevation.shadowLevel
+        val look = lookOf(fill)
         with(surface) {
             drawSurfaceSlice(
                 context = requireGraphicsContext(),
                 frame = cardSlice(size, first, last, cardSliceReach(level).toPx()),
                 shape = shape,
                 shadow = level,
-                fill = fill,
+                look = look,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
-                backdrop = backdrop(),
+                backdrop = backdropFor(look),
             )
         }
     }
-
-    private fun backdrop(): AMBackdropSource? =
-        if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null
 }
 
 /**
@@ -415,7 +414,7 @@ public object AMRowDefaults {
     /**
      * Material's list item colors on a transparent container in every state but dragging, so the
      * row lies on its card or strip, with its supporting line in the surface's secondary text color
-     * ([AMTheme.secondaryText]: the frosted secondary on glass). A checked or selected row keeps its resting colors: its
+     * ([AMTheme.secondaryText]: the frosted secondary on frost and on a sheet). A checked or selected row keeps its resting colors: its
      * control (a switch, a radio button) shows the state, not a tinted row.
      */
     @Composable

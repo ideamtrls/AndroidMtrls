@@ -106,35 +106,44 @@ public fun AMListCard(
         LocalAMRowActions provides null,
         LocalAMReorderHandleInset provides 0.dp,
         LocalAMReorderLifted provides false,
-        // The text lies on the card's fill, not on any art around it.
-        LocalAMSurfaceFill provides fill,
-        LocalAMArtTone provides null,
     ) {
+        // The card stands where the list card is placed, and its text lies on the card, off any art
+        // around it. Material composes the slots inside the list item's own node, which carries the
+        // card, so the slots and the colors they take go on the card one by one.
+        val colors = readOnSurface { AMRowDefaults.colors() }
+        val leading = onCard(leadingContent)
+        val trailing = onCard(trailingContent)
+        val supporting = onCard(supportingContent)
+        val headline: @Composable () -> Unit = { ProvideAMOnSurface(content) }
         if (onClick == null) {
             ListItem(
                 modifier = cardModifier,
                 enabled = isEnabled,
-                leadingContent = leadingContent,
-                trailingContent = trailingContent,
-                supportingContent = supportingContent,
-                colors = AMRowDefaults.colors(),
+                leadingContent = leading,
+                trailingContent = trailing,
+                supportingContent = supporting,
+                colors = colors,
                 shapes = AMRowDefaults.shapes(),
                 contentPadding = padding,
-                content = content,
+                content = headline,
             )
         } else {
             ListItem(
                 onClick = onClick,
                 modifier = cardModifier,
                 enabled = isEnabled,
-                leadingContent = leadingContent,
-                trailingContent = trailingContent,
-                supportingContent = supportingContent,
-                colors = AMRowDefaults.colors(),
+                leadingContent = leading,
+                trailingContent = trailing,
+                supportingContent = supporting,
+                colors = colors,
                 shapes = AMRowDefaults.shapes(),
                 contentPadding = padding,
-                content = content,
+                content = headline,
             )
         }
     }
 }
+
+/** [slot] lying on the list card ([ProvideAMOnSurface]), or null for none. */
+private fun onCard(slot: (@Composable () -> Unit)?): (@Composable () -> Unit)? =
+    slot?.let { content -> @Composable { ProvideAMOnSurface(content) } }

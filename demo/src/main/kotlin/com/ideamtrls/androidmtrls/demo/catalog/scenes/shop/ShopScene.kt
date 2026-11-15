@@ -25,6 +25,8 @@ import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMSpotlight
+import com.ideamtrls.androidmtrls.AMSurfaceFill
+import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.amInstantSwitch
 
@@ -49,7 +51,8 @@ internal val ShopSceneEntry = ComponentEntry(
  *
  * One backdrop of roasted beans runs behind everything, so the roots, the frosted cards and the
  * frosted sheets all sit on it: an [AMBackdrop] holds the whole scene, which lies transparent on
- * it. Panels bring their own backdrop, so they cover the root they push over.
+ * it, inside the scene's own [AMTheme] setting its surfaces frosted. Panels bring their own
+ * backdrop, so they cover the root they push over.
  */
 @Composable
 internal fun ShopScene() {
@@ -63,29 +66,32 @@ internal fun ShopScene() {
     DisposableEffect(model) { onDispose { model.cancelPendingWork() } }
     LaunchedEffect(model) { model.load() }
 
-    AMBackdrop(art = { ShopBackdrop() }, Modifier.fillMaxSize()) {
-        AMScene(
-            current = model.currentView,
-            landing = ShopView.Shop,
-            onCurrentChange = { model.currentView = it },
-            floatingActions = {
-                AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
-                    ShopRemote(
-                        model,
-                        onClose = { showsRemote = false },
-                        onExit = {
-                            showsRemote = false
-                            model.cancelPendingWork()
-                            navigator.back()
-                        },
-                    )
-                }
-            },
-            overlays = { ShopOverlays(model) },
-            backStack = { model.stack(it) },
-            containerColor = Color.Transparent,
-        ) { view ->
-            ShopRootStack(model, view)
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMBackdrop(art = { ShopBackdrop() }, Modifier.fillMaxSize()) {
+            AMScene(
+                current = model.currentView,
+                landing = ShopView.Shop,
+                onCurrentChange = { model.currentView = it },
+                floatingActions = {
+                    AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
+                        ShopRemote(
+                            model,
+                            onClose = { showsRemote = false },
+                            onExit = {
+                                showsRemote = false
+                                model.cancelPendingWork()
+                                navigator.back()
+                            },
+                        )
+                    }
+                },
+                overlays = { ShopOverlays(model) },
+                backStack = { model.stack(it) },
+                containerColor = Color.Transparent,
+            ) { view ->
+                ShopRootStack(model, view)
+            }
         }
     }
 }

@@ -151,8 +151,9 @@ public val LocalAMButtonStyle: ProvidableCompositionLocal<AMButtonStyle> =
  * `iconSizeFor`, `textStyleFor`) and its ripple, so a filled button stands as tall as the rows
  * around it. They wear the floating surface: white in light mode and black in dark mode, the
  * shape's two-layer shadow, and in dark mode a hairline (the selection ring on the page, the
- * brighter [AMTheme.controlOutline] inside a card or on a black sheet), or frosted glass over art
- * with [AMSurfaceFill.Frosted]. Their label is `onSurface`. [AMButtonStyle.Ghost] is Material's
+ * brighter [AMTheme.controlOutline] inside a card or tabs, or on a black sheet); or with
+ * [AMSurfaceFill.Frosted], frosted over art, and the tint ([AMTheme.Frosted.embeddedFill]) inside
+ * a card or tabs, or on a sheet. Their label is `onSurface`. [AMButtonStyle.Ghost] is Material's
  * `TextButton` in the same shape. A button wraps its label like Material's; give it
  * `Modifier.fillMaxWidth()` or a weight to span a row. It takes taps across at least 48 dp.
  *
@@ -438,11 +439,11 @@ private fun SurfaceButton(
 private const val DisabledContentAlpha = 0.38f
 
 /**
- * The floating surface a solid control wears: the elevated surface ([amElevatedSurface]'s recipe,
- * through the shared [ElevatedSurfaceDrawer]), whose dark-mode hairline is the brighter
- * [AMTheme.controlOutline] when the control sits inside a card or on a black sheet
- * ([sitsOnPrimarySurface]), where the ring would vanish against the black around it, and the
- * selection ring on the page.
+ * The floating surface a control wears: the elevated surface ([amElevatedSurface]'s recipe,
+ * through the shared [ElevatedSurfaceDrawer]). Embedded inside a card, tabs or a section, or on a
+ * sheet ([isEmbedded]), a frosted control draws the tint, and a solid one's dark-mode hairline is
+ * the brighter [AMTheme.controlOutline], where the ring would vanish against the black around it;
+ * on the page it keeps the selection ring.
  */
 private fun Modifier.controlSurface(shape: Shape, elevation: AMElevation, fill: AMSurfaceFill): Modifier =
     this then ControlSurfaceElement(shape, elevation, fill)
@@ -486,27 +487,26 @@ private class ControlSurfaceNode(
 
     // A frosted control that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdrop())) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(lookOf(fill)))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
         val dark = currentValueOf(LocalAMDarkTheme) ?: false
-        // Inside a card (flat or not) or on a black sheet, the outline steps up.
-        val onPrimary = sitsOnPrimarySurface()
+        // Inside a card (flat or not), tabs or a section, or on a sheet: tinted when frosted, and
+        // when solid, the outline steps up.
+        val embedded = isEmbedded()
+        val look = surfaceLook(fill, embedded)
         with(surface) {
             drawSurface(
                 context = requireGraphicsContext(),
                 shape = shape,
                 shadow = elevation.shadowLevel,
-                fill = fill,
-                hairline = if (onPrimary) Style.ControlOutline.Dark else Color.Unspecified,
+                look = look,
+                hairline = if (embedded) Style.ControlOutline.Dark else Color.Unspecified,
                 dark = dark,
-                backdrop = backdrop(),
+                backdrop = backdropFor(look),
                 clipContent = false,
             )
         }
     }
-
-    private fun backdrop(): AMBackdropSource? =
-        if (fill == AMSurfaceFill.Frosted) currentValueOf(LocalAMBackdrop) else null
 }

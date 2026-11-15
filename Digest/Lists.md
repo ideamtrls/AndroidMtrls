@@ -44,6 +44,7 @@ All three row kinds pass `AMRowDefaults.colors()`, `shapes()` and `contentPaddin
 
 - String: `AMListCard(title, modifier, subtitle?, leadingContent?, trailingContent?, fill = Solid, onClickLabel?, onClick?, enabled)`. Slot: `AMListCard(modifier, leadingContent?, supportingContent?, trailingContent?, fill, onClickLabel?, onClick?, enabled, content)`; `onClickLabel` names the tap for TalkBack, as on `AMListRow`. `supportingContent` takes a row of tags or a card's actions as well as text.
 - The `ListItem` wears `fillMaxWidth().amCard(fill, elevation)`: `shapes.large`, the `Low` shadow, the dark hairline, its ripple clipped to the corners. Content padding is the row recipe's, plus `LocalAMReorderHandleInset` at the end.
+- **Its text lies on the card**, off any art around it. The card is the `ListItem`'s own node, composed where the list card stands, so the card isn't wrapped: each slot is (`ProvideAMOnSurface`), and the row colors are read as on the card (internal `readOnSurface { AMRowDefaults.colors() }`), so the supporting line takes the frosted secondary in a frosted app (`Foundations.md`).
 - **In a reorderable card list** it reads `LocalAMReorderHandleInset` (the handle's 24 dp plus `spacing.md`), so its text stops short of the list's handle, and `LocalAMReorderLifted`, raising its card to `AMElevation.Medium` while it's dragged or settling. It resets both for its own slots.
 - Stack list cards `spacing.md` apart.
 

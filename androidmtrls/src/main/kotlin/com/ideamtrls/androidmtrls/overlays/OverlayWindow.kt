@@ -60,8 +60,9 @@ internal const val OverlayCloseLabel: String = "Close"
  *   spec and out with its fast effects spec. Input is ignored while it fades out.
  * - **Dismissal**: back, and a tap anywhere the content doesn't take, call [onDismissRequest].
  *   The area around the content is one "Close" button for TalkBack, after the content.
- * - **A fresh context**: the content is solid and enabled whatever surrounds the call: no backdrop
- *   to frost over, [AMSurfaceStyle.Elevated], enabled controls, `onSurface` content.
+ * - **A fresh context**: the content is elevated and enabled whatever surrounds the call: no art to
+ *   sample (a frosted surface in it is frost over the page color), [AMSurfaceStyle.Elevated],
+ *   enabled controls, `onSurface` content. The app's surface setting carries in.
  * - It reports to the overlay registry while [visible].
  */
 @Composable
@@ -105,10 +106,12 @@ internal fun AMOverlayWindow(
 }
 
 /**
- * The fresh context an overlay window's content starts from: nothing to frost over (a window can't
- * sample the screen behind it), no art under it and no scene root its art could stand for, cards elevated and controls enabled whatever the presenting screen
- * set, no sheet's surface under the controls (a sheet sets its own inside), and `onSurface`
- * content.
+ * The fresh context an overlay window's content starts from: no art to sample (a window can't
+ * sample the screen behind it, so a frosted surface in it is frost over the page color), no art
+ * under it and no scene root its art could stand for, cards elevated and controls enabled whatever
+ * the presenting screen set, content lying on the window's own page rather than on any surface
+ * around the call (a sheet sets its own inside), and `onSurface` content. The app's surface setting
+ * carries in.
  */
 @Composable
 internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
@@ -116,9 +119,8 @@ internal fun ProvideOverlayWindowLocals(content: @Composable () -> Unit) {
         LocalAMBackdrop provides null,
         LocalAMSceneBackdrops provides null,
         LocalAMArtTone provides null,
-        LocalAMSurfaceFill provides AMSurfaceFill.Solid,
         LocalAMEnabled provides true,
-        LocalAMOnPrimarySurface provides false,
+        LocalAMLiesOn provides LiesOn.Page,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,
     ) {
         ProvideAMSurfaceStyle(AMSurfaceStyle.Elevated, content)

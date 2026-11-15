@@ -156,24 +156,35 @@ internal object Style {
     }
 
     /**
-     * The frosted surface over art: a pure Gaussian blur of what's behind, under a translucent
-     * surface fill, with a light edge in both modes. Where there's nothing to blur it draws the
-     * solid surface, never unblurred translucency.
+     * The frosted surface: a pure Gaussian blur of the art behind, under a translucent surface
+     * fill, with a light edge in both modes. With no art to blur it lies over the page color
+     * instead (frost over a flat color is that color made translucent), never over unblurred
+     * content. A piece embedded in a frosted surface draws the tint, with no blur of its own.
      */
     object Frosted {
         /** The fill over the blur: the surface color, translucent. */
         val FillLight = Color.White.copy(alpha = 0.6f)
         val FillDark = Color.Black.copy(alpha = 0.5f)
 
-        /** The outline, in place of the solid surface's dark-mode hairline. */
+        /**
+         * The tint an embedded piece draws over the frost it sits on (a card on a sheet, a button
+         * in a card): the surface color, translucent, with no blur of its own.
+         */
+        val EmbeddedFillLight = Color.White.copy(alpha = 0.6f)
+        val EmbeddedFillDark = Color.Black.copy(alpha = 0.5f)
+
+        /** The outline of frost and of the tint, in place of the solid surface's dark-mode hairline. */
         val EdgeLight = Color.White.copy(alpha = 0.6f)
         val EdgeDark = Color.White.copy(alpha = 0.15f)
 
-        /** A lifted row on the glass, over its fill. */
+        /** A lifted row on frost, over its fill. */
         val HighlightLight = Color.White.copy(alpha = 0.5f)
         val HighlightDark = Color.White.copy(alpha = 0.12f)
 
-        /** Secondary text on the glass, which holds its contrast over the tint. */
+        /**
+         * Secondary text on frost, on the tint and on a sheet: it holds 4.5:1 on frost over the
+         * library's washed art, on the tint over that frost, and on frost over the page.
+         */
         val SecondaryTextLight = Color(0xFF2C2C2E)
         val SecondaryTextDark = Color(0xFFD1D1D6)
 

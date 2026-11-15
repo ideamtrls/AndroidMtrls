@@ -13,6 +13,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.Dp
  * ```kotlin
  * AMTheme { App() }                                       // Material's baseline scheme, following the system
  * AMTheme(colorScheme = if (dark) BrandDark else BrandLight, darkTheme = dark) { App() }
+ * AMTheme(surfaceFill = AMSurfaceFill.Frosted) { App() }   // frosted surfaces over the app's art
  * AMTheme(tokens = AMTheme.tokens.copy(spacing = AMSpacing(lg = 20.dp))) { Feed() }   // a subtree
  * ```
  *
@@ -36,9 +38,14 @@ import androidx.compose.ui.unit.Dp
  * [colorScheme] here, or wrap content in a `MaterialTheme(shapes = …)`); [AMTokens] carries only
  * what Material lacks.
  *
- * Nested inside another `AMTheme`, the defaults keep what the outer theme set: its appearance and,
- * in that appearance, its color scheme. So a subtree that only changes [tokens] keeps the app's
- * colors and a forced light or dark mode.
+ * **The surface setting** ([surfaceFill]) is the app's material, set once here: solid floating
+ * surfaces, or frosted ones over the app's art. A piece embedded in a frosted surface (inside a
+ * card, tabs or a section, or on a sheet) draws the tint, [AMTheme.Frosted.embeddedFill]. With no
+ * art behind it, a frosted surface is frost over the page color.
+ *
+ * Nested inside another `AMTheme`, the defaults keep what the outer theme set: its appearance, in
+ * that appearance its color scheme, and its surface setting. So a subtree that only changes
+ * [tokens] keeps the app's colors, a forced light or dark mode and its frost.
  *
  * **The system bars follow it.** The outermost `AMTheme` in a window sets that window's status and
  * navigation bar icons for [darkTheme] (dark icons in light mode, light ones in dark mode) and
@@ -53,6 +60,8 @@ import androidx.compose.ui.unit.Dp
  * @param colorScheme the static Material color scheme. Defaults to Material's baseline scheme for
  *   [darkTheme]. Never pass a dynamic scheme: the style layer is tuned against static colors.
  * @param tokens the spacing scale and semantic tints.
+ * @param surfaceFill the app's surface setting: [AMSurfaceFill.Solid] (the library's default at the
+ *   root) or [AMSurfaceFill.Frosted]. Nested, it defaults to the outer theme's.
  * @param content the themed content.
  */
 @Composable
@@ -60,6 +69,7 @@ public fun AMTheme(
     darkTheme: Boolean = LocalAMDarkTheme.current ?: isSystemInDarkTheme(),
     colorScheme: ColorScheme = inheritedColorScheme(darkTheme),
     tokens: AMTokens = AMTheme.tokens,
+    surfaceFill: AMSurfaceFill = AMTheme.surfaceFill,
     content: @Composable () -> Unit,
 ) {
     // The outermost theme owns the window's bars. Composed ahead of the content, so on a change
@@ -74,6 +84,7 @@ public fun AMTheme(
         CompositionLocalProvider(
             LocalAMDarkTheme provides darkTheme,
             LocalAMTokens provides tokens,
+            LocalAMSurfaceFill provides surfaceFill,
             content = content,
         )
     }
@@ -82,20 +93,28 @@ public fun AMTheme(
 /**
  * The style layer and the tokens, read inside an [AMTheme]:
  *
- * - **The style tier**, read-only: the floating surface and the page, the frosted recipe, the
- *   hairline, the selection ring and control outline, the row recipe's vertical padding, the
- *   modal overlay recipe and the remote's tile height. These are the look itself; nothing
- *   overrides them. Shadows are read through [AMElevation].
+ * - **The style tier**, read-only: the floating surface and the page, the frosted recipe and the
+ *   tint, the hairline, the selection ring and control outline, the row recipe's vertical
+ *   padding, the modal overlay recipe and the remote's tile height. These are the look itself;
+ *   nothing overrides them. Shadows are read through [AMElevation].
  * - **[tokens]**, the overridable tier: the spacing scale and semantic tints ([AMTokens]).
+ * - **[surfaceFill]**, the app's surface setting, solid or frosted.
  *
  * Colors that differ by mode follow the theme's dark flag ([isDark]), not the system's.
- * Outside an `AMTheme` they read as light mode with the default tokens.
+ * Outside an `AMTheme` they read as light mode with the default tokens, and surfaces as solid.
  */
 public object AMTheme {
 
     /** The current [AMTokens]: the spacing scale and semantic tints. */
     public val tokens: AMTokens
         @Composable @ReadOnlyComposable get() = LocalAMTokens.current
+
+    /**
+     * The app's surface setting, set once on the theme (`AMTheme(surfaceFill = …)`):
+     * [AMSurfaceFill.Solid] (the default) or [AMSurfaceFill.Frosted].
+     */
+    public val surfaceFill: AMSurfaceFill
+        @Composable @ReadOnlyComposable get() = LocalAMSurfaceFill.current
 
     /** Whether the theme shows its dark appearance, forced or following the system. */
     public val isDark: Boolean
@@ -113,15 +132,15 @@ public object AMTheme {
     /**
      * Secondary text (a supporting line, a value, a caption) for the surface this composition lies
      * on, resolved from that surface: on art, the secondary ink of its tone (`#D1D1D6` on dark art,
-     * `#2C2C2E` on light art, which hold 4.5:1 over the library's washed art); on frost over art,
-     * [Frosted.secondaryText], which holds over the tint; on the page or a solid card, Material's
-     * `onSurfaceVariant`. The library's containers say which surface their content lies on; a
-     * hand-built card says it with [ProvideAMSurfaceFill].
+     * `#2C2C2E` on light art, which hold 4.5:1 over the library's washed art); on a sheet, or on a
+     * surface in a frosted app, [Frosted.secondaryText], which holds on frost and on the tint; on
+     * the page or a solid card, Material's `onSurfaceVariant`. The library's containers say their
+     * content lies on a surface; a hand-built card says it with [ProvideAMOnSurface].
      */
     public val secondaryText: Color
         @Composable @ReadOnlyComposable get() = when {
             LocalAMArtTone.current != null -> artInk(secondary = true)
-            LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null -> Frosted.secondaryText
+            liesOnFrost() -> Frosted.secondaryText
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         }
 
@@ -145,35 +164,54 @@ public object AMTheme {
     }
 
     /**
-     * The frosted surface over art ([AMSurfaceFill.Frosted]) and the colors content on it uses: a
-     * pure Gaussian blur of the art behind, under [fill], outlined by [edge] in both modes.
+     * The frosted surface ([AMSurfaceFill.Frosted]), the tint embedded pieces draw on it, and the
+     * colors content on them uses.
+     *
+     * - **Frost**, on the backdrop: a pure Gaussian blur of the art behind, under [fill], outlined
+     *   by [edge] in both modes. With no art behind it, it's frost over the page color: the page
+     *   under [fill], opaque.
+     * - **The tint**, embedded (inside a frosted card, tabs or section, or on a sheet):
+     *   [embeddedFill] over the frost it sits on, with no blur of its own, outlined by [edge].
      */
     public object Frosted {
         /** The fill over the blur: white at 0.6 in light mode, black at 0.5 in dark mode. */
         public val fill: Color
             @Composable @ReadOnlyComposable get() = if (isDark) Style.Frosted.FillDark else Style.Frosted.FillLight
 
-        /** The light edge around the glass: white at 0.6 in light mode, at 0.15 in dark mode. */
+        /**
+         * The tint, what a piece embedded in a frosted surface fills with: the surface color,
+         * white at 0.6 in light mode and black at 0.5 in dark mode, drawn with no blur over the
+         * frost under it, so it reads as a solid piece made frosty.
+         */
+        public val embeddedFill: Color
+            @Composable @ReadOnlyComposable get() =
+                if (isDark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight
+
+        /** The light edge around frost and the tint: white at 0.6 in light mode, at 0.15 in dark mode. */
         public val edge: Color
             @Composable @ReadOnlyComposable get() = if (isDark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight
 
-        /** A lifted row on the glass (the playing track), over the fill. */
+        /** A lifted row on frost (the playing track), over the fill. */
         public val highlight: Color
             @Composable @ReadOnlyComposable get() = if (isDark) Style.Frosted.HighlightDark else Style.Frosted.HighlightLight
 
-        /** Secondary text on the glass, which holds its contrast over the tint. */
+        /**
+         * Secondary text on frost, on the tint and on a sheet: `#2C2C2E` in light mode, `#D1D1D6`
+         * in dark mode, which hold 4.5:1 on each.
+         */
         public val secondaryText: Color
             @Composable @ReadOnlyComposable get() =
                 if (isDark) Style.Frosted.SecondaryTextDark else Style.Frosted.SecondaryTextLight
 
         /**
-         * The accent on the glass, for tinted text and glyphs on a frosted surface (a link, a
+         * The accent on frost, for tinted text and glyphs on a frosted surface (a link, a
          * now-playing title, a toggle that's on): the scheme's `primary`, moved along its own line
          * just far enough to hold 4.5:1 on the frosted fill over the library's washed art, in each
-         * mode. Material's baseline `primary` already holds (4.95:1 light, 8.56:1 dark) and comes
-         * back unchanged; a lighter brand color comes back darker in light mode. Over art an app
-         * didn't wash, the glass is the app's to check. The library's own tinted text and glyphs on
-         * glass use it.
+         * mode, so it holds on the tint over that frost too. Material's baseline `primary` already
+         * holds (4.90:1 light, 8.81:1 dark) and comes back unchanged; a lighter brand color comes
+         * back darker in light mode. Over art an app didn't wash, the frost is the app's to check.
+         * The library's own tinted text and glyphs use it on a sheet and on surfaces in a frosted
+         * app.
          */
         public val tint: Color
             @Composable @ReadOnlyComposable get() = frostedTint(MaterialTheme.colorScheme.primary, isDark)
@@ -333,8 +371,28 @@ internal fun frostedGround(dark: Boolean): Float {
 }
 
 /**
- * [color] moved, keeping its hue, just far enough to hold 4.5:1 on frosted glass over the
- * library's art ([frostedGround]): darker in light mode, lighter in dark mode. A color that
+ * The relative luminance of the tint over that frost ([frostedGround]), at its hardest for text:
+ * the embedded fill, which draws no blur of its own, over the frosted fill over the library's art.
+ */
+internal fun tintedGround(dark: Boolean): Float {
+    val tint = if (dark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight
+    // The tint lies over the frost in sRGB, as the GPU blends it.
+    val gray = tint.red * tint.alpha + linearToSrgb(frostedGround(dark)) * (1f - tint.alpha)
+    return srgbToLinear(gray)
+}
+
+/**
+ * Frost over the page color, as a frosted surface with no art to sample draws it: the frosted
+ * fill over the page, opaque. Over a flat color, blurred and unblurred are the same.
+ */
+internal fun frostOverPage(dark: Boolean): Color {
+    val fill = if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight
+    return fill.compositeOver(if (dark) Style.Page.Dark else Style.Page.Light)
+}
+
+/**
+ * [color] moved, keeping its hue, just far enough to hold 4.5:1 on frost over the library's art
+ * ([frostedGround]): darker in light mode, lighter in dark mode. A color that
  * already holds stays.
  */
 internal fun frostedTint(color: Color, dark: Boolean): Color {
@@ -350,13 +408,21 @@ internal fun frostedTint(color: Color, dark: Boolean): Color {
 
 /**
  * The accent for tinted text and glyphs on the surface this composition lies on: [AMTheme.Frosted.tint]
- * on frosted glass over art, else the scheme's `primary`.
+ * on a sheet or on a surface in a frosted app, else the scheme's `primary`.
  */
 @Composable
 @ReadOnlyComposable
 internal fun surfaceAccent(): Color =
-    if (LocalAMSurfaceFill.current == AMSurfaceFill.Frosted && LocalAMBackdrop.current != null) {
-        AMTheme.Frosted.tint
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    if (liesOnFrost()) AMTheme.Frosted.tint else MaterialTheme.colorScheme.primary
+
+/**
+ * Whether the content here lies on frost or the tint, so its secondary text and accent take the
+ * frosted ones: on a sheet, or on a surface ([ProvideAMOnSurface]) in a frosted app.
+ */
+@Composable
+@ReadOnlyComposable
+private fun liesOnFrost(): Boolean = when (LocalAMLiesOn.current) {
+    LiesOn.Sheet -> true
+    LiesOn.Surface -> LocalAMSurfaceFill.current == AMSurfaceFill.Frosted
+    LiesOn.Page -> false
+}

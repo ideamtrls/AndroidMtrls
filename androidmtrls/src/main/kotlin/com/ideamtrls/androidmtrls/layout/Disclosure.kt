@@ -120,9 +120,9 @@ public fun AMDisclosureGroup(
         animationSpec = motion.defaultSpatialSpec(),
         label = "chevron",
     )
-    // The header and the body lie on the card's fill.
-    ProvideAMSurfaceFill(fill) {
-        Column(modifier.fillMaxWidth().amCard(fill = fill)) {
+    Column(modifier.fillMaxWidth().amCard(fill = fill)) {
+        // The header and the body lie on the card; the card stands where it's placed.
+        ProvideAMOnSurface {
             Row(
                 Modifier
                     .fillMaxWidth()

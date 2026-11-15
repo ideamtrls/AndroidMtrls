@@ -188,13 +188,11 @@ private fun SectionLayout(
         when (style) {
             AMSectionStyle.Rows -> SectionCard(
                 Modifier.padding(horizontal = side).fillMaxWidth().amCard(fill, elevation),
-                fill,
                 content,
             )
             AMSectionStyle.Card -> SectionCard(
                 Modifier.padding(horizontal = side).fillMaxWidth()
                     .amCard(fill, elevation, padding = PaddingValues(spacing.lg)),
-                fill,
                 content,
             )
             AMSectionStyle.Flat -> Column(
@@ -220,13 +218,13 @@ private fun SectionFooter(footer: @Composable () -> Unit, modifier: Modifier) {
 
 /**
  * The section's card: its content flat inside it, so a card in the content draws nothing of its
- * own, and lying on the card's [fill], so its secondary text resolves from it.
+ * own, and lying on the card ([ProvideAMOnSurface]), so its secondary text resolves from it.
  */
 @Composable
-private fun SectionCard(modifier: Modifier, fill: AMSurfaceFill, content: @Composable ColumnScope.() -> Unit) {
+private fun SectionCard(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(modifier) {
         val column = this
-        ProvideAMSurfaceFill(fill) {
+        ProvideAMOnSurface {
             ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { column.content() }
         }
     }
@@ -368,7 +366,7 @@ private fun <T> LazyListScope.lazySection(
                 .fillMaxWidth()
                 .amCardSlice(fill, elevation, MaterialTheme.shapes.large, first = index == 0, last = index == items.lastIndex),
         ) {
-            ProvideAMSurfaceFill(fill) {
+            ProvideAMOnSurface {
                 ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) {
                     if (dividers && index > 0) AMDivider(inset = spacing.lg)
                     content(items[index])

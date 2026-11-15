@@ -141,6 +141,23 @@ class ArtWashTest {
         assertTrue(held.blue > held.green && held.green > held.red)
     }
 
+    @Test
+    fun frostOverThePageIsThePageMadeTranslucent() {
+        assertEquals(Color(0xFFFAFAFC), quantized(frostOverPage(dark = false)))
+        assertEquals(Color(0xFF0A0A0B), quantized(frostOverPage(dark = true)))
+    }
+
+    @Test
+    fun textHoldsOnTheTint() {
+        for (dark in listOf(false, true)) {
+            val secondary = if (dark) Color(0xFFD1D1D6) else Color(0xFF2C2C2E)   // Frosted.secondaryText
+            val onSurface = if (dark) Color(0xFFE6E0E9) else Color(0xFF1D1B20)   // baseline onSurface
+            assertTrue(contrast(luminanceOf(linear(secondary)), tintedGround(dark)) >= 4.5f)
+            assertTrue(contrast(luminanceOf(linear(onSurface)), tintedGround(dark)) >= 7f)
+            assertTrue(contrast(luminanceOf(linear(secondary)), luminanceOf(linear(frostOverPage(dark)))) >= 4.5f)
+        }
+    }
+
     private fun washed(color: Color, dark: Boolean): Color {
         val pixels = floatArrayOf(color.red, color.green, color.blue, 1f)
         washTowardMode(pixels, dark, if (dark) AMArtDefaults.DarkWash else AMArtDefaults.LightWash)
@@ -157,6 +174,8 @@ class ArtWashTest {
     }
 
     private fun quantize(value: Float): Float = Math.round(value.coerceIn(0f, 1f) * 255f) / 255f
+
+    private fun quantized(color: Color) = Color(quantize(color.red), quantize(color.green), quantize(color.blue), quantize(color.alpha))
 
     private fun linear(color: Color) = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
 

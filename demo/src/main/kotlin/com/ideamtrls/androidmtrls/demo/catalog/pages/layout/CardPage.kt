@@ -26,7 +26,7 @@ import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMRowDefaults
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amRowPadding
 
@@ -80,7 +80,7 @@ private fun ProjectDetail() {
                     .fillMaxWidth()
                     .amCard(fill = AMSurfaceFill.Frosted),
             ) {
-                ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                ProvideAMOnSurface {
                     TitledRow("Project Atlas", "Harbor survey · 12 tasks open", AMTheme.secondaryText)
                 }
             }

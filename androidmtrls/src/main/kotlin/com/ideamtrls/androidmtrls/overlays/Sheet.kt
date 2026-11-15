@@ -53,10 +53,10 @@ public enum class AMSheetSurface {
     Page,
 
     /**
-     * Glass, for an app whose pages use frosted cards: the art of the [AMBackdrop] the sheet is
+     * Frost, for an app whose pages use frosted cards: the art of the [AMBackdrop] the sheet is
      * presented from (in an [AMScene]'s overlays, the backdrop the showing root draws), blurred
-     * under the frosted fill, with the frosted edge. What the sheet holds stays solid. With no
-     * backdrop to sample, it draws [Primary].
+     * under the frosted fill, with the frosted edge. What the sheet holds keeps its own fill, and
+     * a frosted piece on it draws the tint. With no backdrop to sample, it draws [Primary].
      */
     Frosted,
 }
@@ -81,9 +81,10 @@ public enum class AMSheetSurface {
  *   the scrim is transparent, and still takes a tap outside.
  * - **The discard guard**: while [Modifier.amDiscardGuard][amDiscardGuard] inside reports changes,
  *   a drag down, a tap outside and back raise "Discard changes?" instead of closing.
- * - **A fresh context**: what the sheet holds is solid and enabled whatever surrounds the call;
- *   cards in it float as they do on a page, and on a black sheet a filled button takes the
- *   brighter [AMTheme.controlOutline] in dark mode, as inside a card.
+ * - **A fresh context**: what the sheet holds is enabled whatever surrounds the call, and cards in
+ *   it float as they do on a page. On a primary or frosted sheet its pieces are embedded, as
+ *   inside a card: a frosted one draws the tint ([AMTheme.Frosted.embeddedFill]), and a solid
+ *   filled button takes the brighter [AMTheme.controlOutline] in dark mode.
  * - **Toasts and banners over it**: while the sheet is up, an [AMToast] shows at the sheet's
  *   bottom and an [AMBanner] at the top of the screen, over the sheet, whether posted from inside
  *   the sheet or from the screen under it, as the topmost window is the one the user sees.
@@ -169,7 +170,7 @@ public fun AMSheet(
         containerColor = when (surface) {
             AMSheetSurface.Primary -> AMTheme.Surface.primary
             AMSheetSurface.Page -> AMTheme.Surface.page
-            // The glass is the chrome's.
+            // The frost is the chrome's.
             AMSheetSurface.Frosted -> Color.Transparent
         },
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -184,9 +185,11 @@ public fun AMSheet(
             .then(if (height == AMSheetHeight.Full) Modifier.fillMaxHeight() else Modifier)
         CompositionLocalProvider(LocalAMDiscardGuard provides guard) {
             ProvideOverlayWindowLocals {
-                // A black sheet lifts the controls on it the way a card does (Primary, and Frosted,
-                // which is solid without art); a page-colored one leaves them as on a page.
-                CompositionLocalProvider(LocalAMOnPrimarySurface provides (surface != AMSheetSurface.Page)) {
+                // A primary or frosted sheet is a surface its pieces are embedded in, as in a card:
+                // a frosted one draws the tint, a solid one's outline steps up. A page-colored one
+                // leaves them as on a page.
+                val liesOn = if (surface == AMSheetSurface.Page) LiesOn.Page else LiesOn.Sheet
+                CompositionLocalProvider(LocalAMLiesOn provides liesOn) {
                     // The sheet is a window over the screen: while it's up, the screen's toasts and
                     // banners, and its own, show over it.
                     BannerHost(size, overScreen = true) {

@@ -31,7 +31,7 @@ import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbarButton
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amCrossfade
 import com.ideamtrls.androidmtrls.amPausedBackdrop
@@ -136,7 +136,7 @@ private fun PhotosCaption(photo: PhotosItem, onFavorite: () -> Unit) {
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+        ProvideAMOnSurface {
             Text(
                 photo.captionDate,
                 Modifier.weight(1f),

@@ -47,7 +47,7 @@ import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMSurfaceFill
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amArtRows
 import com.ideamtrls.androidmtrls.amArtText
 import com.ideamtrls.androidmtrls.amCard
@@ -194,7 +194,7 @@ internal fun MusicAlbumPage(albumId: String, model: MusicModel) {
                 // Bare rows with inset dividers between them, in a frosted card that clips them,
                 // so the playing row's highlight rounds with it.
                 Column(Modifier.fillMaxWidth().amCard(fill = AMSurfaceFill.Frosted)) {
-                    ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                    ProvideAMOnSurface {
                         tracks.forEachIndexed { index, track ->
                             if (index > 0) AMDivider(inset = spacing.lg)
                             MusicAlbumTrackRow(track, index, tracks, model)

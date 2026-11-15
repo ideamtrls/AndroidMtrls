@@ -31,7 +31,8 @@ internal class FrostedSlice {
     /**
      * Draws [source]'s art under the surface at [surface], blurred by [radius] px and clipped to
      * [shape]. Returns false, drawing nothing, while there's nothing to sample yet (the art or
-     * the surface isn't placed, or they don't overlap); the caller then draws the solid surface.
+     * the surface isn't placed, or they don't overlap); the caller then draws what it draws with no
+     * art (a frosted surface, frost over the page color; the frosted bar, the solid surface).
      */
     fun draw(scope: DrawScope, shape: Path, source: AMBackdropSource, surface: LayoutCoordinates?, radius: Float): Boolean {
         val layer = layer ?: return false
