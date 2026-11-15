@@ -291,6 +291,7 @@ internal class ShopSamples(val products: List<ShopProduct>, val featured: List<S
             return ShopSamples(
                 products = ShopProducts,
                 featured = listOf(
+                    ShopFeature("kanzu", "Roaster's pick", "A light natural from Nyamasheke: hibiscus, raspberry and honey."),
                     ShopFeature("gatomboya", "Just landed", "This year's Nyeri harvest: blackcurrant and grapefruit."),
                     ShopFeature("night-ferry", "House espresso", "Dark chocolate and molasses, made for milk."),
                     ShopFeature("grinder", "Back in stock", "Steel burrs and 40 clicks, from espresso to French press."),
