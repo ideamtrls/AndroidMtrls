@@ -33,6 +33,7 @@ import com.ideamtrls.androidmtrls.AMSection
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -76,30 +77,35 @@ private fun AccountProfileCard(name: String, email: String, interests: List<Acco
         Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.md), verticalAlignment = Alignment.CenterVertically) {
-            // TalkBack skips the avatar: the name beside it reads the same thing.
-            AMAvatar(url = null, name = name, modifier = Modifier.clearAndSetSemantics {}, size = AMAvatarSize.Large)
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                Text(name, style = MaterialTheme.typography.titleLarge)
-                Text(
-                    email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        ProvideAMOnSurface {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // TalkBack skips the avatar: the name beside it reads the same thing.
+                AMAvatar(url = null, name = name, modifier = Modifier.clearAndSetSemantics {}, size = AMAvatarSize.Large)
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                    Text(name, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AMTheme.secondaryText,
+                    )
+                }
             }
-        }
-        if (interests.isEmpty()) {
-            Text(
-                "No interests yet. Pick a few and Margin will suggest more to read.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            // The tags read as one element, "Interests" and their names.
-            val names = ListFormatter.getInstance().format(interests.map { it.name })
-            AMFlowLayout(Modifier.clearAndSetSemantics { contentDescription = "Interests: $names" }) {
-                interests.forEach { interest ->
-                    AMTag(interest.name, icon = painterResource(interest.icon))
+            if (interests.isEmpty()) {
+                Text(
+                    "No interests yet. Pick a few and Scrollies will suggest more to read.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AMTheme.secondaryText,
+                )
+            } else {
+                // The tags read as one element, "Interests" and their names.
+                val names = ListFormatter.getInstance().format(interests.map { it.name })
+                AMFlowLayout(Modifier.clearAndSetSemantics { contentDescription = "Interests: $names" }) {
+                    interests.forEach { interest ->
+                        AMTag(interest.name, icon = painterResource(interest.icon))
+                    }
                 }
             }
         }

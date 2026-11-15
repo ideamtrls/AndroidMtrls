@@ -16,6 +16,7 @@ import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTextFieldAutofocus
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -33,14 +34,16 @@ internal fun AccountTwoFactor(model: AccountModel) {
     ) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
             Box(Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
-                AMTextField(
-                    model.code,
-                    label = "Code",
-                    autofocus = AMTextFieldAutofocus.CaretAtEnd,
-                    inputTransformation = AccountModel.CodeInput,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                    onKeyboardAction = { model.verify() },
-                )
+                ProvideAMOnSurface {
+                    AMTextField(
+                        model.code,
+                        label = "Code",
+                        autofocus = AMTextFieldAutofocus.CaretAtEnd,
+                        inputTransformation = AccountModel.CodeInput,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                        onKeyboardAction = { model.verify() },
+                    )
+                }
             }
             AMButton(
                 "Verify",
