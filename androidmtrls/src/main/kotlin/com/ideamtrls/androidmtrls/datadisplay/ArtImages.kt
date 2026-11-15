@@ -18,11 +18,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 // The pictures behind the art backdrops and the art rows, made once and kept: the photo (decoded
 // small through the image pipeline, or a bitmap the app hands over) cropped to its frame, averaged
-// down, blurred, saturated through a color matrix, washed toward the mode and cached. A heavy blur
+// down, blurred, saturated through a color matrix, washed toward the mode, saturated again and
+// cached. A heavy blur
 // leaves nothing a small picture can't hold, so each is a few dozen pixels across and the GPU
 // stretches it to its frame.
 
@@ -75,8 +75,9 @@ internal class ArtIdentity(target: Any) {
  * One processed picture: the photo known by [photo] (its source's [ArtSource.id]: the URL, or the
  * app bitmap's identity), at a working size of [width] × [height] pixels in its frame's shape,
  * blurred by a sigma of [sigma] working pixels, saturated by [saturation], washed toward the mode
- * ([dark]) by [wash] and, for an art row's band, fading in over its top [fade] working pixels. The
- * fractional values are kept in hundredths, so equal recipes make equal keys.
+ * ([dark]) by [wash], saturated again by [washSaturation] and, for an art row's band, fading in
+ * over its top [fade] working pixels. The fractional values are kept in hundredths, so equal
+ * recipes make equal keys.
  */
 internal data class ArtKey(
     val photo: Any,
@@ -86,6 +87,7 @@ internal data class ArtKey(
     val saturation: Int,
     val dark: Boolean,
     val wash: Int,
+    val washSaturation: Int,
     val fade: Int,
 )
 
@@ -127,7 +129,8 @@ internal fun blurSigma(radius: Float): Float = if (radius <= 0f) 0f else 0.57735
 /**
  * The key for [source]'s picture filling a [frame] of pixels, blurred by Android's blur
  * [blurRadius] in pixels, saturated by [saturation], washed toward the mode ([dark]) by [wash]
- * (the light or the dark wash, 0 to 1, [washTowardMode]), its top [fade] pixels fading in.
+ * (the light or the dark wash, 0 to 1, [washTowardMode]), saturated again by [washSaturation], its
+ * top [fade] pixels fading in.
  */
 internal fun artKey(
     source: ArtSource,
@@ -136,6 +139,7 @@ internal fun artKey(
     saturation: Float,
     dark: Boolean,
     wash: Float,
+    washSaturation: Float,
     fade: Float,
 ): ArtKey {
     val working = artWorkingSize(frame, blurSigma(blurRadius))
@@ -147,6 +151,7 @@ internal fun artKey(
         saturation = (saturation * 100f).roundToInt(),
         dark = dark,
         wash = (wash.coerceIn(0f, 1f) * 100f).roundToInt(),
+        washSaturation = (washSaturation * 100f).roundToInt(),
         fade = (fade * working.scale * 100f).roundToInt(),
     )
 }
@@ -196,7 +201,8 @@ internal object ArtImages {
 /**
  * Makes [key]'s picture from a photo: cropped to the frame's shape around its center, averaged
  * down to the working size, blurred with its edges clamped, saturated, washed toward the mode,
- * faded in at the top for a band, then handed to the GPU. A photo smaller than the working size is worked at its own size,
+ * saturated again to win back the color the wash took, faded in at the top for a band, then handed
+ * to the GPU. A photo smaller than the working size is worked at its own size,
  * never scaled up here. The photo itself is never changed.
  */
 private fun processArt(photo: ImageBitmap, key: ArtKey): ImageBitmap {
@@ -217,6 +223,7 @@ private fun processArt(photo: ImageBitmap, key: ArtKey): ImageBitmap {
     gaussianBlur(pixels, width, height, key.sigma / 100f * shrink)
     saturate(pixels, key.saturation / 100f)
     washTowardMode(pixels, key.dark, key.wash / 100f)
+    saturate(pixels, key.washSaturation / 100f)
     fadeIn(pixels, width, height, key.fade / 100f * shrink)
 
     val bitmap = Bitmap.createBitmap(unpremultipliedColors(pixels), width, height, Bitmap.Config.ARGB_8888)
@@ -344,14 +351,10 @@ internal fun saturate(pixels: FloatArray, saturation: Float) {
     }
 }
 
-// The wash toward the mode. Light-mode art is lifted until nothing in it is darker than black
-// washed with white at the light wash; dark-mode art is lowered until nothing in it is brighter
-// than white washed with black at the dark wash. Colors already on the right side stay as they
-// are, and moved colors keep their hue and as much of their color as fits, so the art stays
-// colorful where a flat wash would gray it all.
-
-/** The most a lift may multiply a dark color's own color on its way up, so a near-black's faint tint doesn't bloom. */
-private const val MaxLift = 4f
+// The wash toward the mode: a frost. Every pixel is mixed evenly toward white in light mode, or
+// toward black in dark mode, by the wash, in sRGB, as the GPU composites a translucent white or
+// black over the picture. It lands only where there's picture (in proportion to its alpha), so
+// where the picture is clear the page shows exactly.
 
 /** An sRGB channel, 0 to 1, as linear light. */
 internal fun srgbToLinear(value: Float): Float =
@@ -365,54 +368,19 @@ internal fun linearToSrgb(value: Float): Float =
 internal fun linearLuminance(red: Float, green: Float, blue: Float): Float =
     0.2126f * red + 0.7152f * green + 0.0722f * blue
 
-/** The luminance light-mode art is lifted to at least: black washed with white at [lightWash], a gray. */
-internal fun artWashFloor(lightWash: Float): Float = srgbToLinear(lightWash.coerceIn(0f, 1f))
-
-/** The luminance dark-mode art is lowered to at most: white washed with black at [darkWash], a gray. */
-internal fun artWashCeiling(darkWash: Float): Float = srgbToLinear(1f - darkWash.coerceIn(0f, 1f))
-
 /**
- * Moves one linear-light color, [rgb] (red, green, blue, in place), to the luminance [target] when
- * it's on the wrong side of it: below it when [raise], above it otherwise. The color moves along
- * its own line through gray, so its hue holds. Lowered, it's scaled down whole, its chromaticity
- * exact. Raised, its own color (its distance from its gray) grows by the square root of the lift,
- * at most [MaxLift], and only as far as the gamut lets it, the rest of the way being gray: a full
- * lift keeps the most color but leaves two lifted complements dipping well below [target] where
- * bands blend, and the square root holds the dip inside the light wash's margin. Either way it
- * lands on [target] exactly.
- */
-internal fun washToLuminance(rgb: FloatArray, target: Float, raise: Boolean) {
-    val luminance = linearLuminance(rgb[0], rgb[1], rgb[2])
-    if (if (raise) luminance >= target else luminance <= target) return
-    var scale = when {
-        !raise -> target / luminance
-        luminance > 0f -> min(sqrt(target / luminance), MaxLift)
-        else -> MaxLift
-    }
-    for (channel in 0 until 3) {
-        val color = rgb[channel] - luminance
-        if (color > 0f) scale = min(scale, (1f - target) / color)
-        if (color < 0f) scale = min(scale, target / -color)
-    }
-    for (channel in 0 until 3) rgb[channel] = (target + scale * (rgb[channel] - luminance)).coerceIn(0f, 1f)
-}
-
-/**
- * Washes premultiplied four-float sRGB [pixels] in place toward the mode: in light mode
- * ([dark] false) every color darker than [artWashFloor] of [wash] is lifted to it; in dark mode
- * every color brighter than [artWashCeiling] of [wash] is lowered to it ([washToLuminance]). A wash
- * of 0 leaves them as they are.
+ * Washes premultiplied four-float sRGB [pixels] in place toward the mode: each one mixed toward
+ * white in light mode ([dark] false), toward black in dark mode, by [wash], 0 to 1, evenly, where
+ * the picture is: `color × (1 − wash) + wash × alpha` in light mode, `color × (1 − wash)` in dark.
+ * A wash of 0 leaves them as they are.
  */
 internal fun washTowardMode(pixels: FloatArray, dark: Boolean, wash: Float) {
-    if (wash <= 0f) return
-    val target = if (dark) artWashCeiling(wash) else artWashFloor(wash)
-    val rgb = FloatArray(3)
+    val amount = wash.coerceIn(0f, 1f)
+    if (amount <= 0f) return
+    val keep = 1f - amount
     for (i in pixels.indices step 4) {
-        val alpha = pixels[i + 3]
-        if (alpha <= 0f) continue
-        for (channel in 0 until 3) rgb[channel] = srgbToLinear((pixels[i + channel] / alpha).coerceIn(0f, 1f))
-        washToLuminance(rgb, target, raise = !dark)
-        for (channel in 0 until 3) pixels[i + channel] = linearToSrgb(rgb[channel]) * alpha
+        val white = if (dark) 0f else amount * pixels[i + 3]
+        for (channel in 0 until 3) pixels[i + channel] = pixels[i + channel] * keep + white
     }
 }
 

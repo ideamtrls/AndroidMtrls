@@ -115,21 +115,23 @@ class DataDisplayMathTest {
     @Test
     fun keysOfEqualRecipesAreEqual() {
         val url = ArtSource.Url("https://example.com/a.jpg")
-        val a = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
-        val b = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
+        val a = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 0f)
+        val b = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 0f)
         assertEquals(a, b)
         assertEquals(a.hashCode(), b.hashCode())
         assertEquals(220, a.saturation)
-        assertEquals(75, a.wash)
-        assertNotEquals(a, artKey(ArtSource.Url("https://example.com/b.jpg"), IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f))
+        assertEquals(70, a.wash)
+        assertEquals(180, a.washSaturation)
+        assertNotEquals(a, artKey(ArtSource.Url("https://example.com/b.jpg"), IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 0f))
     }
 
     @Test
-    fun theModeAndTheWashAreInTheKey() {
+    fun theModeTheWashAndItsSaturationAreInTheKey() {
         val url = ArtSource.Url("https://example.com/a.jpg")
-        val light = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.75f, fade = 0f)
-        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = true, wash = 0.75f, fade = 0f))
-        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.5f, fade = 0f))
+        val light = artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 0f)
+        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = true, wash = 0.7f, washSaturation = 1.8f, fade = 0f))
+        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.5f, washSaturation = 1.8f, fade = 0f))
+        assertNotEquals(light, artKey(url, IntSize(1080, 2340), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.4f, fade = 0f))
     }
 
     // An app bitmap's identity, which keys its art pictures
@@ -155,8 +157,8 @@ class DataDisplayMathTest {
         val url = "https://example.com/a.jpg"
         assertNotEquals(ArtIdentity(url), url)
         assertNotEquals(
-            artKey(ArtSource.Url(url), IntSize(100, 100), 0f, 1f, dark = false, wash = 0f, fade = 0f),
-            ArtKey(ArtIdentity(url), 50, 50, 0, 100, dark = false, wash = 0, fade = 0),
+            artKey(ArtSource.Url(url), IntSize(100, 100), 0f, 1f, dark = false, wash = 0f, washSaturation = 1f, fade = 0f),
+            ArtKey(ArtIdentity(url), 50, 50, 0, 100, dark = false, wash = 0, washSaturation = 100, fade = 0),
         )
     }
 

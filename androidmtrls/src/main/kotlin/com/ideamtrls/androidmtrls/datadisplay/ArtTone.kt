@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * How light the art behind something is: what text lying right on the art reads against. Named
@@ -65,21 +67,45 @@ internal fun artInk(secondary: Boolean = false, tone: AMArtTone? = null): Color 
 
 /**
  * [color] moved, keeping its hue, just far enough to hold 4.5:1 on the library's art of [tone]:
- * darker on light art (against the light wash's darkest blend, [Style.ArtInk.LightArtGround]),
- * lighter on dark art (against the dark wash's ceiling). A color that already holds stays. For
+ * darker on light art (against its darkest, [Style.ArtInk.LightArtGround]), lighter on dark art
+ * (against its brightest, [Style.ArtInk.DarkArtCeiling]). A color that already holds stays. For
  * colored text on art, such as a destructive action's red.
  */
 internal fun artInkHolding(color: Color, tone: AMArtTone): Color {
     val rgb = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
     if (tone == AMArtTone.Light) {
         // At most the luminance that holds 4.5:1 against the light ground.
-        washToLuminance(rgb, (Style.ArtInk.LightArtGround + 0.05f) / MinimumContrast - 0.05f, raise = false)
+        moveToLuminance(rgb, (Style.ArtInk.LightArtGround + 0.05f) / MinimumContrast - 0.05f, raise = false)
     } else {
-        // At least the luminance that holds 4.5:1 against the dark wash's ceiling.
-        washToLuminance(rgb, MinimumContrast * (artWashCeiling(AMArtDefaults.DarkWash) + 0.05f) - 0.05f, raise = true)
+        // At least the luminance that holds 4.5:1 against the dark art's brightest.
+        moveToLuminance(rgb, MinimumContrast * (Style.ArtInk.DarkArtCeiling + 0.05f) - 0.05f, raise = true)
     }
     return Color(linearToSrgb(rgb[0]), linearToSrgb(rgb[1]), linearToSrgb(rgb[2]), color.alpha)
 }
 
 /** The contrast text holds on art: WCAG's for normal text. */
 private const val MinimumContrast = 4.5f
+
+/**
+ * Moves one linear-light ink color, [rgb] (red, green, blue, in place), to the luminance [target]
+ * when it's on the wrong side of it: below it when [raise], above it otherwise. The color moves
+ * along its own line through gray, so its hue holds. Lowered, it's scaled down whole, its
+ * chromaticity exact. Raised, its own color (its distance from its gray) grows by the square root
+ * of the lift, only as far as the gamut lets it, the rest of the way being gray. Either way it
+ * lands on [target] exactly.
+ */
+internal fun moveToLuminance(rgb: FloatArray, target: Float, raise: Boolean) {
+    val luminance = linearLuminance(rgb[0], rgb[1], rgb[2])
+    if (if (raise) luminance >= target else luminance <= target) return
+    var scale = when {
+        !raise -> target / luminance
+        luminance > 0f -> sqrt(target / luminance)
+        else -> 0f
+    }
+    for (channel in 0 until 3) {
+        val color = rgb[channel] - luminance
+        if (color > 0f) scale = min(scale, (1f - target) / color)
+        if (color < 0f) scale = min(scale, target / -color)
+    }
+    for (channel in 0 until 3) rgb[channel] = (target + scale * (rgb[channel] - luminance)).coerceIn(0f, 1f)
+}

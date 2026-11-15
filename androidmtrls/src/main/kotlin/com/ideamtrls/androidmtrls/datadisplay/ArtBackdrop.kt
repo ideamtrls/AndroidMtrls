@@ -51,11 +51,27 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 // The art recipe: a picture blurred until it reads as its colors, saturated so the averaged colors
-// stay vivid, then washed toward the mode, so text in the mode's own colors holds over it. The
-// values are the art's own, not tokens.
+// stay vivid, frosted toward the mode (every pixel mixed evenly toward white in light mode, black
+// in dark mode), then saturated again to win back the color the frost took, so text in the mode's
+// own colors holds over it. The values are the art's own, not tokens.
 
-/** The saturation boost after the full blur, so the averaged colors stay vivid. */
+/** The saturation boost after the full blur, before the wash, so the averaged colors stay vivid. */
 private const val ArtSaturation = 2.2f
+
+/** The saturation boost after the light wash, which a white frost takes out of the colors. */
+private const val ArtLightWashSaturation = 1.8f
+
+/** The saturation boost after the dark wash, which a black frost takes out of the colors. */
+private const val ArtDarkWashSaturation = 1.6f
+
+/**
+ * [boost] faded out as [blurRadius] comes down from the default: the boosts make up for the color
+ * a heavy blur and a wash take out, so a sharp picture keeps its own color.
+ */
+private fun artBoost(boost: Float, blurRadius: Dp): Float {
+    val share = (blurRadius / AMArtDefaults.BlurRadius).coerceIn(0f, 1f)
+    return 1f + (boost - 1f) * share
+}
 
 /** How far an art row's color reaches past the midpoint to its neighbor: about the blur. */
 private val ArtRowBlend = 120.dp
@@ -64,10 +80,9 @@ private val ArtRowBlend = 120.dp
 private val ArtRowBleed = 1000.dp
 
 /**
- * The art's defaults: its blur, and how far it's washed toward the mode, tuned so text in the
- * mode's own colors holds 4.5:1 over any art, the secondary color (`onSurfaceVariant`) included,
- * against Material's baseline static color scheme. An app with its own scheme checks its
- * secondary color against them.
+ * The art's defaults: its blur, and how far it's frosted toward the mode, so text in the mode's own
+ * colors holds over any art, against Material's baseline static color scheme. An app with its own
+ * scheme checks its colors against them.
  */
 public object AMArtDefaults {
     /**
@@ -77,19 +92,20 @@ public object AMArtDefaults {
     public val BlurRadius: Dp = 207.dp
 
     /**
-     * How far art is lifted toward white in light mode: nothing in it ends up darker than black
-     * washed with white at 0.75 (gray `#BFBFBF`). Over that, `onSurfaceVariant` holds 5.09:1, and
-     * 4.58:1 at the worst where two lifted colors blend (a bright green into a pink); `onSurface`
-     * holds 9.31:1.
+     * How far art is frosted toward white in light mode: every pixel mixed 70 % of the way to
+     * white, so a black picture lands on gray `#B2B3B3`, the darkest light art gets
+     * ([Style.ArtInk.LightArtGround]). Over that, `onSurface` holds 8.18:1 and `onSurfaceVariant`
+     * 4.44:1, which is 4.5:1 over all but the darkest pictures.
      */
-    public const val LightWash: Float = 0.75f
+    public const val LightWash: Float = 0.7f
 
     /**
-     * How far art is lowered toward black in dark mode: nothing in it ends up brighter than white
-     * washed with black at 0.68 (gray `#525252`). Under that, `onSurfaceVariant` holds 4.61:1 and
-     * `onSurface` 6.07:1; blended colors never get brighter.
+     * How far art is frosted toward black in dark mode: every pixel mixed 70 % of the way to
+     * black, so a white picture lands on gray `#4D4D4D`, and a saturated yellow, the brightest dark
+     * art gets ([Style.ArtInk.DarkArtCeiling]), a little above it. Under that, `onSurfaceVariant`
+     * holds 4.94:1 and `onSurface` 6.50:1.
      */
-    public const val DarkWash: Float = 0.68f
+    public const val DarkWash: Float = 0.7f
 }
 
 /**
@@ -117,22 +133,22 @@ public object AMArtDefaults {
  * }
  * ```
  *
- * - **The wash follows the mode.** In light mode every color darker than black washed with white
- *   at [lightWash] is lifted to that lightness; in dark mode every color brighter than white
- *   washed with black at [darkWash] is lowered to it. Colors already on the right side stay, and
- *   moved ones keep their hue and as much of their color as fits, so the art stays colorful. At
- *   the defaults ([AMArtDefaults]) text in the mode's colors, secondary text included, holds 4.5:1
- *   over any picture, so the art's tone is the mode's.
+ * - **The wash is a frost that follows the mode.** Every pixel is mixed evenly toward white in
+ *   light mode, by [lightWash], or toward black in dark mode, by [darkWash], in sRGB, then
+ *   saturated again to win back some of the color the frost took. At the defaults
+ *   ([AMArtDefaults]) text in the mode's colors holds over any picture, so the art's tone is the
+ *   mode's.
  * - **Lower washes are the app's call.** Lowering [lightWash] or [darkWash] shows more of the
  *   picture and gives up that guarantee: check every text on it, and give the [AMBackdrop] around
  *   it the tone the art then has ([AMArtTone]). Frosted glass over art an app chose not to wash
  *   (low washes, or a picture drawn without this modifier) is the app's to check too: the glass
  *   holds its contrast over the library's washed art only.
  * - **Blur.** By default the picture reads only as its colors. Lower [blurRadius] to keep its
- *   subject recognizable; the saturation boost fades out with it, so a sharp picture keeps its own
- *   color.
+ *   subject recognizable; both saturation boosts fade out with it, so a sharp picture keeps its
+ *   own color.
  * - **Made once.** The picture comes through the library's image pipeline, decoded small; it's
- *   blurred, saturated and washed once and kept, so drawing it costs a stretched bitmap. A picture
+ *   blurred, saturated, washed and saturated again once and kept, so drawing it costs a stretched
+ *   bitmap. A picture
  *   in memory shows on the first frame.
  * - **Changing pictures.** When [url] changes, the new picture fades in over the old with
  *   Material's motion; a change made inside [amInstantSwitch], or while the system's Remove
@@ -146,9 +162,9 @@ public object AMArtDefaults {
  * @param url the picture; null shows the page color.
  * @param blurRadius the blur, as Android's blur radius: by default a Gaussian sigma of about
  *   120 dp, so the picture reads as its colors.
- * @param lightWash how far the picture is lifted toward white in light mode, from 0 (as it is) to
+ * @param lightWash how far the picture is frosted toward white in light mode, from 0 (as it is) to
  *   1 (white). Below the default, text on it may not hold; check it.
- * @param darkWash how far the picture is lowered toward black in dark mode, from 0 (as it is) to 1
+ * @param darkWash how far the picture is frosted toward black in dark mode, from 0 (as it is) to 1
  *   (black). Below the default, text on it may not hold; check it.
  */
 public fun Modifier.amArtBackdrop(
@@ -168,7 +184,7 @@ public fun Modifier.amArtBackdrop(
  * Box(Modifier.fillMaxSize().amArtBackdrop(cover)) { NowPlaying(track) }
  * ```
  *
- * The bitmap is averaged down, blurred, saturated and washed once and kept, known by the bitmap
+ * The bitmap is averaged down, blurred, saturated, washed and saturated again once and kept, known by the bitmap
  * itself: wrapping the same bitmap again (`asImageBitmap()`) finds the same picture, and the kept
  * picture never keeps the bitmap alive. It's read as it stands, so put new art in a new bitmap
  * rather than drawing into one already shown. Changing bitmaps fades as changing URLs does. The
@@ -177,9 +193,9 @@ public fun Modifier.amArtBackdrop(
  * @param image the picture; null (no art yet) shows the page color.
  * @param blurRadius the blur, as Android's blur radius: by default a Gaussian sigma of about
  *   120 dp, so the picture reads as its colors.
- * @param lightWash how far the picture is lifted toward white in light mode, from 0 to 1. Below
+ * @param lightWash how far the picture is frosted toward white in light mode, from 0 to 1. Below
  *   the default, text on it may not hold; check it.
- * @param darkWash how far the picture is lowered toward black in dark mode, from 0 to 1. Below the
+ * @param darkWash how far the picture is frosted toward black in dark mode, from 0 to 1. Below the
  *   default, text on it may not hold; check it.
  */
 public fun Modifier.amArtBackdrop(
@@ -217,10 +233,10 @@ public fun Modifier.amArtBackdrop(
  * on them to take their over-art look, put the page in an [AMArtRowsBackdrop]: the colors then draw
  * as that backdrop's art, behind the whole page.
  *
- * @param lightWash how far the rows' pictures are lifted toward white in light mode, from 0 to 1,
+ * @param lightWash how far the rows' pictures are frosted toward white in light mode, from 0 to 1,
  *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frosted glass over
  *   them is the app's to check.
- * @param darkWash how far they're lowered toward black in dark mode, from 0 to 1. Below the
+ * @param darkWash how far they're frosted toward black in dark mode, from 0 to 1. Below the
  *   default, the same holds.
  */
 public fun Modifier.amArtRows(
@@ -342,22 +358,33 @@ public fun Modifier.amArtText(tone: AMArtTone? = null, secondary: Boolean = fals
 
 // The art backdrop
 
-/** A backdrop's recipe: its blur, its saturation and its washes toward the mode. */
+/**
+ * A backdrop's recipe: its blur, its saturation before the wash, its washes toward the mode, and
+ * the saturation after each.
+ */
 @Immutable
 private data class ArtRecipe(
     val blurRadius: Dp,
     val saturation: Float,
     val lightWash: Float,
     val darkWash: Float,
+    val lightWashSaturation: Float,
+    val darkWashSaturation: Float,
 ) {
     fun wash(dark: Boolean): Float = if (dark) darkWash else lightWash
+
+    fun washSaturation(dark: Boolean): Float = if (dark) darkWashSaturation else lightWashSaturation
 }
 
-/** A recipe for [blurRadius]: the saturation boost fades out with the blur, so a sharp picture keeps its own color. */
-private fun artRecipe(blurRadius: Dp, lightWash: Float, darkWash: Float): ArtRecipe {
-    val share = (blurRadius / AMArtDefaults.BlurRadius).coerceIn(0f, 1f)
-    return ArtRecipe(blurRadius, 1f + (ArtSaturation - 1f) * share, lightWash.coerceIn(0f, 1f), darkWash.coerceIn(0f, 1f))
-}
+/** A recipe for [blurRadius]: every saturation boost fades out with the blur ([artBoost]). */
+private fun artRecipe(blurRadius: Dp, lightWash: Float, darkWash: Float): ArtRecipe = ArtRecipe(
+    blurRadius = blurRadius,
+    saturation = artBoost(ArtSaturation, blurRadius),
+    lightWash = lightWash.coerceIn(0f, 1f),
+    darkWash = darkWash.coerceIn(0f, 1f),
+    lightWashSaturation = artBoost(ArtLightWashSaturation, blurRadius),
+    darkWashSaturation = artBoost(ArtDarkWashSaturation, blurRadius),
+)
 
 private fun Modifier.artBackdrop(source: ArtSource?, recipe: ArtRecipe): Modifier =
     this then ArtBackdropElement(source, recipe, InstantSwitch.generation)
@@ -455,7 +482,7 @@ private class ArtBackdropNode(
         }
         if (frame.width <= 0 || frame.height <= 0) return
         val blurRadius = with(requireDensity()) { recipe.blurRadius.toPx() }
-        val key = artKey(source, frame, blurRadius, recipe.saturation, dark, recipe.wash(dark), fade = 0f)
+        val key = artKey(source, frame, blurRadius, recipe.saturation, dark, recipe.wash(dark), recipe.washSaturation(dark), fade = 0f)
         if (key == requested) return
         requested = key
         loading?.cancel()
@@ -680,7 +707,8 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
             val picture = if (source == null) {
                 null
             } else {
-                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, band.fade)
+                val washSaturation = if (dark) ArtDarkWashSaturation else ArtLightWashSaturation
+                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, washSaturation, band.fade)
                 val image = ArtImages.cached(key)
                 if (image == null) request(source, key) else row.lastPicture = image
                 // Until its picture for this band is ready, a band keeps the one it showed last.

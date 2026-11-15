@@ -362,7 +362,7 @@ private fun ButtonBody(
 
 /**
  * A ghost button's label: Material's `primary` on the page, and on art the ink of the art's tone,
- * since `primary` falls short over light art (3.51:1 on the light wash's floor). Destructive, the
+ * since `primary` falls short over light art (3.07:1 on its darkest gray). Destructive, the
  * scheme's error: moved on art just far enough to hold 4.5:1 on the art's tone.
  */
 @Composable
