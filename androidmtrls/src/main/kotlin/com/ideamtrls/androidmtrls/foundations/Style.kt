@@ -47,12 +47,20 @@ internal object Style {
         val OnLightSecondary = Color(0xFF48484A)
 
         /**
-         * The darkest the library's light-mode art gets, as relative luminance: two colors lifted
-         * to the default light wash's floor (gray `#BFBFBF`, 0.5225) dip to this where bands blend,
-         * at worst (a bright green into a pink, measured). Colored text on light art holds 4.5:1
-         * against it.
+         * The darkest the library's light-mode art gets at the default wash, as relative
+         * luminance: a black picture frosted to gray `#B2B3B3`, and the blends next to it (measured
+         * over every color and every blend of two finished colors; nothing lands darker). Colored
+         * text on light art holds 4.5:1 against it.
          */
-        const val LightArtGround = 0.4646f
+        const val LightArtGround = 0.4490f
+
+        /**
+         * The brightest the library's dark-mode art gets at the default wash, as relative
+         * luminance: a saturated yellow, frosted and saturated again (measured over every color and
+         * every blend of two washed colors; white lands on `#4D4D4D`, 0.0742). Colored text on dark
+         * art holds 4.5:1 against it.
+         */
+        const val DarkArtCeiling = 0.0747f
     }
 
     /**

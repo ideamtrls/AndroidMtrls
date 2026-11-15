@@ -321,11 +321,11 @@ private fun baselineColorScheme(dark: Boolean): ColorScheme = if (dark) Baseline
 
 /**
  * The relative luminance of the frosted fill over the library's art at its hardest for text: in
- * light mode the fill over the light wash's darkest blend, in dark mode the fill over the dark
- * wash's ceiling.
+ * light mode the fill over the light art's darkest, in dark mode the fill over the dark art's
+ * brightest.
  */
 internal fun frostedGround(dark: Boolean): Float {
-    val art = if (dark) artWashCeiling(AMArtDefaults.DarkWash) else Style.ArtInk.LightArtGround
+    val art = if (dark) Style.ArtInk.DarkArtCeiling else Style.ArtInk.LightArtGround
     val fill = if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight
     // The fill lies over the art in sRGB, as the GPU blends it.
     val gray = fill.red * fill.alpha + linearToSrgb(art) * (1f - fill.alpha)
@@ -341,9 +341,9 @@ internal fun frostedTint(color: Color, dark: Boolean): Color {
     val ground = frostedGround(dark)
     val rgb = floatArrayOf(srgbToLinear(color.red), srgbToLinear(color.green), srgbToLinear(color.blue))
     if (dark) {
-        washToLuminance(rgb, 4.5f * (ground + 0.05f) - 0.05f, raise = true)
+        moveToLuminance(rgb, 4.5f * (ground + 0.05f) - 0.05f, raise = true)
     } else {
-        washToLuminance(rgb, (ground + 0.05f) / 4.5f - 0.05f, raise = false)
+        moveToLuminance(rgb, (ground + 0.05f) / 4.5f - 0.05f, raise = false)
     }
     return Color(linearToSrgb(rgb[0]), linearToSrgb(rgb[1]), linearToSrgb(rgb[2]), color.alpha)
 }
