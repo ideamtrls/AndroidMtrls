@@ -16,7 +16,7 @@ import androidx.compose.ui.node.findNearestAncestor
  * shadows never stack and padding never doubles.
  *
  * It's [Elevated] at the root of a screen. A card ([Modifier.amCard][amCard]) inside another card
- * draws [Flat] on its own; the library's containers (a section, a disclosure card) also set
+ * draws [Flat] on its own; the library's containers (a section, a disclosure card, tabs) also set
  * [Flat] for their content. Controls (fields, pickers, sliders, switches) don't read it: they
  * never draw a surface, and their container supplies one.
  */

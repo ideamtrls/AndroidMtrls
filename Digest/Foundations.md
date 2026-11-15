@@ -164,7 +164,7 @@ A solid control (a filled `AMButton`) on a black surface takes `controlOutline` 
 - `Elevated` (fill, corners, shadow, dark hairline) or `Flat` (nothing: the surface defers to its parent).
 - **`LocalAMSurfaceStyle`** (public, `Elevated` by default) carries the style a container set; **`ProvideAMSurfaceStyle(style) { }`** sets it and marks its subtree with a fresh internal `SurfaceStyleOrigin` (`LocalAMSurfaceStyleOrigin`). Set it only through `ProvideAMSurfaceStyle`.
 - **A card inside a card demotes by itself.** A modifier can't set a local for content composed elsewhere, so `Modifier.amCard` resolves its style in its node (`resolveSurfaceStyle()`): `Flat` where the local says so; otherwise `Flat` when the nearest `NestingSurfaceNode` above it in the layout tree (a `TraversableNode`, `NestingSurfaceKey`) sees the same origin, `Elevated` when a `ProvideAMSurfaceStyle` sits between them (re-lifting a card inside a card) or when there's no card above. Shadows never stack and padding never doubles. The full rule is in `Layout.md`.
-- The library's containers (`AMSection`, `AMDisclosureGroup`) also provide `Flat` for their content. A custom container joins by drawing its surface with `Modifier.amCard`, or by reading the local and setting `Flat` for its content. Controls never read it.
+- The library's containers (`AMSection`, `AMDisclosureGroup`, `AMTabs`) also provide `Flat` for their content. A custom container joins by drawing its surface with `Modifier.amCard`, or by reading the local and setting `Flat` for its content. Controls never read it.
 
 ## Type roles
 
