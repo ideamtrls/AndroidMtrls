@@ -139,8 +139,8 @@ public object AMArtDefaults {
  *   ([AMArtDefaults]) the fixed inks hold over any picture, so the art's tone is the mode's.
  * - **Lower washes are the app's call.** Lowering [lightWash] or [darkWash] shows more of the
  *   picture and gives up that guarantee: check every text on it, and give the [AMBackdrop] around
- *   it the tone the art then has ([AMArtTone]). Frosted glass over art an app chose not to wash
- *   (low washes, or a picture drawn without this modifier) is the app's to check too: the glass
+ *   it the tone the art then has ([AMArtTone]). Frost over art an app chose not to wash
+ *   (low washes, or a picture drawn without this modifier) is the app's to check too: the frost
  *   holds its contrast over the library's washed art only.
  * - **Blur.** By default the picture reads only as its colors. Lower [blurRadius] to keep its
  *   subject recognizable; both saturation boosts fade out with it, so a sharp picture keeps its
@@ -233,7 +233,7 @@ public fun Modifier.amArtBackdrop(
  * as that backdrop's art, behind the whole page.
  *
  * @param lightWash how far the rows' pictures are frosted toward white in light mode, from 0 to 1,
- *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frosted glass over
+ *   as on [amArtBackdrop]. Below the default, text on them may not hold, and frost over
  *   them is the app's to check.
  * @param darkWash how far they're frosted toward black in dark mode, from 0 to 1. Below the
  *   default, the same holds.

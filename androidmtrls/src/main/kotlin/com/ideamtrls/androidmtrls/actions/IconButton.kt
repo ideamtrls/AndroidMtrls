@@ -118,7 +118,7 @@ public fun AMIconButton(
  * ```
  *
  * The glyph keeps Material's look: the content color around it while off, the accent while on:
- * `primary`, or on frosted glass [AMTheme.Frosted.tint], which holds over the glass. Swap the glyph too where Material Symbols has an `_on`
+ * `primary`, or on frost [AMTheme.Frosted.tint], which holds over the frost. Swap the glyph too where Material Symbols has an `_on`
  * variant. A control with more than two states (repeat off, all, one) passes `checked` for any
  * state but off, steps its own state in [onCheckedChange], and names the state in
  * [contentDescription] ("Repeat one"). Disabled, the glyph greys to Material's disabled color and

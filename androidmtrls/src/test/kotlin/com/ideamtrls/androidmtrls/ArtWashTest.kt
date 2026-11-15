@@ -126,8 +126,8 @@ class ArtWashTest {
     }
 
     @Test
-    fun theAccentOnGlassHoldsOverTheWashedArt() {
-        // Material's baseline primary already holds on the glass in both modes, and stays.
+    fun theAccentOnFrostHoldsOverTheWashedArt() {
+        // Material's baseline primary already holds on the frost in both modes, and stays.
         val lightPrimary = Color(0xFF6750A4)
         val darkPrimary = Color(0xFFD0BCFF)
         assertEquals(lightPrimary, frostedTint(lightPrimary, dark = false))

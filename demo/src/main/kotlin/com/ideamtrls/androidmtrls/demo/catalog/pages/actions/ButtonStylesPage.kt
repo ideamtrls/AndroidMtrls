@@ -24,7 +24,7 @@ internal val ButtonStylesEntry = ComponentEntry(
     icon = R.drawable.ic_smart_button,
     keywords = listOf(
         "AMButton", "AMButtonStyle", "Primary", "Secondary", "Ghost", "LocalAMButtonStyle", "Button",
-        "TextButton", "call to action", "destructive", "disabled", "frosted", "glass", "AMSurfaceFill",
+        "TextButton", "call to action", "destructive", "disabled", "frosted", "AMSurfaceFill",
     ),
 ) { ButtonStylesPage() }
 

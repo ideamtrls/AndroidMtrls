@@ -33,7 +33,7 @@ the one package.
 
 | Area | Main components |
 |---|---|
-| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frosted glass over art), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
+| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frost over art), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
 | `actions` | `AMButton` and `AMButtonStyle`, `AMIconButton`, `AMCardButton`, `AMFloatingActionButton`, `AMFloatingActions` (the remote), `AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`, `AMFormActions`, `AMCardActionRow` |
 | `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
 | `selection` | `AMSegmentedControl`, `AMMenuPicker`, `AMChipGroup`, `AMFlowLayout`, `AMCalendar`, `AMSelectionMark` and `Modifier.amSelectionCheck` |

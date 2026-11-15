@@ -152,7 +152,7 @@ private fun MusicArtistHero(artist: MusicArtist, catalog: MusicCatalog, modifier
 /**
  * An album: its cover as an art card, Play and Shuffle, then its tracks in one frosted card, all
  * over its cover's art (the project photo's until the cover is read). The bar names the album over
- * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's glass samples
+ * "American Food · 3 songs · 15 min". While it's the stack's top, the Queue sheet's frost samples
  * its art.
  */
 @OptIn(ExperimentalMaterial3Api::class)

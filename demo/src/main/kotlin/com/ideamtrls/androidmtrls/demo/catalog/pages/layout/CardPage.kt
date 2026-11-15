@@ -34,7 +34,7 @@ internal val CardEntry = ComponentEntry(
     icon = R.drawable.ic_rectangle,
     keywords = listOf(
         "amCard", "amRowPadding", "AMRowDefaults", "surface", "container", "elevation", "padding", "row",
-        "shadow", "AMSurfaceStyle", "nested", "fill", "frosted", "glass", "AMSurfaceFill",
+        "shadow", "AMSurfaceStyle", "nested", "fill", "frosted", "AMSurfaceFill",
     ),
 ) { CardPage() }
 

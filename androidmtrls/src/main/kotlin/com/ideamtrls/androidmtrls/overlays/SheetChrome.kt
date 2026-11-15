@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.IntSize
 import kotlin.math.roundToInt
 
 /**
- * The sheet's frosted background, its shadow and its edge ([GlassNode]), drawn exactly where the
+ * The sheet's frosted background, its shadow and its edge ([FrostNode]), drawn exactly where the
  * sheet is, over Material's transparent container.
  *
  * Material's sheet takes this as its `modifier`, which comes first in the sheet's chain: ahead of
@@ -47,7 +47,7 @@ import kotlin.math.roundToInt
 internal fun Modifier.sheetChrome(sheetState: SheetState, shape: Shape, backdrop: AMBackdropSource?): Modifier =
     this
         .offset { IntOffset(0, sheetOffset(sheetState)) }
-        .then(GlassElement(shape, backdrop))
+        .then(FrostElement(shape, backdrop))
         .offset { IntOffset(0, -sheetOffset(sheetState)) }
 
 /** The sheet's offset from the top of its window, or far below the screen before it's known. */
@@ -63,17 +63,17 @@ private fun sheetOffset(sheetState: SheetState): Int {
 
 private const val OffscreenOffset = 100_000
 
-private data class GlassElement(val shape: Shape, val backdrop: AMBackdropSource?) : ModifierNodeElement<GlassNode>() {
-    override fun create() = GlassNode(shape, backdrop)
+private data class FrostElement(val shape: Shape, val backdrop: AMBackdropSource?) : ModifierNodeElement<FrostNode>() {
+    override fun create() = FrostNode(shape, backdrop)
 
-    override fun update(node: GlassNode) {
+    override fun update(node: FrostNode) {
         node.shape = shape
         node.follow(backdrop)
         node.invalidateDraw()
     }
 
     override fun InspectorInfo.inspectableProperties() {
-        name = "sheetGlass"
+        name = "sheetFrost"
         properties["shape"] = shape
     }
 }
@@ -91,7 +91,7 @@ private data class GlassElement(val shape: Shape, val backdrop: AMBackdropSource
  * page color takes the art's place under the fill: frost over the page, opaque, never unblurred
  * translucency.
  */
-private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
+private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
     Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -149,9 +149,9 @@ private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
 
         // Under frost the shadow would show through, so it falls outside the shape only.
         clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, level, dark) }
-        val glass = layer
-        if (glass != null && sampleArt(glass)) {
-            clipPath(path) { drawLayer(glass) }
+        val frost = layer
+        if (frost != null && sampleArt(frost)) {
+            clipPath(path) { drawLayer(frost) }
         } else {
             // Nothing to sample: frost over the page color, opaque.
             drawPath(path, if (dark) Style.Page.Dark else Style.Page.Light)
@@ -162,11 +162,11 @@ private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
     }
 
     /**
-     * Records the art under the sheet, blurred, into [glass], placed over the sheet. Returns false,
+     * Records the art under the sheet, blurred, into [frost], placed over the sheet. Returns false,
      * recording nothing, while there's nothing to sample: no backdrop, the art or the sheet not
      * placed, or no art under the sheet.
      */
-    private fun ContentDrawScope.sampleArt(glass: GraphicsLayer): Boolean {
+    private fun ContentDrawScope.sampleArt(frost: GraphicsLayer): Boolean {
         val source = backdrop ?: return false
         val art = source.coordinates?.takeIf { it.isAttached } ?: return false
         val sheet = coordinates?.takeIf { it.isAttached } ?: return false
@@ -187,9 +187,9 @@ private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
             effectRadius = radius
             effect = if (radius > 0f) BlurEffect(radius, radius, TileMode.Clamp) else null
         }
-        glass.renderEffect = effect
-        glass.topLeft = IntOffset((region.left - offset.x).roundToInt(), (region.top - offset.y).roundToInt())
-        glass.record(IntSize(region.width, region.height)) {
+        frost.renderEffect = effect
+        frost.topLeft = IntOffset((region.left - offset.x).roundToInt(), (region.top - offset.y).roundToInt())
+        frost.record(IntSize(region.width, region.height)) {
             translate(-region.left.toFloat(), -region.top.toFloat()) { drawLayer(source.layer) }
         }
         return true

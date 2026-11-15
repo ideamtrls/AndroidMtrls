@@ -22,7 +22,7 @@ import kotlin.math.min
 /**
  * A label and its value on one row: Material's `ListItem` at the row recipe's rhythm, [label] at
  * the start in `bodyLarge` and [value] at the end in `bodyLarge` and the surface's secondary
- * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on glass), read as
+ * text color ([AMTheme.secondaryText]: `onSurfaceVariant`, the frosted secondary on frost), read as
  * a value rather than as a list item's small trailing note.
  *
  * ```kotlin

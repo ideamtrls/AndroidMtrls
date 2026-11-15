@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.painter.Painter
  * @param active whether the action is on (liked, reposted): the glyph and count take [activeTint]
  *   instead of the quiet color.
  * @param activeTint the role whose color an active action takes: [AMSemantic.Info] (the color
- *   scheme's primary, or on frosted glass [AMTheme.Frosted.tint]) by default,
+ *   scheme's primary, or on frost [AMTheme.Frosted.tint]) by default,
  *   [AMSemantic.Destructive] for a filled heart.
  * @param enabled whether the button takes taps.
  */
@@ -59,7 +59,7 @@ public fun AMCardButton(
     enabled: Boolean = true,
 ) {
     val isEnabled = resolveEnabled(enabled)
-    // On glass the accent is the one that holds over it; other roles keep their colors.
+    // On frost the accent is the one that holds over it; other roles keep their colors.
     val activeColor = if (activeTint == AMSemantic.Info) surfaceAccent() else activeTint.color
     val tint = if (active) activeColor else AMTheme.secondaryText
     if (count == null) {
