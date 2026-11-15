@@ -2,7 +2,7 @@
 scope: Cross-cutting public-API, naming, parameter-order, state, theming, native-behavior, glyph and motion conventions for every AndroidMtrls component — read before adding or changing ANY public API
 globs: [androidmtrls/build.gradle.kts, androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/**, androidmtrls/src/main/res/drawable/**]
 keywords: [AM prefix, Modifier.am, LocalAM, amInstantSwitch, rememberAMFloatingActionButtonState, ProvideAMSurfaceStyle, remember, Provide, explicitApi, public API, internal, one package, area folders, filenames, parameter order, Compose component guidelines, modifier parameter, content lambda, trailing lambda, contentDescription, icon, label, title, onClick, onValueChange, onDismissRequest, string overload, slot overload, nullable slot, sealed style, AMButtonStyle, CompositionLocal default, hoisted state, visible, rememberSaveable, enabled, LocalAMEnabled, Immutable, Stable, action payload, visual-only, quiet defaults, autofocus, flat widgets, enforcement ladder, MaterialTheme, static color scheme, dynamic color, type roles, sentence case, row recipe, amRowPadding, AMRowDefaults, ripple, Indication, 48 dp, minimumInteractiveComponentSize, predictive back, edge-to-edge, insets, SwipeToDismissBox, SaveableStateHolder, long press, HapticFeedbackType, TalkBack, font scale, sp, Material Symbols, am_ic_, vector drawable, autoMirrored, colorControlNormal, motion policy, MotionScheme, Remove animations, third-party libraries]
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # Conventions
@@ -101,7 +101,7 @@ AMButton("Save", onClick = ::save, style = AMButtonStyle.Primary())
 
 - **Visual only.** Interaction (taps, swipes, selection) is the caller's job, so primitives compose with any container. A list row draws; it doesn't handle taps unless it's the clickable form. The exceptions own the interaction because it's their whole job: swipeable rows, the reorderable lists, the carousel, the card stack, and chip groups' tap-to-toggle.
 - **Quiet defaults.** Anything attention-grabbing is opt-in or state-driven: text fields' `autofocus` defaults off; banners, sheets and overlays appear only when their state flips; nothing moves on its own. A primitive sits still until the user acts.
-- **Controls are widgets with one flat rendering; the container supplies the surface.** Text fields, pickers, sliders, toggles and steppers never draw an AM surface fill, shadow or hairline of their own (Material's own outline on a text field is its native look, not a surface). Place them inside `Modifier.amCard()` for the floating treatment, or on the surface color for a flat strip.
+- **Controls are widgets with one flat rendering; the container supplies the surface.** Text fields, pickers, sliders, toggles and steppers never draw an AM surface fill, shadow or hairline of their own, and keep Material's shapes, outlines and behavior (Material's own outline on a text field is its native look, not a surface). They take the model's container colors where there is a container: solid, frosted or the tint by the app's surface setting (`AMTheme(surfaceFill = …)`), a selected chip `primary`, while switches, sliders and stepper buttons keep their own colors. Place them inside `Modifier.amCard()` for the floating treatment, or on the surface color for a flat strip.
 
 ## Enforcement ladder — make the opinions hard to break
 
@@ -121,7 +121,7 @@ There is no lint rung.
 | Topic | Android behavior |
 |---|---|
 | Theming | `AMTheme` installs `MaterialTheme`: a static color scheme (Material's baseline by default, or the app's own; never dynamic color), the default type scale and the default shapes (8/12/16 dp small/medium/large). Every Material component reads it unchanged. Type, color, shape and motion are overridden the Android way, through `MaterialTheme` |
-| Color | Text and accent colors come from the color scheme. The style layer owns only the surfaces, the page, shadows, hairlines, the selection ring and the frosted fill |
+| Color | Text and accent colors come from the color scheme. The style layer owns the surfaces and the container colors native controls take from the app's surface setting (solid, frosted or the tint), the page, shadows, hairlines and the selection ring |
 | Type | The Material type scale in the phone's own font, sentence case everywhere. Roles: page title = `headlineMedium` (the large top app bar); section header = `titleSmall` in `primary` (Android's list-subheader look; over a picture, the art tone's fixed ink with the text shadow); row title and body = `bodyLarge`; caption = `bodySmall`; code = `bodyMedium` monospace |
 | Corners | Circular corners from the shape scale; a card is `shapes.large`, a button (filled or text) `shapes.medium`, never a pill; the floating action button is a circle |
 | Rows | The row recipe: the content plus 28 dp above and below and 16 dp at the sides, with no fixed height (one line about 80 dp, two lines about 100 dp). `Modifier.amRowPadding()` applies it to hand-built rows and `AMRowDefaults` to Material `ListItem` rows; rows stay flat on their surface in every state (`Layout.md`) |

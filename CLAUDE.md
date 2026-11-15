@@ -9,10 +9,13 @@ Library sources live in one package, `com.ideamtrls.androidmtrls`, grouped in ar
 `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/<area>/`; the catalog app is `demo/`.
 
 **Two layers.** The native layer is Android's own: Jetpack and Material 3 components with their own
-shapes, colors, type, motion and behavior. The style layer sits on top: white/black floating
-surfaces on a tuned page, two-layer shadows and hairlines, cards, the remote, the spotlight, no
-dimming behind sheets, frosted surfaces over art, folding and quiet defaults. Stateless surfaces wear
-the style; stateful controls keep Material's look. When in doubt, lean Android.
+shapes, type, motion and behavior. The style layer sits on top: floating surfaces on a tuned page,
+two-layer shadows and hairlines, cards, the remote, the spotlight, no dimming behind sheets, folding
+and quiet defaults. The screen is a backdrop layer (the app's backdrop, a sheet's background, the
+blurred screen behind the remote and the spotlight: always frosty) and a surface layer on it, made
+solid or frosted by one setting, `AMTheme(surfaceFill = …)`. Stateless surfaces wear the style;
+native controls keep Material's shapes, outlines and behavior and take the model's container colors.
+When in doubt, lean Android.
 
 **Latest Android only.** minSdk 36 (Android 16) is the floor and is never lowered. No
 `Build.VERSION.SDK_INT` checks, `@RequiresApi`, compat shims or fallbacks for older releases;
@@ -40,7 +43,7 @@ This project's working context lives in `Digest/`, with one file per category of
 | `Digest/Actions.md` | working on buttons and button styles (`AMButton`, `AMButtonStyle`, `LocalAMButtonStyle`, their shape), the floating action button and its hub (`AMFloatingActions`, the scene's remote), icon/card/action-grid buttons, `AMActionGrid`/`AMFormActions`/`AMCardActionRow`, or how a container disables the controls inside it (`LocalAMEnabled`, `foundations/Enabled.kt`) — anything in the library's `actions/` folder, or the Actions catalog pages |
 | `Digest/Inputs.md` | working on text fields, the secure and search fields, the text editor, autofocus and the caret, input filtering (`inputTransformation`), toggles, sliders, steppers, or the date picker and its spotlight — the library's `inputs/` folder, or the Inputs catalog pages |
 | `Digest/Selection.md` | working on choosing among options — the segmented control (`AMSegmentedControl`), the menu picker and its options in the spotlight (`AMMenuPicker`), chip groups and the flow layout (`AMChipGroup`, `AMFlowLayout`), the month calendar (`AMCalendar`), or the selection mark on photo tiles (`AMSelectionMark`, `Modifier.amSelectionCheck`) — the library's `selection/` folder, or the Selection catalog pages |
-| `Digest/Navigation.md` | working on the scene root (`AMScene`: the remote's slot, the scene-wide `overlays` slot, the overlay registry, the banner and toast hosts, back to the landing view), panels on Navigation 3 (`AMPanel`, `AMPanelChrome`, `AMArtPanelChrome` over art), `AMKeepsPlace` and back to the landing view, the status bar's icons following the art (`AMStatusBarIcons`), toolbars and their buttons (`AMToolbar`, `AMToolbarButton`, solid over art), in-page tabs (`AMTabs`), or page dots (`AMPageIndicator`) — the library's `navigation/` folder, or the Navigation catalog pages |
+| `Digest/Navigation.md` | working on the scene root (`AMScene`: the remote's slot, the scene-wide `overlays` slot, the overlay registry, the banner and toast hosts, back to the landing view), panels on Navigation 3 (`AMPanel`, `AMPanelChrome`, `AMArtPanelChrome` over art), `AMKeepsPlace` and back to the landing view, the status bar's icons following the art (`AMStatusBarIcons`), toolbars and their buttons (`AMToolbar`, `AMToolbarButton`, a chip over art in the app's surface setting), in-page tabs (`AMTabs`), or page dots (`AMPageIndicator`) — the library's `navigation/` folder, or the Navigation catalog pages |
 | `Digest/Layout.md` | working on `Modifier.amCard()`, the row recipe (`Modifier.amRowPadding()`, `AMRowDefaults` for `ListItem` rows, row heights), `AMSection`, `AMDisclosureGroup`, `AMDivider`, or nested surfaces (`AMSurfaceStyle`) — the library's `layout/` folder, or the Layout catalog pages |
 | `Digest/Lists.md` | working on list rows and cards (`AMListRow`, `AMListCard`), labeled content, the reorderable lists and their drag engine (handles, hold to lift, auto-scroll, TalkBack move actions), swipeable rows and `AMSwipeAction`, or how a row container hands its TalkBack actions to the row — the library's `lists/` folder, or the Lists catalog pages |
 | `Digest/Feedback.md` | working on banners and toasts and the per-window hosts that show them (`AMBannerHost`, `AMToastHost`), the loading overlay, empty states (`AMEmptyState`), skeletons and shimmer (`AMSkeleton`, `Modifier.amShimmer`), or labeled progress (`AMProgressView`, `Spinner` or `Bar`) — the library's `feedback/` folder, or the Feedback catalog pages |

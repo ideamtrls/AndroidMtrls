@@ -19,12 +19,15 @@ display, collections) and the style values behind them. It has no app logic and 
 - **The style layer sits on top.** White and black floating surfaces on a tuned page, two-layer
   shadows and hairlines, cards, the remote (the floating action button and its tiles) as the app's
   main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color
-  under cards, frosted surfaces over art, folding, and quiet defaults.
-- **Where the line falls: stateless surfaces wear the style; stateful controls keep Material's
-  look.** Cards, buttons, tiles and the floating action button get the floating surface, the
-  shadow and the hairline; sheets get a frosted background. Switches, sliders, text fields and
-  pickers keep Material's shapes and colors; chips and segmented controls keep Material's shapes
-  and outlines over a fill in the app's surface setting. When in doubt, the library leans Android.
+  under cards, folding, and quiet defaults. The screen is a backdrop layer (always frosty) and a surface
+  layer on it, solid or frosted by one setting, `AMTheme(surfaceFill = …)`.
+- **Where the line falls: stateless surfaces wear the style; native controls keep Material's
+  shapes, outlines and behavior and take the model's container colors.** Cards, buttons, tiles and
+  the floating action button get the floating surface, the shadow and the hairline; sheets get a
+  frosted background in either setting. Text fields, pickers, chips and segmented controls take
+  container colors from the app's surface setting (solid, frosted or the tint), a selected chip
+  takes `primary`, and switches, sliders and stepper buttons keep their own colors. When in doubt,
+  the library leans Android.
 
 ## What's in it
 
