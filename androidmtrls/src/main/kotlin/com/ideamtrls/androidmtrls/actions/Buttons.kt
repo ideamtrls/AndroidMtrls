@@ -25,19 +25,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
-import androidx.compose.ui.node.DrawModifierNode
-import androidx.compose.ui.node.GlobalPositionAwareModifierNode
-import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.node.currentValueOf
-import androidx.compose.ui.node.invalidateDraw
-import androidx.compose.ui.node.requireGraphicsContext
-import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -403,7 +392,7 @@ private fun SurfaceButton(
     Box(
         modifier
             .minimumInteractiveComponentSize()
-            .controlSurface(shape, if (enabled) elevation else AMElevation.None),
+            .amControlSurface(shape, if (enabled) elevation else AMElevation.None),
         propagateMinConstraints = true,
     ) {
         // The target is reserved above, outside the surface; the button itself lays out at its own
@@ -434,74 +423,3 @@ private fun SurfaceButton(
 
 /** Material's alpha for disabled content. */
 private const val DisabledContentAlpha = 0.38f
-
-/**
- * The floating surface a control wears: the elevated surface ([amElevatedSurface]'s recipe,
- * through the shared [ElevatedSurfaceDrawer]), in the app's surface setting, read while it draws.
- * Solid in a solid app; in a frosted app frosted on the backdrop and, embedded inside a card, tabs
- * or a section, or on a sheet ([isEmbedded]), the tint. Embedded and solid, its dark-mode hairline
- * is the brighter [AMTheme.controlOutline], where the ring would vanish against the black around
- * it; on the page it keeps the selection ring.
- */
-private fun Modifier.controlSurface(shape: Shape, elevation: AMElevation): Modifier =
-    this then ControlSurfaceElement(shape, elevation)
-
-private data class ControlSurfaceElement(
-    val shape: Shape,
-    val elevation: AMElevation,
-) : ModifierNodeElement<ControlSurfaceNode>() {
-    override fun create() = ControlSurfaceNode(shape, elevation)
-
-    override fun update(node: ControlSurfaceNode) {
-        node.shape = shape
-        node.elevation = elevation
-        node.invalidateDraw()
-    }
-
-    override fun InspectorInfo.inspectableProperties() {
-        name = "controlSurface"
-        properties["shape"] = shape
-        properties["elevation"] = elevation
-    }
-}
-
-private class ControlSurfaceNode(
-    var shape: Shape,
-    var elevation: AMElevation,
-) : Modifier.Node(),
-    DrawModifierNode,
-    CompositionLocalConsumerModifierNode,
-    GlobalPositionAwareModifierNode {
-
-    private val surface = ElevatedSurfaceDrawer()
-
-    override fun onAttach() = surface.attach(requireGraphicsContext())
-
-    override fun onDetach() = surface.detach(requireGraphicsContext())
-
-    // A frosted control that moves over its art (a scroll) samples a different slice, so it redraws.
-    // A solid one never walks the tree to find where it stands.
-    override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
-    }
-
-    override fun ContentDrawScope.draw() {
-        val dark = currentValueOf(LocalAMDarkTheme) ?: false
-        // Inside a card (flat or not), tabs or a section, or on a sheet: tinted when the app is
-        // frosted, and when it's solid, the outline steps up.
-        val embedded = isEmbedded()
-        val look = surfaceLook(currentValueOf(LocalAMSurfaceFill), embedded)
-        with(surface) {
-            drawSurface(
-                context = requireGraphicsContext(),
-                shape = shape,
-                shadow = elevation.shadowLevel,
-                look = look,
-                hairline = if (embedded) Style.ControlOutline.Dark else Color.Unspecified,
-                dark = dark,
-                backdrop = backdropFor(look),
-                clipContent = false,
-            )
-        }
-    }
-}

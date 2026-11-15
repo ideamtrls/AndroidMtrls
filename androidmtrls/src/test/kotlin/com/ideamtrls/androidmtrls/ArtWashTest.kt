@@ -158,6 +158,19 @@ class ArtWashTest {
         }
     }
 
+    @Test
+    fun chipLabelsHold() {
+        // Baseline onSurfaceVariant (unselected label), onPrimary on primary (selected).
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), luminanceOf(linear(Style.Chip.QuietFillLight))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), luminanceOf(linear(Style.Chip.QuietFillDark))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), tintedGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), tintedGround(dark = true)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), frostedGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), frostedGround(dark = true)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color.White)), luminanceOf(linear(Color(0xFF6750A4)))) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF381E72))), luminanceOf(linear(Color(0xFFD0BCFF)))) >= 4.5f)
+    }
+
     private fun washed(color: Color, dark: Boolean): Color {
         val pixels = floatArrayOf(color.red, color.green, color.blue, 1f)
         washTowardMode(pixels, dark, if (dark) AMArtDefaults.DarkWash else AMArtDefaults.LightWash)

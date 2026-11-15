@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DrawModifierNode
@@ -234,9 +235,9 @@ private class ElevatedSurfaceNode(
 
 /**
  * The elevated surface's drawing, shared by every node that wears it ([Modifier.amElevatedSurface],
- * the card, a filled button's surface): the shape's shadows, the frosted slice of the art, and
- * where the surface sits. A node owns one, attaches and detaches it with itself, reports its
- * position, and draws the look it resolves through it.
+ * the card, a control's surface ([amControlSurface])): the shape's shadows, the frosted slice of
+ * the art, and where the surface sits. A node owns one, attaches and detaches it with itself,
+ * reports its position, and draws the look it resolves through it.
  */
 internal class ElevatedSurfaceDrawer {
     private val shadows = ShapeShadows()
@@ -270,11 +271,11 @@ internal class ElevatedSurfaceDrawer {
     }
 
     /**
-     * Draws the surface around the content in [look]: solid; frosted over [backdrop]'s art, or over
-     * the page color while there's no art to sample; or tinted. With [clipContent] the content is
-     * clipped to [shape]; with [outline] false it draws no hairline or edge. A solid surface's
-     * [hairline] (the selection ring when unspecified) shows in dark mode only, or in both modes
-     * with [alwaysOutlined].
+     * Draws the surface around the content in [look]: solid, in [solidFill] (the surface color when
+     * unspecified); frosted over [backdrop]'s art, or over the page color while there's no art to
+     * sample; or tinted. With [clipContent] the content is clipped to [shape]; with [outline] false
+     * it draws no hairline or edge. A solid surface's [hairline] (the selection ring when
+     * unspecified) shows in dark mode only, or in both modes with [alwaysOutlined].
      */
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
@@ -287,11 +288,12 @@ internal class ElevatedSurfaceDrawer {
         clipContent: Boolean,
         outline: Boolean = true,
         alwaysOutlined: Boolean = false,
+        solidFill: Color = Color.Unspecified,
     ) {
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
         if (look == SurfaceLook.Solid) {
             shadows.draw(this, context, shape, shadow, dark)
-            drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
+            drawPath(path, solidFill.takeOrElse { if (dark) Style.Surface.Dark else Style.Surface.Light })
             drawClippedContent(path, clipContent)
             if (outline && (dark || alwaysOutlined)) {
                 drawInsetOutline(shape, if (hairline.isSpecified) hairline else selectionRing(dark), Style.Hairline.Width)

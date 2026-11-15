@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * The style layer's raw values: the page, the floating surfaces, their shadows and outlines,
- * the frosted recipe, the remote's tile height and the modal overlay recipe.
+ * the frosted recipe, the quiet chip, the remote's tile height and the modal overlay recipe.
  *
  * These values are tuned, and this is the one place each lives. [AMTheme] and [AMElevation] are
  * the public way to read them; no component keeps a literal of its own instead.
@@ -190,6 +190,18 @@ internal object Style {
 
         /** The blur under the fill, as Android's blur radius: a Gaussian sigma of about 24. */
         val BlurRadius = 40.dp
+    }
+
+    /**
+     * A chip group's unselected chip in a solid app: an opaque gray one step off the page, away
+     * from the surface (the page is `#F2F2F7` / `#141416`), so the chip reads on the page, on a
+     * white or black card and on a sheet's frost alike, and stays quieter than a chosen chip's
+     * `primary`. Its label (`onSurfaceVariant`) holds 7.44:1 on it in light mode and 8.17:1 in
+     * dark mode. In a frosted app the chip is frost or the tint instead.
+     */
+    object Chip {
+        val QuietFillLight = Color(0xFFE5E5EA)
+        val QuietFillDark = Color(0xFF2C2C2E)
     }
 
     /**
