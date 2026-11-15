@@ -329,16 +329,16 @@ private val ShopInkLight = Color(0xFFFFF8EE)
  * credits its author and license). One line per coffee, so a bag's photo changes here alone.
  */
 private val ShopBagPhotos: Map<String, String> = mapOf(
-    "hambela" to "Coffeebag(kraft)-250g.jpg",
-    "gatomboya" to "Kaffepåse - 2023.jpg",
+    "hambela" to "Union Hand-Roasted Coffee - Coffee Bag.jpg",
+    "gatomboya" to "Vava Coffee Bags.jpg",
     "night-ferry" to "Coffeebag(black)-250g.jpg",
-    "huila" to "Volcanica-Coffee-Bags.jpg",
-    "harbor-light" to "Union Hand-Roasted Coffee - Coffee Bag.jpg",
-    "kanzu" to "Roasted coffee packages from Bolivia.jpg",
-    "cerrado" to "Kaffepåse - 2024.jpg",
+    "huila" to "CXLT Coffee.jpg",
+    "harbor-light" to "Intelligentsia (2626669655).jpg",
+    "kanzu" to "Beautiful coffee packaging at Redemption Roasters (34922221994).jpg",
+    "cerrado" to "Rondo Kaffeepackung.jpg",
     "atitlan" to "Try-Me Coffee New Orleans - 1 pound of Guatemala Antigua freshly roasted.jpg",
-    "decaf-colombia" to "Coffeebag(white)-250g.jpg",
-    "decaf-mexico" to "Rondo Kaffeepackung.jpg",
+    "decaf-colombia" to "Counter Culture Coffee Bag.jpg",
+    "decaf-mexico" to "Kaffee Hag Dose.jpg",
 )
 
 /** The catalog, in grid order: ten coffees, then three pieces of gear. */
