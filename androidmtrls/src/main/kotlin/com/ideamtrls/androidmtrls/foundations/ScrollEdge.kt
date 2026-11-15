@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.Constraints
  * - **It follows the inset**: the fade is the status bar's height, as it changes and as it
  *   animates. With no status bar over the container (the bar hidden, or a container that doesn't
  *   reach the top of the screen) it does nothing.
- * - The fade follows Material's fast-out-linear-in curve, so the content is mostly gone behind the
- *   icons and only comes back in the bar's last few pixels.
+ * - **Nothing reads behind the icons.** The content is gone down to the bar's middle, where its
+ *   icons are centered, then comes back over its lower half on Material's fast-out-linear-in
+ *   curve. A list opened partway down keeps what lies above it tucked under the bar: at most the
+ *   bottom edge of a card shows, just above the bar's own.
  *
  * A screen with a top bar doesn't need it: [AMPageHeader], [AMToolbar] and [AMPanelChrome] take
  * the page color (or the frosted fill over art) once content scrolls under them, status bar
@@ -116,12 +118,21 @@ private class StatusBarEdgeNode : Modifier.Node(), LayoutModifierNode, DrawModif
 }
 
 /**
- * The mask's opacity down the status bar, top to bottom: Material's fast-out-linear-in curve from
- * nothing to whole, sampled finely enough that the gradient between samples can't be told from it.
+ * The mask's opacity down the status bar, top to bottom: nothing over the first [EdgeClear] of its
+ * height, where the icons are centered, then Material's fast-out-linear-in curve from nothing to
+ * whole at the bar's bottom edge, sampled finely enough that the gradient between samples can't be
+ * told from it.
  */
-private val EdgeMaskStops: Array<Pair<Float, Color>> = Array(EdgeMaskSamples + 1) { index ->
-    val fraction = index / EdgeMaskSamples.toFloat()
-    fraction to Color.Black.copy(alpha = FastOutLinearInEasing.transform(fraction))
+private val EdgeMaskStops: Array<Pair<Float, Color>> = Array(EdgeMaskSamples + 2) { index ->
+    if (index == 0) {
+        0f to Color.Black.copy(alpha = 0f)
+    } else {
+        val fraction = (index - 1) / EdgeMaskSamples.toFloat()
+        EdgeClear + fraction * (1f - EdgeClear) to Color.Black.copy(alpha = FastOutLinearInEasing.transform(fraction))
+    }
 }
+
+/** How far down the status bar, as a fraction of its height, the content stays gone. */
+private const val EdgeClear = 0.5f
 
 private const val EdgeMaskSamples = 12
