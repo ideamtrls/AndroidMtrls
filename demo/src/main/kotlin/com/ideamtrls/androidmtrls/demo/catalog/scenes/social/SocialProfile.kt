@@ -34,6 +34,7 @@ import com.ideamtrls.androidmtrls.AMAvatar
 import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonStyle
+import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMEmptyState
 import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMPanel
@@ -129,7 +130,10 @@ private fun SocialStat(value: Int, label: String) {
     }
 }
 
-/** The person's posts as rows that open the post, or a note that there are none yet. */
+/**
+ * The person's posts as rows that open the post, or a note that there are none yet. The rows
+ * ride on the tabs' own surface, a divider between each.
+ */
 @Composable
 private fun SocialProfilePosts(user: SocialUser, model: SocialModel) {
     val posts = model.posts(user.id)
@@ -141,19 +145,22 @@ private fun SocialProfilePosts(user: SocialUser, model: SocialModel) {
         )
         return
     }
-    Column(Modifier.padding(top = AMTheme.tokens.spacing.md).fillMaxWidth().socialCard()) {
-        posts.forEach { post ->
+    Column(Modifier.fillMaxWidth()) {
+        posts.forEachIndexed { index, post ->
+            if (index > 0) AMDivider(inset = AMTheme.tokens.spacing.lg)
             SocialPostRow(post, model, onClick = { model.openPost(post.id) }, showsAuthor = false)
         }
     }
 }
 
-/** When they joined, where they are, and their website. */
+/** When they joined, where they are, and their website, on the tabs' surface. */
 @Composable
 private fun SocialProfileAbout(user: SocialUser) {
-    Column(Modifier.padding(top = AMTheme.tokens.spacing.md).fillMaxWidth().socialCard()) {
+    Column(Modifier.fillMaxWidth()) {
         AMLabeledContent("Joined", user.joined)
+        AMDivider(inset = AMTheme.tokens.spacing.lg)
         AMLabeledContent("Location", user.location)
+        AMDivider(inset = AMTheme.tokens.spacing.lg)
         AMLabeledContent("Website", user.website)
     }
 }

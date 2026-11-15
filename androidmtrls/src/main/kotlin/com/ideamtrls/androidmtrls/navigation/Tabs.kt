@@ -43,7 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
  *   column it takes its content's height.
  * - **The surface** under the strip and the content is one flat rounded shape (`shapes.large`)
  *   with no shadow: the floating surface's fill for [AMSurfaceFill.Solid], or glass over the
- *   nearest [AMBackdrop]'s art for [AMSurfaceFill.Frosted], matching the app's cards.
+ *   nearest [AMBackdrop]'s art for [AMSurfaceFill.Frosted], matching the app's cards. The
+ *   content rides on it [AMSurfaceStyle.Flat], as inside a card: put rows straight in a tab,
+ *   an [AMDivider] between them, not in a card of their own.
  *
  * @param selection the id of the tab showing.
  * @param onSelectionChange called with a tab's id when it's tapped.
@@ -112,8 +114,11 @@ public fun <T> AMTabs(
             animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
             label = "AMTabs",
         ) { id ->
-            // The content lies on the tabs' surface.
-            ProvideAMSurfaceFill(fill) { entries.firstOrNull { it.id == id }?.content?.invoke() }
+            // The content lies on the tabs' surface, as inside a card: a card in it draws nothing
+            // and a flat row paints no fill of its own.
+            ProvideAMSurfaceFill(fill) {
+                ProvideAMSurfaceStyle(AMSurfaceStyle.Flat) { entries.firstOrNull { it.id == id }?.content?.invoke() }
+            }
         }
     }
 }

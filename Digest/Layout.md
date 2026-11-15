@@ -86,7 +86,7 @@ A modifier can't set a `CompositionLocal` for content composed elsewhere, so the
 2. Otherwise it looks up the layout tree for the nearest `NestingSurfaceNode` (a `TraversableNode` keyed `NestingSurfaceKey`; every `amCard` is one). None → **Elevated**.
 3. Found one: each `ProvideAMSurfaceStyle` call marks its subtree with a fresh `SurfaceStyleOrigin` (internal `LocalAMSurfaceStyleOrigin`). If the outer card and this card see the same origin, nothing re-styled between them → **Flat**. If they differ, a `ProvideAMSurfaceStyle(AMSurfaceStyle.Elevated)` sits between → **Elevated** again (re-lift: a pinned note floating inside a notebook card).
 
-The library's containers (`AMSection`'s cards, `AMDisclosureGroup`'s body) also provide `Flat` for their content, so anything that reads `LocalAMSurfaceStyle` while composing sees it. Set the style with `ProvideAMSurfaceStyle`, never by providing `LocalAMSurfaceStyle` directly, or re-lifting won't see the change. Controls never read any of this.
+The library's containers (`AMSection`'s cards, `AMDisclosureGroup`'s body, `AMTabs`' content) also provide `Flat` for their content, so anything that reads `LocalAMSurfaceStyle` while composing sees it. Set the style with `ProvideAMSurfaceStyle`, never by providing `LocalAMSurfaceStyle` directly, or re-lifting won't see the change. Controls never read any of this.
 
 **Flat blocks** (`AMSection`'s flat style; the self-filled rows `AMListRow`, `AMLabeledContent` and the reorderable row list's rows; the bar form of `AMProgressView`) use internal `Modifier.amFlatSurface()`: a full-width `Surface.primary` fill when the block resolves to Elevated (it stands on the page), none when Flat (inside a card), so a square fill never covers a card's rounded corners.
 
