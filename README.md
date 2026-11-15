@@ -12,10 +12,12 @@ display, collections) and the style values behind them. It has no app logic and 
 
 ## Two layers
 
-- **The native layer is Android's own.** Jetpack and Material 3 components keep their own shapes,
-  colors, type, motion and behavior: the Material type scale in the phone's font, a static Material
-  color scheme (never dynamic color), ripple, Android gestures, system and predictive back, edge to
-  edge, and saved and restored state.
+- **The native layer is Android's own.** Jetpack and Material 3 components keep Material's shapes,
+  outlines, type, motion and behavior: the Material type scale in the phone's font, ripple, Android
+  gestures, system and predictive back, edge to edge, and saved and restored state. Text and accent
+  colors come from a static Material color scheme (never dynamic color). The container colors of
+  Material's chips, fields, segmented buttons, date chips, snackbar and dialog follow the app's
+  surface setting.
 - **The style layer sits on top.** White and black floating surfaces on a tuned page, two-layer
   shadows and hairlines, cards, the remote (the floating action button and its tiles) as the app's
   main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color

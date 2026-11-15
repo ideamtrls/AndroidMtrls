@@ -64,7 +64,7 @@ private fun FrostedCitySearch() {
         Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard()) {
             ProvideAMOnSurface {
                 AMSearchField(query, Modifier.padding(spacing.lg), placeholder = "Search cities")
-                Cities.take(3).filter { it.contains(text, ignoreCase = true) }.forEach { city ->
+                Cities.filter { it.contains(text, ignoreCase = true) }.take(3).forEach { city ->
                     AMDivider(inset = spacing.lg)
                     Text(city, Modifier.amRowPadding(), style = MaterialTheme.typography.bodyLarge)
                 }

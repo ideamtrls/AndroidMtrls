@@ -156,8 +156,7 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  * @param lifted whether the surface is lifted off what holds it and follows a drag over its
  *   neighbors (a reorderable list's dragged row). It's never the tint, which would let the rows it
  *   passes over show through: in a frosted app it's frosted as on the backdrop even inside a card
- *   or on a sheet, over the art's slice under it or frost over the page color, opaque, as the
- *   card it rose from is.
+ *   or on a sheet, over the art's slice under it or frost over the page color, opaque.
  */
 internal fun Modifier.amElevatedSurface(
     shape: Shape,

@@ -22,9 +22,9 @@ How AndroidMtrls wants a screen put together. A pattern is an opinion over exist
 The screen is two layers, and one setting.
 
 - **The backdrop layer** is the app's backdrop (its art or branded picture, or the page color), a sheet's background, and the blurred screen behind the remote and the spotlight. It is always frosty, and the setting never changes it.
-- **The surface layer** is everything on it: cards, sections, tabs, buttons, tiles, the floating action button, the toolbar chips, fields, chips, tags, the toast and the alert.
-- **The setting is `AMTheme(surfaceFill = …)`**, `Solid` (the library default) or `Frosted`, set once at the app's root; a nested `AMTheme(surfaceFill = …)` sets it for a subtree. In a frosted app, pieces on the backdrop are frosted and pieces embedded in a frosted surface draw the tint. In a solid app, pieces are the solid white or black surface, and unselected chips take the quiet fill, one gray step off the surface they sit on.
-- **A scene with no root backdrop** gives the + the backdrop of the screen showing, falling back to frost over the page color. Android's own pieces that follow by container color (the toast, the alert) are frost over the page; the alert draws the frosted edge, and a toast is never the tint.
+- **The surface layer** is everything on it: cards, sections, tabs, buttons, tiles, the floating action button, the toolbar chips, fields, chips, tags, the banner and the band behind it, the toast and the alert.
+- **The setting is `AMTheme(surfaceFill = …)`**, `Solid` (the library default) or `Frosted`, set once at the app's root; a nested `AMTheme(surfaceFill = …)` sets it for a subtree. In a frosted app, pieces on the backdrop are frosted and pieces embedded in a frosted surface draw the tint. In a solid app, pieces are the solid white or black surface, and unselected chips take the quiet fill, an opaque gray one step off the page.
+- **A scene with no root backdrop** gives the + and its banners the backdrop of the screen showing, falling back to frost over the page color. The band behind a banner is a surface in the setting too: the surface color in a solid app, frost over that art (or over the page) in a frosted one, fading to clear under the card. Android's own pieces that follow by container color (the toast, the alert) are frost over the page; both draw the frosted edge, and a toast is never the tint.
 
 ## Floating surfaces
 
@@ -74,7 +74,7 @@ Edge to edge, content runs behind the status bar, and scrolled content never rea
 
 The actions overlay (the floating action button and its grid of tiles) IS the app's main navigation, like a TV remote with big buttons for the views and actions the app needs. There's no bottom bar: an app has as many views as it needs, not as many as fit on a bar.
 
-- **The button**: a movable 56 dp circle with a +, in the surface color, centered at the bottom above the navigation bar. A long press lifts it to move it.
+- **The button**: a movable 56 dp circle with a +, in the app's surface setting, centered at the bottom above the navigation bar. A long press lifts it to move it.
 - **The grid**: it opens over a blurred screen (a window with the platform's blur-behind) as rows of 76 dp tiles, exactly 2, 3 or 4 per row. The current view's tile is ringed.
 - **It sits on top and goes away.** Opening and closing it changes nothing underneath.
 - **A view tile switches to that view and closes the remote.** Every view's place is saved and restored when you leave it, page and scroll position included, the Android way: saved state, not a view kept running. Each root view's back stack is the app's own state.

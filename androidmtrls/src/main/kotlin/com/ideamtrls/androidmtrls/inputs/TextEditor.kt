@@ -6,11 +6,9 @@ import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardCapitalization
 
 /** A keyboard that starts each sentence with a capital: what the editor writes with. */
@@ -59,20 +57,16 @@ public fun AMTextEditor(
     inputTransformation: InputTransformation? = null,
     enabled: Boolean = true,
 ) {
+    val container = outlinedFieldContainer()
     OutlinedTextField(
         state = state,
-        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)),
+        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)).then(container.modifier),
         enabled = resolveEnabled(enabled),
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         inputTransformation = inputTransformation,
         keyboardOptions = SentenceKeyboard,
         lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = minLines, maxHeightInLines = maxLines),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = fieldContainerColor(Color.Transparent),
-            unfocusedContainerColor = fieldContainerColor(Color.Transparent),
-            disabledContainerColor = fieldContainerColor(Color.Transparent),
-            errorContainerColor = fieldContainerColor(Color.Transparent),
-        ),
+        colors = container.colors,
     )
 }

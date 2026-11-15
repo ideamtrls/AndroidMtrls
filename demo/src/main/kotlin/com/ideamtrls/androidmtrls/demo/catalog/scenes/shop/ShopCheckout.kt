@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import com.ideamtrls.androidmtrls.AMButton
+import com.ideamtrls.androidmtrls.AMElevation
 import com.ideamtrls.androidmtrls.AMFormActions
 import com.ideamtrls.androidmtrls.AMLabeledContent
 import com.ideamtrls.androidmtrls.AMSection
@@ -66,7 +67,7 @@ internal fun ColumnScope.ShopCheckoutSheet(model: ShopModel) {
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
             // A card of outlined fields, named by their labels; the keyboard's Next moves down.
-            AMSection("Ship to", inset = false) {
+            AMSection("Ship to", elevation = AMElevation.None, inset = false) {
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.md)) {
                     ShopAddressField(name, "Full name")
                     ShopAddressField(street, "Street address")
@@ -94,7 +95,7 @@ internal fun ColumnScope.ShopCheckoutSheet(model: ShopModel) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            AMSection("Summary", style = AMSectionStyle.Rows, inset = false) {
+            AMSection("Summary", style = AMSectionStyle.Rows, elevation = AMElevation.None, inset = false) {
                 AMLabeledContent("Payment", "Card ending 4242")
                 ShopTotalsRows(model.checkoutSubtotal, delivery.shipping(model.checkoutSubtotal))
             }

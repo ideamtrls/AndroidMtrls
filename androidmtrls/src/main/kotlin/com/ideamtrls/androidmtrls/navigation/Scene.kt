@@ -65,6 +65,22 @@ public fun AMScene(
     containerColor: Color = AMTheme.Surface.page,
     content: @Composable () -> Unit,
 ) {
+    SceneRoot(modifier, floatingActions, containerColor, sceneBackdrops = null, content)
+}
+
+/**
+ * The scene's root, [AMScene]'s body: the overlay registry, the window's banner and toast hosts,
+ * and the content with the remote over it. The roots form passes its [sceneBackdrops], so the
+ * scene's banners lie on the showing root's art while no backdrop is around the scene.
+ */
+@Composable
+private fun SceneRoot(
+    modifier: Modifier,
+    floatingActions: (@Composable () -> Unit)?,
+    containerColor: Color,
+    sceneBackdrops: AMSceneBackdrops?,
+    content: @Composable () -> Unit,
+) {
     val registry = remember { AMOverlayRegistry() }
     // Toasts clear the button's resting place: its height and its gap above the navigation bar.
     val toastClearance = if (floatingActions != null) {
@@ -76,7 +92,7 @@ public fun AMScene(
         LocalAMOverlayRegistry provides registry,
         LocalContentColor provides MaterialTheme.colorScheme.onSurface,
     ) {
-        AMBannerHost(modifier.fillMaxSize().background(containerColor)) {
+        BannerHost(modifier.fillMaxSize().background(containerColor), overScreen = false, sceneBackdrops = sceneBackdrops) {
             ToastHost(Modifier.fillMaxSize(), toastClearance) {
                 Box(Modifier.fillMaxSize(), propagateMinConstraints = true) {
                     content()
@@ -146,6 +162,9 @@ public fun AMScene(
  * - **The remote's button lies on art too.** In a scene inside an [AMBackdrop] it frosts that
  *   backdrop's art. A scene with none, whose art is each page's own, lays it on the showing root's
  *   art, as it does [overlays], so the frosted + blurs the page under it.
+ * - **So do the scene's banners.** The band behind a banner and the banner's card frost the same
+ *   art the + does: the backdrop around the scene, or with none the showing root's. Only the banner
+ *   layer lies on it; the roots keep their own backdrops.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -184,7 +203,7 @@ public fun <T : Any> AMScene(
 ) {
     val backdrops = remember { AMSceneBackdrops() }
     val actions = floatingActions?.let { slot -> @Composable { SceneFloatingActions(backdrops, slot) } }
-    AMScene(modifier, actions, containerColor) {
+    SceneRoot(modifier, actions, containerColor, backdrops) {
         CompositionLocalProvider(LocalAMSceneBackdrops provides backdrops) {
             AMKeepsPlace(current, landing, onCurrentChange, Modifier.fillMaxSize(), backStack, content)
         }

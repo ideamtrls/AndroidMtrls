@@ -115,7 +115,7 @@ internal fun ShopOrderPanel(model: ShopModel, number: Int, onBack: () -> Unit) {
                 }
                 AMSection("Tracking", inset = false) {
                     val success = AMSemantic.Success.color
-                    val pending = AMTheme.selectionRing
+                    val pending = AMTheme.secondaryText
                     AMTimeline(
                         order.steps(now),
                         key = { it.status },

@@ -9,7 +9,6 @@ import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedSecureTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -19,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 
@@ -101,14 +99,15 @@ public fun AMSecureField(
         isEnabled && hasText -> { { InputClearButton(state) } }
         else -> null
     }
+    val container = outlinedFieldContainer()
     OutlinedSecureTextField(
         state = state,
-        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)),
+        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)).then(container.modifier),
         enabled = isEnabled,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         trailingIcon = trailingIcon,
-        supportingText = supportingText?.let { { Text(it) } },
+        supportingText = supportingText?.let { { Text(it, container.supporting) } },
         isError = isError,
         inputTransformation = inputTransformation,
         textObfuscationMode = if (showRevealButton && revealed) {
@@ -118,11 +117,6 @@ public fun AMSecureField(
         },
         keyboardOptions = PasswordKeyboard.merge(keyboardOptions),
         onKeyboardAction = onKeyboardAction,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = fieldContainerColor(Color.Transparent),
-            unfocusedContainerColor = fieldContainerColor(Color.Transparent),
-            disabledContainerColor = fieldContainerColor(Color.Transparent),
-            errorContainerColor = fieldContainerColor(Color.Transparent),
-        ),
+        colors = container.colors,
     )
 }

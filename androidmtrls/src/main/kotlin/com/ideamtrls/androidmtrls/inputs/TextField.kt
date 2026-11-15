@@ -7,14 +7,12 @@ import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 
 /**
  * Whether a text input ([AMTextField], [AMSecureField], [AMSearchField], [AMTextEditor]) takes
@@ -51,9 +49,12 @@ public enum class AMTextFieldAutofocus {
  * )
  * ```
  *
- * - **A widget, not a surface.** It draws Material's outline and nothing else, and spans the width
- *   it's given. Put it in a card padded `spacing.lg` (`Modifier.amCard(padding = …)`), several
- *   fields stacked `spacing.md` apart, so the card supplies the floating surface.
+ * - **A widget, not a surface.** It draws Material's outline and spans the width it's given. Put
+ *   it in a card padded `spacing.lg` (`Modifier.amCard(padding = …)`), several fields stacked
+ *   `spacing.md` apart, so the card supplies the floating surface.
+ * - **Its container follows the app's surface setting**: clear on the page; the tint in a card,
+ *   tabs or on a sheet in a frosted app; the surface color straight on a sheet in a solid app. The
+ *   fill lies under the outline whole, the floating label over it with no notch cut in the fill.
  * - **Quiet by default.** It takes focus only when tapped, unless [autofocus] says otherwise. A tap
  *   puts the caret where the finger lands, as on any Android field.
  * - **Moving through a form** is the keyboard's: give each field `imeAction = ImeAction.Next` and
@@ -102,24 +103,20 @@ public fun AMTextField(
 ) {
     val isEnabled = resolveEnabled(enabled)
     val hasText by remember(state) { derivedStateOf { state.text.isNotEmpty() } }
+    val container = outlinedFieldContainer()
     OutlinedTextField(
         state = state,
-        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)),
+        modifier = modifier.fillMaxWidth().then(inputAutofocus(state, autofocus)).then(container.modifier),
         enabled = isEnabled,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         trailingIcon = if (isEnabled && hasText) { { InputClearButton(state) } } else null,
-        supportingText = supportingText?.let { { Text(it) } },
+        supportingText = supportingText?.let { { Text(it, container.supporting) } },
         isError = isError,
         inputTransformation = inputTransformation,
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
         lineLimits = TextFieldLineLimits.SingleLine,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = fieldContainerColor(Color.Transparent),
-            unfocusedContainerColor = fieldContainerColor(Color.Transparent),
-            disabledContainerColor = fieldContainerColor(Color.Transparent),
-            errorContainerColor = fieldContainerColor(Color.Transparent),
-        ),
+        colors = container.colors,
     )
 }
