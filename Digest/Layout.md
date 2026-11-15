@@ -106,10 +106,10 @@ A titled group: `AMSectionHeader` on top, the content block, an optional footer.
   - `Flat` — a reading block padded `spacing.lg` on a full-width `Surface.primary` strip (`amFlatSurface`), no corners or shadow; inside a card it draws no fill.
 - **Rows go in `Rows`, not `Card`**: the card style pads, so a row in it would sit inset twice.
 - The header, block and footer stack `spacing.sm` apart. The header takes the section header's look (`titleSmall` in `primary`, heading semantics); the footer gets `bodySmall` in `onSurfaceVariant` through `ProvideTextStyle` and `LocalContentColor`.
-- **On art** (an art tone around it, `LocalAMArtTone` non-null) the header and the footer are art text for the tone: the header the primary ink (`Foundations.md`), the footer the secondary ink (`artInk(secondary = true)` as its content color, `amArtText(secondary = true)` on its box), `onSurfaceVariant` on the library's art, which the wash holds at 4.5:1 (`DataDisplay.md`).
+- **On art** (an art tone around it, `LocalAMArtTone` non-null) the header and the footer are art text for the tone: the header the primary ink (`Foundations.md`), the footer the secondary ink (`artInk(secondary = true)` as its content color, `amArtText(secondary = true)` on its box), `#D1D1D6` on dark art and `#2C2C2E` on light art, which hold 4.5:1 over the library's washed art (`DataDisplay.md`).
 - `fill` and `elevation` go to the card (`Rows`, `Card`); `Flat` ignores them.
 - `inset = true` (default) stands the header, footer and card in from the section's edges by `spacing.lg`; pass `false` where the column is already inset (a page gutter). The flat strip always runs the full width.
-- The card styles wrap their content in `ProvideAMSurfaceFill(fill)` (so its secondary text resolves from the card, and it no longer lies on art) and `ProvideAMSurfaceStyle(Flat)`.
+- The card styles wrap their content in `ProvideAMSurfaceFill(fill)` (so its secondary text resolves from the card, and its content lies on the card, not on art) and `ProvideAMSurfaceStyle(Flat)`.
 
 ## `LazyListScope.amSection` — `Section.kt`
 

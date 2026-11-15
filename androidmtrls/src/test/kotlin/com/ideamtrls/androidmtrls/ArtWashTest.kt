@@ -77,15 +77,32 @@ class ArtWashTest {
     }
 
     @Test
-    fun theDefaultsHoldTheModesTextOverAnyArt() {
+    fun textOnArtTakesTheFixedInkOfItsTone() {
+        assertEquals(Color.White, artInk(AMArtTone.Dark, secondary = false))
+        assertEquals(Color(0xFFD1D1D6), artInk(AMArtTone.Dark, secondary = true))
+        assertEquals(Color.Black, artInk(AMArtTone.Light, secondary = false))
+        assertEquals(Color(0xFF2C2C2E), artInk(AMArtTone.Light, secondary = true))
+    }
+
+    @Test
+    fun theFixedInksHoldOverAnyArt() {
         val ground = Style.ArtInk.LightArtGround
         val ceiling = Style.ArtInk.DarkArtCeiling
-        // onSurface and onSurfaceVariant of Material's baseline schemes.
-        assertTrue(contrast(luminanceOf(linear(Color(0xFF1D1B20))), ground) >= 4.5f)
-        assertTrue(contrast(luminanceOf(linear(Color(0xFFE6E0E9))), ceiling) >= 4.5f)
-        assertTrue(contrast(luminanceOf(linear(Color(0xFFCAC4D0))), ceiling) >= 4.5f)
-        // Light mode's secondary holds 4.44:1 over a black picture, the darkest light art gets.
-        assertEquals(4.44f, contrast(luminanceOf(linear(Color(0xFF49454F))), ground), 0.01f)
+        fun on(ink: Color, art: Float) = contrast(luminanceOf(linear(ink)), art)
+        assertTrue(on(Color.White, ceiling) >= 7f)
+        assertEquals(8.42f, on(Color.White, ceiling), 0.01f)
+        assertTrue(on(Color(0xFFD1D1D6), ceiling) >= 4.5f)
+        assertEquals(5.54f, on(Color(0xFFD1D1D6), ceiling), 0.01f)
+        assertTrue(on(Color.Black, ground) >= 7f)
+        assertEquals(9.98f, on(Color.Black, ground), 0.01f)
+        assertTrue(on(Color(0xFF2C2C2E), ground) >= 4.5f)
+        assertEquals(6.62f, on(Color(0xFF2C2C2E), ground), 0.01f)
+    }
+
+    @Test
+    fun theFixedSecondaryInksAlreadyHold() {
+        assertEquals(Color(0xFFD1D1D6), artInkHolding(Color(0xFFD1D1D6), AMArtTone.Dark))
+        assertEquals(Color(0xFF2C2C2E), artInkHolding(Color(0xFF2C2C2E), AMArtTone.Light))
     }
 
     @Test

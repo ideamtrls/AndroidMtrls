@@ -24,13 +24,13 @@ Library sources under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/`
 | `datadisplay/ArtCard.kt` | `AMArtCard` (a URL and an `ImageBitmap` form); private `artCardFrame`, `ArtCardLoading` |
 | `datadisplay/ImagePipelineSettings.kt` | `AMImagePipeline` (the pipeline's process-wide settings: `userAgent`, `loader`, `allowsLocalSources`); internal `isUserAgentValue`, `defaultImageUserAgent` |
 | `datadisplay/ArtBackdrop.kt` | `AMArtDefaults`, `Modifier.amArtBackdrop`, `Modifier.amArtRow` (each in a URL and an `ImageBitmap` form), `Modifier.amArtRows`, `AMArtRowsBackdrop`, `Modifier.amArtText`; the art recipe's constants, the private nodes that draw them, and the art-rows backdrop's private `ArtRowsArt`, `LocalArtRowsArt` and `ArtRowsArtNode` |
-| `datadisplay/ArtTone.kt` | `AMArtTone`; internal `LocalAMArtTone`, `modeArtTone`, `artToneOf`, `artInk` (plain and composable), `artInkShadow`, `artInkHolding`, `moveToLuminance` |
+| `datadisplay/ArtTone.kt` | `AMArtTone`; internal `LocalAMArtTone`, `modeArtTone`, `artToneOf`, `artInk` (pure per tone, and composable), `artInkShadow`, `artInkHolding`, `moveToLuminance` |
 | `datadisplay/ArtImages.kt` | internal `ArtSource` (`Url`, `Image`), `ArtIdentity`, `ArtImages` (the processed-picture cache and loader), `ArtKey`, `ArtWorkingSize`, `artWorkingSize`, `blurSigma`, `artKey`, `ArtCrop`, `coverCrop`, `areaAverage`, `gaussianBlur`, `saturate`, `srgbToLinear`, `linearToSrgb`, `linearLuminance`, `washTowardMode`, `fadeIn`, `ArtSpan`, `ArtBand`, `artRowBands` |
 | `internal/ImagePipeline.kt` | internal `ImagePipeline`, `ImageSource`, `resolveImageSource`, `imageSourceOf`, `ImageFit`, `ImageKey`, `DecodedImage`, `decodeSize`, `decodeCovers`, `readBounded`, `AbortSignal`, `runAbortable`, `ImageMemoryCache`, `InFlightLoads` |
 | `internal/ImageDiskCache.kt` | internal `ImageDiskCache`, `imageCacheFileName`, `isImageCacheFileName`, `ImageCacheFile`, `imageCacheEvictions` |
 
 - Glyphs: `androidmtrls/src/main/res/drawable/am_ic_person.xml` (the filled `person`, an avatar with no name) and `am_ic_image.xml` (`image`, an art thumbnail's default placeholder). Tags in the status tints use `AMSemantic.icon`'s glyphs (`Foundations.md`).
-- Unit tests, in `androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/`: `ImagePipelineTest` (the pipeline: its sources, local ones only when allowed, and the loader's place before them, the User-Agent, decode sizes, bounded reads, aborts, the memory cache, shared loads), `ImageDiskCacheTest` (its disk cache's file names and trimming) and `ArtWashTest` (the frost toward the mode: black and white covers, the even mix, the frost landing only where there's picture, hue kept, the recipe's extremes over every blend of a palette pinned to `LightArtGround` and `DarkArtCeiling`, the mode's text over them, ink moved to a luminance, colored ink moved to hold) and `DataDisplayMathTest` (the avatar's initials and hue, the timeline's positions, the art's keys (a bitmap's identity, the mode and the wash among them), working size, crop, average, blur and fade, and the art rows' bands) (`Testing.md`).
+- Unit tests, in `androidmtrls/src/test/kotlin/com/ideamtrls/androidmtrls/`: `ImagePipelineTest` (the pipeline: its sources, local ones only when allowed, and the loader's place before them, the User-Agent, decode sizes, bounded reads, aborts, the memory cache, shared loads), `ImageDiskCacheTest` (its disk cache's file names and trimming) and `ArtWashTest` (the frost toward the mode: black and white covers, the even mix, the frost landing only where there's picture, hue kept, the recipe's extremes over every blend of a palette pinned to `LightArtGround` and `DarkArtCeiling`, the fixed inks per tone over them, ink moved to a luminance, colored ink moved to hold) and `DataDisplayMathTest` (the avatar's initials and hue, the timeline's positions, the art's keys (a bitmap's identity, the mode and the wash among them), working size, crop, average, blur and fade, and the art rows' bands) (`Testing.md`).
 - Catalog pages: `demo/.../catalog/pages/datadisplay/` (below).
 
 ## `AMAvatar` — `Avatar.kt`
@@ -159,18 +159,15 @@ Color under cards and readable text over art (`Patterns.md`). **The recipe**, ba
 
 ### `AMArtDefaults` and the frost — the numbers
 
-`AMArtDefaults` (public object): `BlurRadius` 207 dp, `LightWash` 0.7, `DarkWash` 0.7. Text in the mode's own colors holds over any art against Material's baseline static scheme (an app with its own scheme checks its colors against them; the defaults are fixed, not computed from the scheme). Measured over the full recipe (WCAG, Material 3 1.5.0-rc01 baseline: light `onSurface` `#1D1B20`, `onSurfaceVariant` `#49454F`; dark `#E6E0E9`, `#CAC4D0`):
+`AMArtDefaults` (public object): `BlurRadius` 207 dp, `LightWash` 0.7, `DarkWash` 0.7. Text on art takes fixed inks by the art's tone, in either mode (`Style.ArtInk`), so it never depends on the color scheme. Measured over the full recipe (WCAG):
 
-| | frosted ground | `onSurfaceVariant` | `onSurface` |
+| | art | primary ink | secondary ink |
 |---|---|---|---|
-| light, black cover (the darkest light art, blends included) | `#B2B3B3` (L 0.4491) | 4.44 | 8.18 |
-| light, white cover | `#FFFFFF` | 9.34 | 17.1 |
-| dark, white cover | `#4D4D4D` (L 0.0742) | 4.96 | 6.52 |
-| dark, a saturated yellow (the brightest dark art, blends included) | L 0.0747 | 4.94 | 6.50 |
-| dark, black cover | `#000000` | 12.3 | 16.2 |
+| dark art, brightest (a saturated yellow, blends included; L 0.0747) | `DarkArtCeiling` | white 8.42 | `#D1D1D6` 5.54 |
+| light art, darkest (a black cover: `#B2B3B3`, L 0.4491; blends included) | `LightArtGround` | black 9.98 | `#2C2C2E` 6.62 |
 
 - **The extremes are internal constants** the inks hold against: `Style.ArtInk.LightArtGround` (0.4490) and `Style.ArtInk.DarkArtCeiling` (0.0747), measured over every color and every sRGB blend of two finished colors (bands fade into each other, and the GPU stretches pictures, in sRGB). `ArtWashTest` pins them to the recipe.
-- **Light mode's secondary text** holds 4.44:1 over a black picture, the one case under 4.5:1; over all lighter pictures it holds 4.5:1.
+- **Both inks hold on every library art**: the primary at 7:1 or more, the secondary at 4.5:1 or more, against the two extremes (`ArtWashTest`).
 - **Lower washes are the app's call** (KDoc on every wash parameter): they show more of the picture and give up the guarantee, so the app checks its text and gives the art surface the tone the art then has (`AMArtTone`). Frosted glass over art the app chose not to wash, or drew itself, is the app's to check too.
 
 ### `Modifier.amArtBackdrop(url | image, blurRadius = AMArtDefaults.BlurRadius, lightWash = AMArtDefaults.LightWash, darkWash = AMArtDefaults.DarkWash)`
@@ -235,7 +232,7 @@ AMArtRowsBackdrop(Modifier.fillMaxSize()) {
 
 - **`AMArtTone { Light, Dark }`**, named for the art (`Dark` art takes light text). The washes put the library's art in the mode's tone, so **the tone is the mode's** unless an art surface is given one. Nothing measures pictures.
 - **Who provides it.** `AMBackdrop(art, modifier, tone = null, content)` and `AMArtRowsBackdrop(modifier, tone = null, content)` provide internal `LocalAMArtTone` (`compositionLocalOf`, so nodes reading it while drawing redraw on a change) to their content: `tone ?: modeArtTone()`. An app gives a surface a tone for art it washes less or draws itself (an unwashed photo: `tone = AMArtTone.Dark`). Off art it's null; an overlay window's fresh context resets it to null (`ProvideOverlayWindowLocals`). Public read: `AMTheme.artTone`.
-- **The inks** (`artInk(tone, dark, scheme, secondary)`, and a composable `artInk(secondary, tone)` reading the locals): on art in the mode's tone, the scheme's `onSurface` and `onSurfaceVariant` (which hold over the washed art, above); on art of the other tone, `Style.ArtInk`'s fixed inks: white and `#D1D1D6` on dark art (light mode), `#1C1C1E` and `#48484A` on light art (dark mode). `artInkShadow(tone)`: `Style.Shadow.ArtText` (black) under ink on dark art, `ArtTextLight` (the same layers in white) under ink on light art.
+- **The inks** (internal pure `artInk(tone, secondary)`, and a composable `artInk(secondary, tone)` that resolves the tone from the locals and calls it): `Style.ArtInk`'s fixed inks by tone, in either mode and whatever the scheme: `OnDark` white and `OnDarkSecondary` `#D1D1D6` on dark art, `OnLight` black and `OnLightSecondary` `#2C2C2E` on light art. `artInkShadow(tone)`: `Style.Shadow.ArtText` (black) under ink on dark art, `ArtTextLight` (the same layers in white) under ink on light art.
 - **Colored text on art** (`artInkHolding(color, tone)`): the color moved along its own line (`moveToLuminance`: scaled down whole when lowered; raised, its own color grown by the square root of the lift as far as the gamut lets it), keeping its hue, just far enough to hold 4.5:1 on the library's art of that tone: darker on light art, against `Style.ArtInk.LightArtGround` (L 0.4490), lighter on dark art, against `Style.ArtInk.DarkArtCeiling` (L 0.0747). Light mode's `error` `#B3261E` (3.11:1 on the ground) comes back darker at 4.5:1; dark mode's `#F2B8B5` already holds (4.93:1) and stays.
 
 ### `Modifier.amArtText(tone = null, secondary = false)`

@@ -116,8 +116,8 @@ public sealed interface AMButtonStyle {
      * Material's text button: no surface, no shadow, its label in the color scheme's primary, its
      * ripple in the theme's medium shape like the filled styles. For actions that recede, in
      * dialogs and panels or beside a filled button. On art (inside an [AMBackdrop] or
-     * [AMArtRowsBackdrop]) its label takes the ink of the art's tone (`onSurface` on the library's
-     * art), and a destructive one a red moved to hold 4.5:1 on that tone.
+     * [AMArtRowsBackdrop]) its label takes the fixed ink of the art's tone (white on dark art, black on
+     * light art), and a destructive one a red moved to hold 4.5:1 on that tone.
      */
     @Immutable
     public data object Ghost : AMButtonStyle

@@ -54,13 +54,14 @@ public enum class AMSectionStyle {
  * [amSection], the same card drawn a row at a time.
  *
  * On art (inside an [AMBackdrop] or [AMArtRowsBackdrop]) the header and the footer lie on the art
- * as art text for its tone ([amArtText]): the header in `onSurface`, the footer in
- * `onSurfaceVariant`, which the art's wash holds them over.
+ * as art text for its tone ([amArtText]): the header in the tone's primary ink, the footer in its
+ * secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art, which hold over the library's
+ * washed art.
  *
  * @param title the header, in the section header's look ([AMSectionHeader]).
  * @param modifier the section's placement.
- * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, art
- *   text in the secondary ink). Null shows none.
+ * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, the
+ *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
  * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow; [AMElevation.None] keeps the fill and corners but casts
@@ -114,7 +115,7 @@ public fun AMSection(
  * @param header the header's parts, in a row, in `titleSmall` and `primary`.
  * @param modifier the section's placement.
  * @param footer the caption under the content, given `bodySmall` and `onSurfaceVariant` (on art,
- *   art text in the secondary ink). Null shows none.
+ *   the tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
  * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow. The flat style ignores it.
@@ -147,8 +148,8 @@ public fun AMSection(
  * ```
  *
  * @param modifier the section's placement.
- * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, art
- *   text in the secondary ink). Null shows none.
+ * @param footer a caption under the content, in `bodySmall` and `onSurfaceVariant` (on art, the
+ *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param style how the content sits: a card of rows, a padded card block, or a flat strip.
  * @param fill the card's fill, solid or frosted over art. The flat style ignores it.
  * @param elevation the card's shadow. The flat style ignores it.
@@ -263,8 +264,8 @@ private fun SectionCard(modifier: Modifier, fill: AMSurfaceFill, content: @Compo
  * @param items the rows' items, in order.
  * @param key a stable, unique key per item, saveable in a `Bundle`.
  * @param title the header, in the section header's look ([AMSectionHeader]). Null shows none.
- * @param footer a caption under the card, in `bodySmall` and `onSurfaceVariant` (on art, art text
- *   in the secondary ink). Null shows none.
+ * @param footer a caption under the card, in `bodySmall` and `onSurfaceVariant` (on art, the tone's
+ *   secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param fill the card's fill, solid or frosted over art.
  * @param elevation the card's shadow; [AMElevation.None] keeps the fill and corners but casts
  *   nothing.
@@ -316,8 +317,8 @@ public fun <T> LazyListScope.amSection(
  * @param items the rows' items, in order.
  * @param key a stable, unique key per item, saveable in a `Bundle`.
  * @param header the header's parts, in a row, in `titleSmall` and `primary`.
- * @param footer the caption under the card, given `bodySmall` and `onSurfaceVariant` (on art, art
- *   text in the secondary ink). Null shows none.
+ * @param footer the caption under the card, given `bodySmall` and `onSurfaceVariant` (on art, the
+ *   tone's secondary ink: `#D1D1D6` on dark art, `#2C2C2E` on light art). Null shows none.
  * @param fill the card's fill, solid or frosted over art.
  * @param elevation the card's shadow.
  * @param inset whether the header, footer and card stand in from the list's edges by `spacing.lg`.

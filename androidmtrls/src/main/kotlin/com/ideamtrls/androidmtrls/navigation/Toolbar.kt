@@ -41,8 +41,8 @@ import androidx.compose.ui.unit.dp
  * Fill its slots with [AMToolbarButton]s. Visual only: taps stay with the buttons in the slots.
  * The title and subtitle each take one line, ellipsized, in the bar's own type; the title stays
  * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn solid
- * and the title takes the ink of the art's tone at rest (`onSurface` on the library's art, washed
- * toward the mode); give a picture of your own the tone it has. Scrolled over the picture, the bar
+ * and the title takes the fixed ink of the art's tone at rest (white on dark art, black on light
+ * art); give a picture of your own the tone it has. Scrolled over the picture, the bar
  * fades in the picture under it blurred under [AMTheme.Frosted.fill], with the frosted edge along
  * its bottom (the solid surface until the art is placed), never a page band, and the title takes
  * the bar's own color.

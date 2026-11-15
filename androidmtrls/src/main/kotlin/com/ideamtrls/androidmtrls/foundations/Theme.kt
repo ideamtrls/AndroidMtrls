@@ -112,8 +112,8 @@ public object AMTheme {
 
     /**
      * Secondary text (a supporting line, a value, a caption) for the surface this composition lies
-     * on, resolved from that surface: on art, the secondary ink of its tone (`onSurfaceVariant` on
-     * the library's art, which the wash holds at 4.5:1); on frosted glass over art,
+     * on, resolved from that surface: on art, the secondary ink of its tone (`#D1D1D6` on dark art,
+     * `#2C2C2E` on light art, which hold 4.5:1 over the library's washed art); on frost over art,
      * [Frosted.secondaryText], which holds over the tint; on the page or a solid card, Material's
      * `onSurfaceVariant`. The library's containers say which surface their content lies on; a
      * hand-built card says it with [ProvideAMSurfaceFill].
@@ -228,7 +228,7 @@ public object AMTheme {
 
         /**
          * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode,
-         * enough for the spotlight's title, in `onSurface`, to hold 4.5:1 over any screen behind
+         * enough for the spotlight's title, in the tone's fixed ink, to hold 4.5:1 over any screen behind
          * it, sharp art included, with the blur or without it.
          */
         public val wash: Color

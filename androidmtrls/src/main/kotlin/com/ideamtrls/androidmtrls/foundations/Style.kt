@@ -34,17 +34,19 @@ internal object Style {
     }
 
     /**
-     * Text lying on art whose tone isn't the mode's (an app's lowered wash, sharp art, a scrim over
-     * a photo). On art in the mode's tone, text takes the scheme's own colors instead.
+     * Text lying on art takes a fixed ink by the art's tone, in either mode: white and a light gray
+     * on dark art, black and a dark gray on light art. They hold over the brightest dark art
+     * ([DarkArtCeiling]) at 8.42:1 and 5.54:1, and over the darkest light art ([LightArtGround])
+     * at 9.98:1 and 6.62:1.
      */
     object ArtInk {
-        /** On dark art in light mode: white, and a light gray for secondary text. */
+        /** On dark art: white, and a light gray for secondary text. */
         val OnDark = Color.White
         val OnDarkSecondary = Color(0xFFD1D1D6)
 
-        /** On light art in dark mode: near-black, and a dark gray for secondary text. */
-        val OnLight = Color(0xFF1C1C1E)
-        val OnLightSecondary = Color(0xFF48484A)
+        /** On light art: black, and a dark gray for secondary text. */
+        val OnLight = Color.Black
+        val OnLightSecondary = Color(0xFF2C2C2E)
 
         /**
          * The darkest the library's light-mode art gets at the default wash, as relative
@@ -209,8 +211,8 @@ internal object Style {
 
         /**
          * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode.
-         * Over sharp black art, `onSurface` (the spotlight's title) holds 5.99:1 in light mode;
-         * over sharp white art, 5.38:1 in dark mode. The blur only evens the screen out, so the
+         * Over sharp black art, the spotlight's title (the tone's fixed ink) holds 7.36:1 in light
+         * mode; over sharp white art, 7.00:1 in dark mode. The blur only evens the screen out, so the
          * wash holds alone where the system has cross-window blur off.
          */
         val WashLight = Color.White.copy(alpha = 0.6f)

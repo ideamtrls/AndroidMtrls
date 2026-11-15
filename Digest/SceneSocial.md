@@ -38,7 +38,7 @@ Glyphs it adds to the demo's `res/drawable/`: `ic_alternate_email`, `ic_person_a
 
 ### The look
 
-- **`SocialBackdrop`**: the one background behind every screen, so the scene always looks like itself: an `AMBackdrop` whose art is a linear gradient from the top start corner to the bottom end corner, a light social-network blue `#A8D6FF` into a deeper `#6BA8FA` in light mode, slate ink `#1C2433` into a lighter slate `#2A3446` in dark mode. The scene root sits on it, and each panel draws its own (`AMPanel` on a transparent container), so a push slides an opaque screen and frosted surfaces always have art to blur. Text on it is the scheme's `onSurface`; section headers over it take their over-art look.
+- **`SocialBackdrop`**: the one background behind every screen, so the scene always looks like itself: an `AMBackdrop` whose art is a linear gradient from the top start corner to the bottom end corner, a light social-network blue `#A8D6FF` into a deeper `#6BA8FA` in light mode, slate ink `#1C2433` into a lighter slate `#2A3446` in dark mode. The scene root sits on it, and each panel draws its own (`AMPanel` on a transparent container), so a push slides an opaque screen and frosted surfaces always have art to blur. Text on it is art text, the fixed ink of the art's tone; section headers over it take their over-art look.
 - **`socialFill()`**: the page surfaces (cards and the profile's tabs) are `Solid` in light mode and `Frosted` in dark mode; `Modifier.socialCard(padding)` is `amCard` in that fill. **`socialSheetSurface()`**: the sheets follow, `Primary` in light mode and `Frosted` in dark mode; what they hold is solid (a sheet's fresh context).
 
 ## The model — `SocialModel`

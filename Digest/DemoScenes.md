@@ -86,4 +86,4 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 ## Photos and art
 
 - Pictures load through the library's image pipeline (`AMRemoteImage`, `AMAvatar`, the art modifiers) from each scene's own URLs: Wikimedia Commons files through `commonsPhoto` (Social's people and posts, Calendar's month art, Shop's beans and bags, Photos' library), and the owner's site (Music). Scenes never use `catalogPhoto`, so `artwork night` leaves them as they are.
-- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the mode's colors.
+- Art backdrops use the data display modifiers (`amArtBackdrop`, `amArtRows` / `amArtRow`, `amArtText`, `DataDisplay.md`), washed toward the mode at the library's defaults, so text on them takes the fixed ink of the art's tone (white on dark art, black on light art).

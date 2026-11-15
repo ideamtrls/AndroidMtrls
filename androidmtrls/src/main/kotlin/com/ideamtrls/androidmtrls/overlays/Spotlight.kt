@@ -39,7 +39,7 @@ import androidx.compose.ui.Modifier
  *
  * - **Where it sits**: low on the screen, where the remote's tiles sit. [content] lies on one solid
  *   card at the page gutters, an optional [title] above it in the section header's look over art
- *   (`onSurface`, which holds over the window's wash), and an
+ *   (the tone's fixed ink, which holds over the window's wash), and an
  *   optional row of tiles ([actions]) below it at the action grid's insets. When the card is taller
  *   than the room above the tiles (large text, a long list), it scrolls.
  * - **Always solid**: the card and the tiles are opaque whatever the screen behind uses, so a

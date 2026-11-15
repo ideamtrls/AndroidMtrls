@@ -39,8 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
  * ```
  *
  * - **At rest** the bar lies on the art: the title and subtitle take the ink of the art's tone
- *   ([AMTheme.artTone]), the subtitle the secondary one: on the library's art, washed toward the
- *   mode, `onSurface` and `onSurfaceVariant`. The status bar's icons are the art's to decide: the
+ *   ([AMTheme.artTone]), the subtitle the secondary one: white and `#D1D1D6` on dark art, black
+ *   and `#2C2C2E` on light art. The status bar's icons are the art's to decide: the
  *   mode's on the library's art, the other tone's on art its [AMBackdrop] says is the other tone.
  * - **Once content scrolls under it** the bar fades in the frosted fill: the art under the bar,
  *   blurred, under [AMTheme.Frosted.fill], with a frosted edge along its bottom, reaching up
