@@ -159,6 +159,12 @@ class ArtWashTest {
     }
 
     @Test
+    fun textHoldsOnFrostOverAWindowsBlur() {
+        assertTrue(contrast(luminanceOf(linear(Color(0xFF2C2C2E))), windowFrostGround(dark = false)) >= 4.5f)
+        assertTrue(contrast(luminanceOf(linear(Color(0xFFD1D1D6))), windowFrostGround(dark = true)) >= 4.5f)
+    }
+
+    @Test
     fun chipLabelsHold() {
         // Baseline onSurfaceVariant (unselected label), onPrimary on primary (selected).
         assertTrue(contrast(luminanceOf(linear(Color(0xFF49454F))), luminanceOf(linear(Style.Chip.QuietFillLight))) >= 4.5f)

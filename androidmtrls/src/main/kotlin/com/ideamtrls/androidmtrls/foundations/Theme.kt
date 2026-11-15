@@ -41,7 +41,9 @@ import androidx.compose.ui.unit.Dp
  * **The surface setting** ([surfaceFill]) is the app's material, set once here: solid floating
  * surfaces, or frosted ones over the app's art. A piece embedded in a frosted surface (inside a
  * card, tabs or a section, or on a sheet) draws the tint, [AMTheme.Frosted.embeddedFill]. With no
- * art behind it, a frosted surface is frost over the page color.
+ * art behind it, a frosted surface is frost over the page color; in the remote's and the
+ * spotlight's blurred windows it's frost over the window's own blur, and solid while the system
+ * has cross-window blur off.
  *
  * Nested inside another `AMTheme`, the defaults keep what the outer theme set: its appearance, in
  * that appearance its color scheme, and its surface setting. So a subtree that only changes
@@ -169,7 +171,8 @@ public object AMTheme {
      *
      * - **Frost**, on the backdrop: a pure Gaussian blur of the art behind, under [fill], outlined
      *   by [edge] in both modes. With no art behind it, it's frost over the page color: the page
-     *   under [fill], opaque.
+     *   under [fill], opaque. In the remote's and the spotlight's blurred windows, [fill] lies over
+     *   the window's own blur, and the surface is solid while the system has cross-window blur off.
      * - **The tint**, embedded (inside a frosted card, tabs or section, or on a sheet):
      *   [embeddedFill] over the frost it sits on, with no blur of its own, outlined by [edge].
      */
@@ -197,7 +200,7 @@ public object AMTheme {
 
         /**
          * Secondary text on frost, on the tint and on a sheet: `#2C2C2E` in light mode, `#D1D1D6`
-         * in dark mode, which hold 4.5:1 on each.
+         * in dark mode, which hold 4.5:1 on each, frost over a blurred window's wash included.
          */
         public val secondaryText: Color
             @Composable @ReadOnlyComposable get() =
@@ -379,6 +382,21 @@ internal fun tintedGround(dark: Boolean): Float {
     val tint = if (dark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight
     // The tint lies over the frost in sRGB, as the GPU blends it.
     val gray = tint.red * tint.alpha + linearToSrgb(frostedGround(dark)) * (1f - tint.alpha)
+    return srgbToLinear(gray)
+}
+
+/**
+ * The relative luminance of the frosted fill in a blurred window (the remote's, the spotlight's),
+ * at its hardest for text: the fill over the window's wash over the worst screen behind it, black
+ * in light mode and white in dark mode. The window's blur only evens that screen out.
+ */
+internal fun windowFrostGround(dark: Boolean): Float {
+    val wash = if (dark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight
+    val fill = if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight
+    val screen = if (dark) 1f else 0f
+    // Each layer lies over the one under it in sRGB, as the GPU blends it.
+    val washed = wash.red * wash.alpha + screen * (1f - wash.alpha)
+    val gray = fill.red * fill.alpha + washed * (1f - fill.alpha)
     return srgbToLinear(gray)
 }
 

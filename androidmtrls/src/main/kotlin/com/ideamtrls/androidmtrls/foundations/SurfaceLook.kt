@@ -19,7 +19,9 @@ internal enum class SurfaceLook {
 
     /**
      * The frosted recipe on the backdrop: the shadow outside the shape, the art behind blurred
-     * under the frosted fill, the frosted edge. With no art to sample, frost over the page color.
+     * under the frosted fill, the frosted edge. With no art to sample, frost over the page color;
+     * in a blurred window, frost over the window's own blur, and solid while the system has
+     * cross-window blur off ([frostPath]).
      */
     Frosted,
 
@@ -80,6 +82,47 @@ internal fun <T> T.isEmbedded(): Boolean where T : DelegatableNode, T : Composit
  */
 internal fun <T> T.lookOf(fill: AMSurfaceFill): SurfaceLook where T : DelegatableNode, T : CompositionLocalConsumerModifierNode =
     surfaceLook(fill, embedded = fill == AMSurfaceFill.Frosted && isEmbedded())
+
+/** What a [SurfaceLook.Frosted] surface draws under its frosted fill ([frostPath]). */
+internal enum class FrostPath {
+    /** The art of the nearest [AMBackdrop] under the surface, blurred. */
+    Sampled,
+
+    /** The page color: frost over the page, opaque, while there's no art to sample. */
+    OverPage,
+
+    /**
+     * Nothing: in a blurred window (the remote, the spotlight) the window's own blur-behind under
+     * its wash is the blur, so the fill lies straight over it and samples nothing.
+     */
+    OverWindowBlur,
+
+    /**
+     * No frost at all: in a blurred window while the system has cross-window blur off, there's no
+     * blur to frost over, so the surface draws solid, never unblurred translucency.
+     */
+    Solid,
+}
+
+/**
+ * The path a frosted surface takes: in a blurred window ([windowBlur] not null), frost over the
+ * window's blur while cross-window blur is on and solid while it's off; elsewhere ([windowBlur]
+ * null) the art sampled once it's placed ([artPlaced]), frost over the page until then.
+ */
+internal fun frostPath(artPlaced: Boolean, windowBlur: Boolean?): FrostPath = when (windowBlur) {
+    true -> FrostPath.OverWindowBlur
+    false -> FrostPath.Solid
+    null -> if (artPlaced) FrostPath.Sampled else FrostPath.OverPage
+}
+
+/**
+ * Whether the blurred window this content is in (the remote's, the spotlight's) has its
+ * blur-behind: true while the system allows cross-window blur, false while it doesn't (battery
+ * saver), null outside a blurred window. [AMOverlayWindow] provides it; every other window resets
+ * it to null ([ProvideOverlayWindowLocals]). Dynamic, so a node that reads it while drawing redraws
+ * when the system's setting flips.
+ */
+internal val LocalAMWindowBlur = compositionLocalOf<Boolean?> { null }
 
 /**
  * The art a surface of [look] samples: the nearest [AMBackdrop]'s when it's frosted, none

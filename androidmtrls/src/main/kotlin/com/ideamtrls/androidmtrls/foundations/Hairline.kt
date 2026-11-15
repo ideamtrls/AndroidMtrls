@@ -138,7 +138,9 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  *   nearest [AMBackdrop]'s art under the shape blurred by [AMTheme.Frosted.blurRadius], the
  *   frosted fill, the content, then the frosted edge in both modes. With no backdrop, or before
  *   the art is placed, the page color takes the art's place under the fill: frost over the page,
- *   opaque, never unblurred translucency.
+ *   opaque, never unblurred translucency. In a blurred window (the remote's, the spotlight's) the
+ *   window's own blur-behind is the blur: the fill lies straight over it and samples nothing, and
+ *   while the system has cross-window blur off the surface draws solid ([frostPath]).
  * - **Tinted**: the shadow outside the shape only, [AMTheme.Frosted.embeddedFill] in the shape
  *   with no blur of its own, the content, then the frosted edge.
  *
@@ -226,6 +228,7 @@ private class ElevatedSurfaceNode(
                 hairline = hairline,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
                 backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
                 clipContent = false,
                 alwaysOutlined = alwaysOutlined,
             )
@@ -272,10 +275,15 @@ internal class ElevatedSurfaceDrawer {
 
     /**
      * Draws the surface around the content in [look]: solid, in [solidFill] (the surface color when
-     * unspecified); frosted over [backdrop]'s art, or over the page color while there's no art to
-     * sample; or tinted. With [clipContent] the content is clipped to [shape]; with [outline] false
-     * it draws no hairline or edge. A solid surface's [hairline] (the selection ring when
-     * unspecified) shows in dark mode only, or in both modes with [alwaysOutlined].
+     * unspecified); frosted on the path [frostPath] gives it (over [backdrop]'s art, over the page
+     * color while there's no art to sample, over the blur of the blurred window it's in, or, in
+     * that window while [windowBlur] is false, solid); or tinted. With [clipContent] the content is
+     * clipped to [shape]; with [outline] false it draws no hairline or edge. A solid surface's
+     * [hairline] (the selection ring when unspecified) shows in dark mode only, or in both modes
+     * with [alwaysOutlined].
+     *
+     * @param windowBlur the blurred window's blur-behind here ([LocalAMWindowBlur]): null outside
+     *   a blurred window.
      */
     fun ContentDrawScope.drawSurface(
         context: GraphicsContext,
@@ -285,13 +293,15 @@ internal class ElevatedSurfaceDrawer {
         hairline: Color,
         dark: Boolean,
         backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
         clipContent: Boolean,
         outline: Boolean = true,
         alwaysOutlined: Boolean = false,
         solidFill: Color = Color.Unspecified,
     ) {
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawSurface)) }
-        if (look == SurfaceLook.Solid) {
+        val frost = frostPathOf(look, backdrop, windowBlur)
+        if (look == SurfaceLook.Solid || frost == FrostPath.Solid) {
             shadows.draw(this, context, shape, shadow, dark)
             drawPath(path, solidFill.takeOrElse { if (dark) Style.Surface.Dark else Style.Surface.Light })
             drawClippedContent(path, clipContent)
@@ -302,7 +312,7 @@ internal class ElevatedSurfaceDrawer {
         }
         // Under frost or the tint the shadow would show through, so it falls outside the shape only.
         clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, shadow, dark) }
-        drawTranslucentFill(path, look, backdrop, dark)
+        drawTranslucentFill(path, frost, dark)
         drawClippedContent(path, clipContent)
         if (outline) drawInsetOutline(shape, frostedEdge(dark), Style.Hairline.Width)
     }
@@ -321,6 +331,7 @@ internal class ElevatedSurfaceDrawer {
         look: SurfaceLook,
         dark: Boolean,
         backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
         outline: Boolean = true,
     ) {
         val card = frame.card
@@ -328,19 +339,20 @@ internal class ElevatedSurfaceDrawer {
             addOutline(shape.createOutline(card.size, layoutDirection, this@drawSurfaceSlice))
             translate(card.topLeft)
         }
+        val frost = frostPathOf(look, backdrop, windowBlur)
         val content = this
         // Draws in the card's own frame, at the card's size, so its shadows and edges are the card's.
         fun DrawScope.inCard(block: DrawScope.() -> Unit) =
             inset(card.left, card.top, size.width - card.right, size.height - card.bottom, block)
         clipRect(frame.band.left, frame.band.top, frame.band.right, frame.band.bottom) {
-            if (look == SurfaceLook.Solid) {
+            if (look == SurfaceLook.Solid || frost == FrostPath.Solid) {
                 inCard { shadows.draw(this, context, shape, shadow, dark) }
                 drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
                 clipPath(path) { content.drawContent() }
                 if (outline && dark) inCard { drawInsetOutline(shape, selectionRing(true), Style.Hairline.Width) }
             } else {
                 clipPath(path, ClipOp.Difference) { inCard { shadows.draw(this, context, shape, shadow, dark) } }
-                drawTranslucentFill(path, look, backdrop, dark)
+                drawTranslucentFill(path, frost, dark)
                 clipPath(path) { content.drawContent() }
                 if (outline) inCard { drawInsetOutline(shape, frostedEdge(dark), Style.Hairline.Width) }
             }
@@ -348,17 +360,38 @@ internal class ElevatedSurfaceDrawer {
     }
 
     /**
-     * The fill of a frosted or tinted surface in [shape]: the tint for [SurfaceLook.Tinted]; for
-     * [SurfaceLook.Frosted], the frosted fill over [backdrop]'s art blurred, or over the page color
-     * while there's no art to sample, so it's opaque and never shows unblurred content.
+     * The path a surface of [look] frosts on ([frostPath]), or null when it isn't frosted. Outside
+     * a blurred window it places the slice of [backdrop]'s art under the surface first, so
+     * [FrostPath.Sampled] means the slice is ready to draw; in a blurred window it samples nothing.
      */
-    private fun DrawScope.drawTranslucentFill(shape: Path, look: SurfaceLook, backdrop: AMBackdropSource?, dark: Boolean) {
-        if (look == SurfaceLook.Tinted) {
-            drawPath(shape, if (dark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight)
-            return
+    private fun DrawScope.frostPathOf(
+        look: SurfaceLook,
+        backdrop: AMBackdropSource?,
+        windowBlur: Boolean?,
+    ): FrostPath? {
+        if (look != SurfaceLook.Frosted) return null
+        val placed = windowBlur == null && backdrop != null &&
+            slice.place(this, backdrop, coordinates, Style.Frosted.BlurRadius.toPx())
+        return frostPath(placed, windowBlur)
+    }
+
+    /**
+     * The fill of a frosted or tinted surface in [shape]: the tint when it isn't frosted ([frost]
+     * null); frosted, the frosted fill over the art's slice blurred, over the page color while
+     * there's no art to sample, or straight over a blurred window's blur, which the platform's
+     * blur-behind supplies.
+     */
+    private fun DrawScope.drawTranslucentFill(shape: Path, frost: FrostPath?, dark: Boolean) {
+        when (frost) {
+            null -> {
+                drawPath(shape, if (dark) Style.Frosted.EmbeddedFillDark else Style.Frosted.EmbeddedFillLight)
+                return
+            }
+            FrostPath.Sampled -> slice.drawPlaced(this, shape)
+            FrostPath.OverPage -> drawPath(shape, if (dark) Style.Page.Dark else Style.Page.Light)
+            // The window's blur-behind is already under it; a solid one draws the solid look instead.
+            FrostPath.OverWindowBlur, FrostPath.Solid -> Unit
         }
-        val sampled = backdrop != null && slice.draw(this, shape, backdrop, coordinates, Style.Frosted.BlurRadius.toPx())
-        if (!sampled) drawPath(shape, if (dark) Style.Page.Dark else Style.Page.Light)
         drawPath(shape, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
     }
 

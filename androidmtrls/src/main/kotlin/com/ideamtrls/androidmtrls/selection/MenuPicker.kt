@@ -37,8 +37,9 @@ import androidx.compose.ui.res.painterResource
  *   strip, with `AMDivider(inset = spacing.lg)` between it and its neighbors.
  * - **The options** come up in the spotlight under [title] ([AMMenuSpotlight], which a control
  *   that isn't a row opens itself): one list item per option ([AMMenuOptions]), each led by a
- *   Material radio button, the current one on, on the spotlight's solid card. A tap picks that
- *   option and closes the spotlight; back or a tap outside closes it unchanged.
+ *   Material radio button, the current one on, on the spotlight's card, in the app's surface
+ *   setting (frost over the window's blur in a frosted app). A tap picks that option and closes
+ *   the spotlight; back or a tap outside closes it unchanged.
  *
  * Whether the options are up is saved, so they survive a configuration change.
  *
@@ -100,9 +101,10 @@ public fun <T> AMMenuPicker(
 
 /**
  * A menu's options in the spotlight, opened from any control: [title] over one row per option, the
- * current one's radio button on, on the spotlight's solid card, with no tiles. Picking an option
- * applies it and closes the spotlight; back or a tap outside closes it unchanged. It's what
- * [AMMenuPicker]'s row opens, for a control that isn't a row (a speed or sleep-timer button).
+ * current one's radio button on, on the spotlight's card (in the app's surface setting: frost over
+ * the window's blur in a frosted app), with no tiles. Picking an option applies it and closes the
+ * spotlight; back or a tap outside closes it unchanged. It's what [AMMenuPicker]'s row opens, for
+ * a control that isn't a row (a speed or sleep-timer button).
  *
  * ```kotlin
  * var choosingSpeed by rememberSaveable { mutableStateOf(false) }

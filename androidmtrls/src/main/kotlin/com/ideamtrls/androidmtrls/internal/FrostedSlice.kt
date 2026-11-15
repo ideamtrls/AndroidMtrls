@@ -35,6 +35,18 @@ internal class FrostedSlice {
      * art (a frosted surface, frost over the page color; the frosted bar, the solid surface).
      */
     fun draw(scope: DrawScope, shape: Path, source: AMBackdropSource, surface: LayoutCoordinates?, radius: Float): Boolean {
+        if (!place(scope, source, surface, radius)) return false
+        drawPlaced(scope, shape)
+        return true
+    }
+
+    /**
+     * Records the slice of [source]'s art under the surface at [surface], blurred by [radius] px,
+     * without drawing it, so a caller can choose its path before it draws anything. Returns false
+     * while there's nothing to sample yet (the art or the surface isn't placed, or they don't
+     * overlap). [drawPlaced] then draws it.
+     */
+    fun place(scope: DrawScope, source: AMBackdropSource, surface: LayoutCoordinates?, radius: Float): Boolean {
         val layer = layer ?: return false
         val art = source.coordinates?.takeIf { it.isAttached } ?: return false
         val placed = surface?.takeIf { it.isAttached } ?: return false
@@ -62,9 +74,14 @@ internal class FrostedSlice {
             layer.record(IntSize(region.width, region.height)) {
                 translate(-region.left.toFloat(), -region.top.toFloat()) { drawLayer(source.layer) }
             }
-            clipPath(shape) { drawLayer(layer) }
         }
         return true
+    }
+
+    /** Draws the slice [place] last recorded, clipped to [shape]. */
+    fun drawPlaced(scope: DrawScope, shape: Path) {
+        val layer = layer ?: return
+        with(scope) { clipPath(shape) { drawLayer(layer) } }
     }
 }
 

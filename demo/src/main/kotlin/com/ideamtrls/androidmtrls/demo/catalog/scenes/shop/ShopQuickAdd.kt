@@ -11,8 +11,8 @@ import com.ideamtrls.androidmtrls.AMHoldAction
 
 /**
  * The held product in the quick-add spotlight: its grid card at a fixed width, read as one
- * element. Its frosted card nests in the spotlight's solid one and draws nothing of its own, so it
- * comes up solid.
+ * element. Its card nests in the spotlight's and draws nothing of its own, so it comes up on the
+ * spotlight's card: frost over the window's blur, as the scene is frosted.
  */
 @Composable
 internal fun ShopQuickAddPreview(product: ShopProduct) {

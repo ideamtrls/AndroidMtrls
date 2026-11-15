@@ -103,6 +103,7 @@ private class ControlSurfaceNode(
                 hairline = if (embedded) Style.ControlOutline.Dark else Color.Unspecified,
                 dark = dark,
                 backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
                 clipContent = false,
                 outline = outline,
                 solidFill = solidFill,

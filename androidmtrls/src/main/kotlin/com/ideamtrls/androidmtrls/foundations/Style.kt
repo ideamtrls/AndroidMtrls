@@ -183,7 +183,8 @@ internal object Style {
 
         /**
          * Secondary text on frost, on the tint and on a sheet: it holds 4.5:1 on frost over the
-         * library's washed art, on the tint over that frost, and on frost over the page.
+         * library's washed art, on the tint over that frost, on frost over the page, and on frost
+         * over a blurred window's wash.
          */
         val SecondaryTextLight = Color(0xFF2C2C2E)
         val SecondaryTextDark = Color(0xFFD1D1D6)

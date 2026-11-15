@@ -62,10 +62,11 @@ import androidx.compose.ui.unit.offset
  *
  * **The fill is the app's setting** ([AMTheme.surfaceFill]): solid in a solid app. In a frosted
  * app (`AMTheme(surfaceFill = AMSurfaceFill.Frosted)`) the card is frosted over the art of the
- * nearest [AMBackdrop], or frost over the page color with no art behind it; on a sheet, or lifted
- * again inside another card, it's embedded and draws the tint ([AMTheme.Frosted.embeddedFill]).
- * Wrap what it holds in [ProvideAMOnSurface], so its supporting text ([AMTheme.secondaryText])
- * resolves from the card.
+ * nearest [AMBackdrop], or frost over the page color with no art behind it (in the spotlight's
+ * blurred window, over the window's own blur, and solid while cross-window blur is off); on a
+ * sheet, or lifted again inside another card, it's embedded and draws the tint
+ * ([AMTheme.Frosted.embeddedFill]). Wrap what it holds in [ProvideAMOnSurface], so its supporting
+ * text ([AMTheme.secondaryText]) resolves from the card.
  *
  * Order it after the modifiers that size the card and before the content's own: `Modifier
  * .fillMaxWidth().amCard()`. The card adds no click handling; a clickable card puts its
@@ -170,6 +171,7 @@ private class CardSurfaceNode(
                 hairline = Color.Unspecified,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
                 backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
                 clipContent = true,
             )
         }
@@ -290,6 +292,7 @@ private class CardSliceNode(
                 look = look,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
                 backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
             )
         }
     }
@@ -495,6 +498,7 @@ private class FlatSurfaceNode :
                 hairline = Color.Unspecified,
                 dark = currentValueOf(LocalAMDarkTheme) ?: false,
                 backdrop = backdropFor(look),
+                windowBlur = currentValueOf(LocalAMWindowBlur),
                 clipContent = false,
                 outline = false,
             )

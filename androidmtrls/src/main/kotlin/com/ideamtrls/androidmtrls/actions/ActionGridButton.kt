@@ -37,9 +37,12 @@ import androidx.compose.ui.text.style.TextOverflow
  * even; its title takes one line and ends in an ellipsis when it's too long. It wears the floating
  * surface in `shapes.large`, in the app's surface setting ([AMTheme.surfaceFill]), with the
  * shape's two-layer shadow: in a solid app white in light mode and black in dark mode, outlined by
- * a hairline in both modes; in a frosted app frosted, with the frosted edge. The glyph is
- * Material's 24 dp; the title is `labelMedium`, `spacing.xs` below it. A tap ripples inside the
- * shape.
+ * a hairline in both modes; in a frosted app frosted, with the frosted edge. In the remote's or
+ * the spotlight's window a frosted tile is frost over the window's own blur, sampling nothing,
+ * and solid while the system has cross-window blur off. For a moment after cross-window blur
+ * comes back the platform's blur lags, and a faint ghost of the sharp screen shows through the
+ * frost while its text still holds. The glyph is Material's 24 dp; the title is `labelMedium`,
+ * `spacing.xs` below it. A tap ripples inside the shape.
  *
  * The title is `onSurface`, or [AMSemantic.Destructive] for an action that removes something. An
  * [active] tile (the view you're on, the filter that's chosen) is ringed in the color scheme's

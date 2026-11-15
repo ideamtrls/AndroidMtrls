@@ -27,4 +27,12 @@ class SurfaceLookTest {
         assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.Surface))
         assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.Page))
     }
+
+    @Test
+    fun blurredWindowsFrostOverTheirOwnBlur() {
+        assertEquals(FrostPath.Sampled, frostPath(artPlaced = true, windowBlur = null))
+        assertEquals(FrostPath.OverPage, frostPath(artPlaced = false, windowBlur = null))
+        assertEquals(FrostPath.OverWindowBlur, frostPath(artPlaced = false, windowBlur = true))
+        assertEquals(FrostPath.Solid, frostPath(artPlaced = false, windowBlur = false))
+    }
 }

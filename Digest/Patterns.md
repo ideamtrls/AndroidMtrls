@@ -32,13 +32,13 @@ Any view with cards sits on heavily blurred pictures relevant to the app. The pi
 - **Color lives at the row level.** Each row has its own picture behind it, and that picture scrolls with the row (`amArtRow` / `amArtRows`). Nothing behind the page swaps as you scroll.
 - **Colors blur into each other.** There's never a visible line between two rows' colors, so the pictures are laid out as one layer and blurred together.
 - **Solid or frosted cards are each app's choice**, not part of the pattern, set once on its theme (`AMTheme(surfaceFill = …)`). Frosted is a pure Gaussian blur of what's behind under the surface color, translucent (white 0.6 light, black 0.5 dark), with a light edge. Where there's no art to blur, a frosted surface is frost over the page color (the page under the fill, opaque), never unblurred translucency, because sharp art under translucent text fails contrast. A piece embedded in a frosted surface (a card on a sheet, a button in a card) draws the tint instead: the surface color, translucent, with no blur of its own, so nothing frosts through frost.
-- **Crucial controls are always solid, so they're always obvious:** the +, back over art, the remote's tiles, and a held item, over any backdrop in any app.
+- **The +, back over art, the remote's tiles and a held item follow the setting too:** solid in a solid app, frosted in a frosted one. The remote's tiles and a held item sit in a blurred window, so their frost lies over the window's own blur, and they draw solid where the system has cross-window blur off, never see-through.
 - **Everything else on a page is one or the other.** An app picks solid or frosted for its cards, tabs and page buttons, and doesn't mix them.
 - **Empty states sit on the page's own background**, never on a card: the glyph, title, description and actions lie on the raw app background (the page color or the app's backdrop), and only their buttons float.
 - **Controls under a carousel or card stack get no card.** Their buttons are flat (`AMElevation.None`), set a little apart from the deck, so nothing pulls focus from the swipe, and the page indicator lies on the page.
 - **A sheet's background is frosted in either setting**, and what it holds follows the app's setting: solid in a solid app, tinted in a frosted app. In a frosted app a piece on a sheet draws the tint, never frost through frost.
 - **It needs rows.** A screen built as a grid has no rows to carry color and doesn't use this pattern.
-- **An app can use one branded backdrop instead**, the same picture or gradient behind every screen, so it always looks like itself. The solid-control rule still applies.
+- **An app can use one branded backdrop instead**, the same picture or gradient behind every screen, so it always looks like itself.
 - **A picture as a whole app's background** goes through `amArtBackdrop` too, washed toward the mode like all art, with adjustable blur. A heavy blur makes a picture read as its colors; a light one lets its subject show.
 - **Rows go inside a card** on these views. Full-width flat rows would cut the color into strips.
 - **Views with no pictures of their own still get color.** Decoration is not a substitute: use real pictures, never drawn shapes. Blurred backdrops are decoded small, blurred once and cached.
@@ -122,9 +122,9 @@ AMScene(
 
 ## Press and hold — the spotlight
 
-The remote for one specific thing. Holding an item blurs the screen and raises a solid card of it, low on the screen where the remote's tiles sit, with 2 or 3 tiles of things to do with it below.
+The remote for one specific thing. Holding an item blurs the screen and raises a card of it, low on the screen where the remote's tiles sit, with 2 or 3 tiles of things to do with it below.
 
-- **The library owns it**: `Modifier.amHoldable` is the hold (the system's long-press timeout) and its haptic; `AMSpotlight` is the presentation. The held item always comes up solid, whatever it was on the screen (a frosted card on a backdrop, a translucent row over art), so the thing in focus is the clearest thing on the screen.
+- **The library owns it**: `Modifier.amHoldable` is the hold (the system's long-press timeout) and its haptic; `AMSpotlight` is the presentation. The held item comes up on one card in the app's setting, whatever it was on the screen (a frosted card on a backdrop, a translucent row over art): solid in a solid app; in a frosted app frost over the window's own blur, and solid where the system has cross-window blur off. Over the blurred, washed screen the thing in focus is the clearest thing there.
 - **It's a window** with the platform's blur-behind, so it sits above sheets. A blur of 34 dp (Android's radius for a Gaussian sigma of 20), under the mode's wash (white 0.6 in light mode, black 0.65 in dark mode), so the paused screen follows the mode and the spotlight's title holds over any screen, sharp art included. Where the system has cross-window blur off (battery saver, some devices), the wash alone stills the screen.
 - A tap still does the item's main thing, and a vertical drag that starts on it still scrolls.
 - The hold gives the long-press haptic. TalkBack users get the spotlight's tiles directly on the item, as custom actions, from the same definition (`AMSpotlightState`, or the hold's `actions`), with no second list to keep in step. On a row that also swipes or reorders, all of it is one list: the hold's tiles, then the moves, then the swipes.

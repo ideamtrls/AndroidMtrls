@@ -32,9 +32,11 @@ public enum class AMSurfaceFill {
      * supporting lines, which [AMTheme.secondaryText] gives content lying on it.
      *
      * With no art behind it (no backdrop, or the art not placed yet) it's frost over the page
-     * color: the page under the frosted fill, opaque, so it never shows unblurred content. A piece
-     * embedded in it draws the tint ([AMTheme.Frosted.embeddedFill]) with the same edge and no blur
-     * of its own.
+     * color: the page under the frosted fill, opaque, so it never shows unblurred content. In the
+     * remote's and the spotlight's blurred windows the window's own blur is the blur: the fill lies
+     * over it, sampling nothing, and while the system has cross-window blur off the surface draws
+     * solid. A piece embedded in it draws the tint ([AMTheme.Frosted.embeddedFill]) with the same
+     * edge and no blur of its own.
      */
     Frosted,
 }

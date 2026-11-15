@@ -31,7 +31,7 @@ import kotlin.math.max
  * [musicControlsPlacement], and the remote shows the same card as the first row of its grid; both
  * put its bottom edge in the same place, so opening the remote on the Player leaves the controls
  * where they were. In the remote's window there's no art to sample, so there it's frost over the
- * page color.
+ * window's own blur, and solid while the system has cross-window blur off.
  *
  * The scrubber is a slider row that brings its own gutter and the row recipe's room above and
  * below it; the title takes `spacing.lg` at its sides, and the transport row is centered. With
