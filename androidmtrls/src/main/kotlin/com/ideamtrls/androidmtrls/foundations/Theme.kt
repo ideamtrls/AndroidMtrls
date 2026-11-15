@@ -147,8 +147,8 @@ public object AMTheme {
     /** The floating surface and the page it floats on. */
     public object Surface {
         /**
-         * The floating surface: pure white in light mode, pure black in dark mode. Cards, filled
-         * buttons, sheets, tiles, the floating action button and the banner fill with it, with no
+         * The floating surface: pure white in light mode, pure black in dark mode. Solid cards,
+         * filled buttons, tiles, the floating action button and the banner fill with it, with no
          * tonal tint; they lift by shadow, never by tint.
          */
         public val primary: Color
@@ -237,8 +237,9 @@ public object AMTheme {
     public val selectionRingWidth: Dp = Style.SelectionRing.Width
 
     /**
-     * The dark-mode outline of a solid control inside a black card or sheet, a step brighter than
-     * [selectionRing] so the control still reads as raised. On the page a control keeps the ring.
+     * The dark-mode outline of a solid control inside a black card or on a sheet, a step brighter
+     * than [selectionRing] so the control still reads as raised. On the page a control keeps the
+     * ring.
      */
     public val controlOutline: Color
         @Composable @ReadOnlyComposable get() = if (isDark) Style.ControlOutline.Dark else Style.ControlOutline.Light

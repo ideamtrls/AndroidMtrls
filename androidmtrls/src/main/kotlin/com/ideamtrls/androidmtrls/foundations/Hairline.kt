@@ -39,10 +39,10 @@ import kotlin.math.max
  * Modifier.background(AMTheme.Surface.primary, CircleShape).amHairline(CircleShape)
  * ```
  *
- * For outlines that always show on a surface you draw yourself: sheets, avatars, a chosen item's
- * ring. The library's floating surfaces draw their own: a solid card or button in dark mode only,
- * where the shadow alone can't lift black off the page; the floating action button, the remote's
- * tiles and the banner in both modes; a frosted one its frosted edge.
+ * For outlines that always show on a surface you draw yourself: avatars, a chosen item's ring.
+ * The library's floating surfaces draw their own: a solid card or button in dark mode only, where
+ * the shadow alone can't lift black off the page; the floating action button, the remote's tiles
+ * and the banner in both modes; a frosted one, and a sheet, its frosted edge.
  *
  * @param shape the outline's shape: the surface's own.
  * @param color the line's color. Unspecified (the default) draws [AMTheme.selectionRing] for the
@@ -145,7 +145,7 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  * sits above the fill.
  *
  * @param hairline the solid look's outline. Unspecified draws [AMTheme.selectionRing]; a solid
- *   control on a black card or sheet passes [AMTheme.controlOutline].
+ *   control inside a black card or on a sheet passes [AMTheme.controlOutline].
  * @param alwaysOutlined whether the solid look's hairline shows in both modes, for a surface that
  *   always carries one (the floating action button, a tile, the banner). Frosted and tinted
  *   surfaces always draw the frosted edge.

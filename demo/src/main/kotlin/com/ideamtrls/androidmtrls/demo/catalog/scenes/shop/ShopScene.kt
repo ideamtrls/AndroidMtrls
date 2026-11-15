@@ -23,7 +23,6 @@ import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMLoadingOverlay
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSheet
-import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMSpotlight
 import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
@@ -182,13 +181,11 @@ private fun ShopOverlays(model: ShopModel) {
         model.showsSearch,
         onDismissRequest = { model.showsSearch = false },
         title = "Search",
-        surface = AMSheetSurface.Frosted,
     ) { ShopSearchSheet(model) }
     AMSheet(
         model.showsCheckout,
         onDismissRequest = { model.showsCheckout = false },
         title = "Checkout",
-        surface = AMSheetSurface.Frosted,
     ) { ShopCheckoutSheet(model) }
 
     val quickAddIcons = rememberShopQuickAddIcons()

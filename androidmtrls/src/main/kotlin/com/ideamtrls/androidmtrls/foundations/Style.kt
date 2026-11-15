@@ -24,9 +24,9 @@ internal object Style {
     }
 
     /**
-     * The floating surface: pure white in light mode, pure black in dark mode. Cards, filled
-     * buttons, sheets, tiles, the floating action button and the banner fill with it. Its
-     * tonal elevation is always 0; it lifts by shadow, never by tint.
+     * The floating surface: pure white in light mode, pure black in dark mode. Solid cards, filled
+     * buttons, tiles, the floating action button and the banner fill with it. Its tonal elevation
+     * is always 0; it lifts by shadow, never by tint.
      */
     object Surface {
         val Light = Color.White
@@ -146,9 +146,9 @@ internal object Style {
     }
 
     /**
-     * The dark-mode outline of a solid control inside a black card or sheet, a step brighter than
-     * the selection ring so the control still reads as raised. Light mode draws no outline; the
-     * light value matches the selection ring.
+     * The dark-mode outline of a solid control inside a black card or on a sheet, a step brighter
+     * than the selection ring so the control still reads as raised. Light mode draws no outline;
+     * the light value matches the selection ring.
      */
     object ControlOutline {
         val Light = Color(0xFFC7C7CC)

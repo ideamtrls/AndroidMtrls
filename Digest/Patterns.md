@@ -13,7 +13,7 @@ How AndroidMtrls wants a screen put together. A pattern is an opinion over exist
 
 - **The native layer is Android's.** Jetpack and Material 3 components keep their own shapes, colors, type, motion and behavior, so an AndroidMtrls app looks and feels like Android: the Material type scale in the phone's font, ripple, Android gestures, Android back.
 - **The style layer goes on top.** Floating white/black surfaces on a tuned page, two-layer shadows and hairlines, cards, the remote as main navigation, the spotlight for holds and pickers, no dimming behind sheets, color under cards, frosted surfaces over art, folding, quiet defaults.
-- **Where the line falls: stateless surfaces wear the style; stateful controls keep Android's look.** Cards, buttons, sheets, tiles, the floating action button and the banner get the white/black fill, the shadow and the hairline. Switches, sliders, chips, segmented buttons, text fields, checks and pickers keep Material's shapes and colors untouched; nothing recolors a native control.
+- **Where the line falls: stateless surfaces wear the style; stateful controls keep Android's look.** Cards, buttons, tiles, the floating action button and the banner get the white/black fill, the shadow and the hairline; sheets get a frosted background. Switches, sliders, chips, segmented buttons, text fields, checks and pickers keep Material's shapes and colors untouched; nothing recolors a native control.
 - **Text and accent colors are native**, from the static Material color scheme. Corners are Android's circular corners. **Buttons are rounded rectangles** in the theme's medium shape (12 dp), filled or text, surface and ripple alike, never pills; the floating action button stays a circle and icon buttons keep Material's round ripple. Type is sentence case everywhere.
 - **When in doubt, lean Android.**
 
@@ -36,7 +36,7 @@ Any view with cards sits on heavily blurred pictures relevant to the app. The pi
 - **Everything else on a page is one or the other.** An app picks solid or frosted for its cards, tabs and page buttons, and doesn't mix them.
 - **Empty states sit on the page's own background**, never on a card: the glyph, title, description and actions lie on the raw app background (the page color or the app's backdrop), and only their buttons float.
 - **Controls under a carousel or card stack get no card.** Their buttons are flat (`AMElevation.None`), set a little apart from the deck, so nothing pulls focus from the swipe, and the page indicator lies on the page.
-- **Sheets follow the app.** An app with frosted cards presents frosted sheets; a solid app's sheets are solid. What a sheet holds is solid, frosted sheet or not: its rows sit in a solid card, and its buttons and fields are solid. A frosted piece on a sheet would draw the tint, never frost through frost.
+- **A sheet's background is frosted in either setting**, and what it holds follows the app's setting: solid in a solid app, tinted in a frosted app. In a frosted app a piece on a sheet draws the tint, never frost through frost.
 - **It needs rows.** A screen built as a grid has no rows to carry color and doesn't use this pattern.
 - **An app can use one branded backdrop instead**, the same picture or gradient behind every screen, so it always looks like itself. The solid-control rule still applies.
 - **A picture as a whole app's background** goes through `amArtBackdrop` too, washed toward the mode like all art, with adjustable blur. A heavy blur makes a picture read as its colors; a light one lets its subject show.
@@ -135,7 +135,7 @@ The remote for one specific thing. Holding an item blurs the screen and raises a
 
 ## Sheets — no dimming behind them
 
-- A sheet is Material's `ModalBottomSheet` wearing the style: the floating surface (or the page color, or frosted in a frosted app; its contents stay solid), Material's sheet shape with its rounded top corners, the hairline and the `medium` shadow, over a **transparent scrim**. The screen behind stays as it is.
+- A sheet is Material's `ModalBottomSheet` wearing the style: a frosted background in either setting (what it holds follows the app's setting), Material's sheet shape with its rounded top corners, the frosted edge and the `medium` shadow, over a **transparent scrim**. The screen behind stays as it is.
 - It keeps Android's behavior: the drag handle, drag to dismiss, predictive back.
 - **The discard guard**: while a sheet holds edits, dismissing it (a drag, back, a tap outside) asks "Discard changes?" first.
 - **Alerts keep Android's look and dim**: an alert is Material's `AlertDialog`. Back and a tap outside dismiss it, running its cancel action if it has one; dismissing never runs a destructive action.

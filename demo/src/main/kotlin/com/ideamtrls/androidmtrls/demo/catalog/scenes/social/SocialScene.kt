@@ -179,24 +179,21 @@ private fun SocialRemote(model: SocialModel, onClose: () -> Unit, onExit: () -> 
 }
 
 /**
- * Everything the scene presents over its views: the compose and search sheets (frosted in dark
- * mode), the "Delete post?" alert, the post menu in the spotlight, the mute banner (a tap undoes
- * it) and the toasts.
+ * Everything the scene presents over its views: the compose and search sheets (frosted over the
+ * scene's backdrop), the "Delete post?" alert, the post menu in the spotlight, the mute banner (a
+ * tap undoes it) and the toasts.
  */
 @Composable
 private fun SocialOverlays(model: SocialModel, postActions: SocialPostActions) {
-    val sheetSurface = socialSheetSurface()
     AMSheet(
         model.composing,
         onDismissRequest = { model.composing = false },
         title = model.composeTitle,
-        surface = sheetSurface,
     ) { SocialComposeSheet(model) }
     AMSheet(
         model.searching,
         onDismissRequest = { model.searching = false },
         title = "Search",
-        surface = sheetSurface,
     ) { SocialSearchSheet(model) }
 
     val deleteId = model.confirmDeleteId

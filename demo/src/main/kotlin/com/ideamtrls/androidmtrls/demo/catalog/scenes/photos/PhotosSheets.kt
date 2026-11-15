@@ -27,15 +27,14 @@ import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSheetHeight
-import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 
 /**
- * The scene's two sheets, frosted like its cards over the art of the view they're opened on (so
- * the view on top composes them, inside its backdrop): "Add to album", as tall as its albums, and
- * the full-height "Info". What they hold sits on solid cards.
+ * The scene's two sheets, frosted over the art of the view they're opened on (so the view on top
+ * composes them, inside its backdrop): "Add to album", as tall as its albums, and the full-height
+ * "Info". What they hold sits on cards in the scene's surface setting.
  */
 @Composable
 internal fun PhotosSheets(model: PhotosModel) {
@@ -44,7 +43,6 @@ internal fun PhotosSheets(model: PhotosModel) {
         onDismissRequest = { model.showsAlbumSheet = false },
         title = "Add to album",
         height = AMSheetHeight.Content,
-        surface = AMSheetSurface.Frosted,
     ) {
         PhotosAlbumSheet(model)
     }
@@ -57,7 +55,6 @@ internal fun PhotosSheets(model: PhotosModel) {
         live != null,
         onDismissRequest = { model.infoPhotoId = null },
         title = "Info",
-        surface = AMSheetSurface.Frosted,
     ) {
         (live ?: last.value)?.let { PhotosInfoSheet(it) }
     }

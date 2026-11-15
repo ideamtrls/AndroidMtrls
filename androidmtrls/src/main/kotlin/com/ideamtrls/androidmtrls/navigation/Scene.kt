@@ -138,10 +138,11 @@ public fun AMScene(
  *   (so they report to its overlay registry and show in its hosts) and outside every root, so a
  *   switch of root never takes down an open sheet, nor cuts one sliding away. Overlays a single
  *   root owns can stay in that root.
- * - **Overlays lie on the showing root's art.** A frosted sheet in [overlays] samples the backdrop
- *   the showing root draws, the outermost [AMBackdrop] or [AMArtRowsBackdrop] of the root or of the
+ * - **Overlays lie on the showing root's art.** A sheet in [overlays] frosts the backdrop the
+ *   showing root draws, the outermost [AMBackdrop] or [AMArtRowsBackdrop] of the root or of the
  *   panel on top, and follows it as roots switch, panels come and go and the art changes. While
- *   the root draws none, it samples whatever backdrop is around the scene, or draws solid.
+ *   the root draws none, it samples whatever backdrop is around the scene, or with none it's frost
+ *   over the page color.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -189,7 +190,7 @@ public fun <T : Any> AMScene(
 
 /**
  * The scene's overlays, on the art the showing root draws, or on the scene's own while it draws
- * none: frosted sheets among them sample it, from their own windows, by screen position.
+ * none: the sheets among them sample it, from their own windows, by screen position.
  */
 @Composable
 private fun SceneOverlays(backdrops: AMSceneBackdrops, overlays: @Composable () -> Unit) {

@@ -29,7 +29,6 @@ import com.ideamtrls.androidmtrls.AMElevation
 import com.ideamtrls.androidmtrls.AMRowDefaults
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSheet
-import com.ideamtrls.androidmtrls.AMSheetSurface
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
@@ -42,7 +41,7 @@ internal val SheetEntry = ComponentEntry(
     summary = "A bottom sheet over an undimmed screen",
     icon = R.drawable.ic_bottom_sheets,
     keywords = listOf(
-        "AMSheet", "AMSheetHeight", "AMSheetSurface", "amDiscardGuard", "bottom sheet", "modal", "drag handle",
+        "AMSheet", "AMSheetHeight", "amDiscardGuard", "bottom sheet", "modal", "drag handle",
         "title", "page", "frosted", "discard changes", "no dimming",
     ),
 ) { SheetPage() }
@@ -105,7 +104,7 @@ private fun ColumnScope.ProfileForm(saved: String, onSave: (String) -> Unit) {
     }
 }
 
-/** Notification settings in a page-colored sheet: switches, then the delivery details. */
+/** Notification settings in a sheet of cards: switches, then the delivery details. */
 @Composable
 private fun NotificationSettings() {
     var showsSettings by rememberSaveable { mutableStateOf(false) }
@@ -119,7 +118,6 @@ private fun NotificationSettings() {
         showsSettings,
         onDismissRequest = { showsSettings = false },
         title = "Notifications",
-        surface = AMSheetSurface.Page,
     ) {
         Column(
             Modifier

@@ -60,7 +60,7 @@ AMTheme(tokens = AMTheme.tokens.copy(spacing = AMTheme.tokens.spacing.copy(lg = 
 | `tokens` | the current `AMTokens` |
 | `surfaceFill` | the app's surface setting, `AMSurfaceFill.Solid` or `Frosted` (below) |
 | `isDark` | whether the theme shows its dark appearance |
-| `Surface.primary` | the floating surface: `White` / `Black`. Cards, filled buttons, sheets, tiles, the floating action button and the banner fill with it; no tonal tint |
+| `Surface.primary` | the floating surface: `White` / `Black`. Solid cards, filled buttons, tiles, the floating action button and the banner fill with it; no tonal tint. A sheet's background is frosted in either setting (`Overlays.md`) |
 | `Surface.page` | the tuned page: `#F2F2F7` / `#141416`, far enough above black that black surfaces read as floating; also what art shows with no picture (`DataDisplay.md`) |
 | `secondaryText` | secondary text for the surface the composition lies on: the art's secondary ink (`Style.ArtInk`: `OnDark` white / `OnDarkSecondary` `#D1D1D6` on dark art, `OnLight` black / `OnLightSecondary` `#2C2C2E` on light art, in either mode), `Frosted.secondaryText` on a sheet or on a surface in a frosted app, else `onSurfaceVariant` (below) |
 | `artTone` | the tone (`AMArtTone`) of the art under the composition, from the nearest art surface (`AMBackdrop`, `AMArtRowsBackdrop`): the mode's unless the app gave the surface one; null off art (`DataDisplay.md`) |
@@ -74,7 +74,7 @@ AMTheme(tokens = AMTheme.tokens.copy(spacing = AMTheme.tokens.spacing.copy(lg = 
 | `hairlineWidth` | 0.5 dp, drawn no thinner than 1 px |
 | `selectionRing` | `#C7C7CC` / `#3A3A3C`, asymmetric on purpose; also the default hairline color |
 | `selectionRingWidth` | 1.5 dp, a chosen row or tile |
-| `controlOutline` | `#C7C7CC` / `#636366`, the dark-mode outline of a solid control embedded in a black surface: inside a card, tabs or a section, or on a primary or frosted sheet (`isEmbedded`, below) |
+| `controlOutline` | `#C7C7CC` / `#636366`, the dark-mode outline of a solid control embedded in a dark surface: inside a card, tabs or a section, or on a sheet (`isEmbedded`, below) |
 | `rowVerticalPadding` | 28 dp, the row recipe's space above and below a row's content (`Style.Row`): one line of `bodyLarge` makes an 80 dp row, two lines 100 dp (`Layout.md`) |
 | `Overlay.blurRadius`, `Overlay.wash` | 34 dp (Android's blur radius: a Gaussian sigma of about 20), which the overlay window's blur-behind, `AMBackdropBlur` and `amPausedBackdrop` all blur by; white 0.6 / black 0.65, the mode's wash over the paused screen, so the spotlight's title, in the tone's fixed ink, holds 7.36:1 (black) over sharp black art in light mode and 7.00:1 (white) over sharp white art in dark mode, with or without the blur (`Overlays.md`) |
 | `ActionGrid.tileHeight` | 76 dp, fixed whatever the font scale |
@@ -134,7 +134,7 @@ The blur is Android's blur radius, which the platform turns into a Gaussian sigm
 ## Hairlines — `Modifier.amHairline`
 
 - **`Modifier.amHairline(shape, color = Color.Unspecified, width = 0.5.dp)`**: an outline over the content, inside the bounds so it never grows the surface, never thinner than 1 px. Unspecified `color` draws `selectionRing` for the appearance. `width = AMTheme.selectionRingWidth` marks a chosen item.
-- For outlines that always show on a surface drawn by hand: sheets, avatars, the active tile's ring. The floating surfaces draw theirs through the elevated-surface helper (below): a solid card or button in dark mode only; the floating action button, the remote's tiles and the banner in both modes (`alwaysOutlined`); a frosted or tinted one the frosted edge.
+- For outlines that always show on a surface drawn by hand: avatars, the active tile's ring. The floating surfaces draw theirs through the elevated-surface helper (below): a solid card or button in dark mode only; the floating action button, the remote's tiles and the banner in both modes (`alwaysOutlined`); a frosted or tinted one the frosted edge. A sheet's chrome draws the frosted edge (`Overlays.md`).
 - Internal `DrawScope.drawInsetOutline(shape, color, width)`: rectangles and rounded rectangles are stroked on an outline inset by half the stroke (corner radii shrink with it); any other shape is stroked twice as wide, clipped to the shape.
 
 ### The elevated surface — internal `Modifier.amElevatedSurface(shape, elevation = Low, hairline = Unspecified, alwaysOutlined = false)`
@@ -156,7 +156,7 @@ The recipe every floating surface wears (cards, filled buttons, toolbar chips, t
 A surface with its own shape (a card, a filled button, tabs) is **embedded** when it sits on another surface: a frosted one draws the tint, and a solid control takes `controlOutline` in dark mode, since the selection ring would vanish against the black around it. Two kinds of place count, found two ways, behind one internal test, `T.isEmbedded()` (for a node that's a `DelegatableNode` and a `CompositionLocalConsumerModifierNode`, called while attached):
 
 - **A card**: any `NestingSurfaceKey` node above the surface in the layout tree (`findNearestAncestor`), flat or not. A card is a modifier, so it can't provide a local to its content; the tree lookup finds it.
-- **What the composition says**: `LocalAMLiesOn` (`LiesOn.Page`, `Surface` or `Sheet`; a dynamic `compositionLocalOf`, `Page` at the root) isn't `Page`. Content on a surface the tree lookup can't see says so: `ProvideAMOnSurface` gives `Surface` (tabs, which are no card, and what the library's containers hold), and `AMSheet` gives `Sheet` to its content for its `Primary` and `Frosted` surfaces (a sheet is a window of its own) and leaves `Page` for `Page`. An overlay window's fresh context (`ProvideOverlayWindowLocals`) resets it to `Page`, so a picker opened from a sheet starts clean.
+- **What the composition says**: `LocalAMLiesOn` (`LiesOn.Page`, `Surface` or `Sheet`; a dynamic `compositionLocalOf`, `Page` at the root) isn't `Page`. Content on a surface the tree lookup can't see says so: `ProvideAMOnSurface` gives `Surface` (tabs, which are no card, and what the library's containers hold), and `AMSheet` always gives `Sheet` to its content (a sheet is a window of its own, frosted in either setting): so on a sheet a card, a filled button or a self-filled row is solid in a solid app and tinted in a frosted app. An overlay window's fresh context (`ProvideOverlayWindowLocals`) resets it to `Page`, so a picker opened from a sheet starts clean.
 
 ## The surface setting and frost — `AMSurfaceFill`, `AMBackdrop`
 

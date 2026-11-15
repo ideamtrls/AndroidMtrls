@@ -21,9 +21,9 @@ display, collections) and the style values behind them. It has no app logic and 
   main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color
   under cards, frosted surfaces over art, folding, and quiet defaults.
 - **Where the line falls: stateless surfaces wear the style; stateful controls keep Material's
-  look.** Cards, buttons, sheets, tiles and the floating action button get the floating surface,
-  the shadow and the hairline. Switches, sliders, chips, text fields and pickers keep Material's
-  shapes and colors. When in doubt, the library leans Android.
+  look.** Cards, buttons, tiles and the floating action button get the floating surface, the
+  shadow and the hairline; sheets get a frosted background. Switches, sliders, chips, text fields
+  and pickers keep Material's shapes and colors. When in doubt, the library leans Android.
 
 ## What's in it
 

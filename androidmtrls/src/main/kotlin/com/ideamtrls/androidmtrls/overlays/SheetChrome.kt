@@ -30,7 +30,8 @@ import androidx.compose.ui.unit.IntSize
 import kotlin.math.roundToInt
 
 /**
- * The sheet's shadow and hairline (or, frosted, its glass), drawn exactly where the sheet is.
+ * The sheet's frosted background, its shadow and its edge ([GlassNode]), drawn exactly where the
+ * sheet is, over Material's transparent container.
  *
  * Material's sheet takes this as its `modifier`, which comes first in the sheet's chain: ahead of
  * the offset that moves the sheet to its drag position and ahead of its clip. What it draws isn't
@@ -39,29 +40,14 @@ import kotlin.math.roundToInt
  * back by the same amount, leaving the sheet's own placement untouched. Material passes its sheet
  * no shadow of its own.
  *
- * - Solid (the primary or page surface, which Material's container paints): the `Medium`
- *   two-layer shadow under the sheet and the hairline over its edge, in both modes.
- * - Frosted ([frosted], over a transparent container): [GlassNode].
- *
  * The chrome sits outside Material's predictive back scaling, so while a back gesture shrinks the
  * sheet, the chrome keeps the sheet's resting size.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-internal fun Modifier.sheetChrome(
-    sheetState: SheetState,
-    shape: Shape,
-    frosted: Boolean,
-    backdrop: AMBackdropSource?,
-): Modifier =
+internal fun Modifier.sheetChrome(sheetState: SheetState, shape: Shape, backdrop: AMBackdropSource?): Modifier =
     this
         .offset { IntOffset(0, sheetOffset(sheetState)) }
-        .then(
-            if (frosted) {
-                GlassElement(shape, backdrop)
-            } else {
-                Modifier.amElevation(AMElevation.Medium, shape).amHairline(shape)
-            },
-        )
+        .then(GlassElement(shape, backdrop))
         .offset { IntOffset(0, -sheetOffset(sheetState)) }
 
 /** The sheet's offset from the top of its window, or far below the screen before it's known. */
@@ -93,16 +79,17 @@ private data class GlassElement(val shape: Shape, val backdrop: AMBackdropSource
 }
 
 /**
- * A frosted sheet's surface: the art of the [AMBackdrop] the sheet was presented from, under the
- * sheet, blurred by [AMTheme.Frosted.blurRadius], then the frosted fill, the sheet, and the
- * frosted edge; the `Medium` shadow falls outside the shape only, since under glass it would show
+ * The sheet's frosted background: the art of the [AMBackdrop] the sheet was presented from, under
+ * the sheet, blurred by [AMTheme.Frosted.blurRadius], then the frosted fill, the sheet, and the
+ * frosted edge; the `Medium` shadow falls outside the shape only, since under frost it would show
  * through.
  *
  * The sheet is a window of its own, so it finds its slice of the art by screen position rather
  * than through the layout tree, and samples it again whenever the sheet moves and whenever the
  * art records itself anew (a band's new picture, a scroll under the sheet), which its own window
- * wouldn't otherwise redraw for. With no backdrop, or before the art and the sheet are placed, it
- * draws the solid sheet instead, never unblurred translucency.
+ * wouldn't otherwise redraw for. With no backdrop, or before the art and the sheet are placed, the
+ * page color takes the art's place under the fill: frost over the page, opaque, never unblurred
+ * translucency.
  */
 private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
     Modifier.Node(),
@@ -160,19 +147,18 @@ private class GlassNode(var shape: Shape, backdrop: AMBackdropSource?) :
         val level = AMElevation.Medium.shadowLevel
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@draw)) }
 
+        // Under frost the shadow would show through, so it falls outside the shape only.
+        clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, level, dark) }
         val glass = layer
         if (glass != null && sampleArt(glass)) {
-            clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, level, dark) }
             clipPath(path) { drawLayer(glass) }
-            drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
-            drawContent()
-            drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width)
         } else {
-            shadows.draw(this, context, shape, level, dark)
-            drawPath(path, if (dark) Style.Surface.Dark else Style.Surface.Light)
-            drawContent()
-            drawInsetOutline(shape, if (dark) Style.SelectionRing.Dark else Style.SelectionRing.Light, Style.Hairline.Width)
+            // Nothing to sample: frost over the page color, opaque.
+            drawPath(path, if (dark) Style.Page.Dark else Style.Page.Light)
         }
+        drawPath(path, if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
+        drawContent()
+        drawInsetOutline(shape, if (dark) Style.Frosted.EdgeDark else Style.Frosted.EdgeLight, Style.Hairline.Width)
     }
 
     /**
