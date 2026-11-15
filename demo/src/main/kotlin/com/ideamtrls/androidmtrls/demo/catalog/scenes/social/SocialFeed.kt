@@ -32,6 +32,7 @@ import com.ideamtrls.androidmtrls.AMPullToRefreshBox
 import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amFloatingActions
 import com.ideamtrls.androidmtrls.amHoldable
 
@@ -110,29 +111,31 @@ private fun SocialPostCard(post: SocialPost, model: SocialModel, postActions: So
             .clickable(onClickLabel = "Open post") { model.openPost(post.id) }
             .amHoldable(onHold = { model.showPostMenu(post.id) }, actions = menuActions),
     ) {
-        Row(
-            Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            SocialAvatarButton(author, onClick = { model.openProfile(author.id) })
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-                SocialIdentityHeader(author, post.timestamp)
-                SocialPostBody(post)
+        ProvideAMOnSurface {
+            Row(
+                Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
+                SocialAvatarButton(author, onClick = { model.openProfile(author.id) })
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                    SocialIdentityHeader(author, post.timestamp)
+                    SocialPostBody(post)
+                }
             }
+            // The counts line up under the text: the first glyph sits a text button's padding in.
+            SocialPostCounts(
+                post,
+                model,
+                onReply = { model.openPost(post.id) },
+                modifier = Modifier.padding(
+                    start = spacing.lg + AMAvatarSize.Medium.diameter + spacing.sm - spacing.md,
+                    top = spacing.xs,
+                    end = spacing.xs,
+                    bottom = spacing.xs,
+                ),
+                more = { AMCardButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = { model.showPostMenu(post.id) }) },
+            )
         }
-        // The counts line up under the text: the first glyph sits a text button's padding in.
-        SocialPostCounts(
-            post,
-            model,
-            onReply = { model.openPost(post.id) },
-            modifier = Modifier.padding(
-                start = spacing.lg + AMAvatarSize.Medium.diameter + spacing.sm - spacing.md,
-                top = spacing.xs,
-                end = spacing.xs,
-                bottom = spacing.xs,
-            ),
-            more = { AMCardButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = { model.showPostMenu(post.id) }) },
-        )
     }
 }
 

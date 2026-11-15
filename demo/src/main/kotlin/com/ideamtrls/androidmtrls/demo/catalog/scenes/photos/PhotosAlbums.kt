@@ -91,7 +91,7 @@ internal fun PhotosAlbums(model: PhotosModel) {
                         photosAlbumCountLabel(albums.size),
                         Modifier.padding(horizontal = spacing.lg),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AMTheme.secondaryText,
                     )
                     // The cards carry the page gutter as their own margins, so the list runs edge
                     // to edge; in the scrolling page it's as tall as its cards and scrolls with

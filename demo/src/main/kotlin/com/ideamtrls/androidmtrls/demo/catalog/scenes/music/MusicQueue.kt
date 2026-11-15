@@ -16,6 +16,7 @@ import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -54,25 +55,27 @@ private fun ColumnScope.MusicQueueCard(model: MusicModel) {
             .fillMaxWidth()
             .amCard(),
     ) {
-        model.currentTrack?.let { MusicNowPlayingRow(it, model) }
-        if (upNext.isNotEmpty()) {
-            AMReorderableRowList(
-                upNext,
-                key = { it.id },
-                onMove = model::moveUpNext,
-                modifier = Modifier.weight(1f, fill = false),
-                endAction = { entry ->
-                    AMSwipeAction("Remove", removeIcon, AMSemantic.Destructive, removesRow = true) {
-                        model.removeFromQueue(entry.id)
-                    }
-                },
-            ) { entry ->
-                val track = entry.track
-                AMListRow(
-                    track.title,
-                    subtitle = model.catalog.album(track.albumId)?.title,
-                    leadingContent = { MusicThumb(track.coverUrl, model.cover(track.albumId)) },
-                )
+        ProvideAMOnSurface {
+            model.currentTrack?.let { MusicNowPlayingRow(it, model) }
+            if (upNext.isNotEmpty()) {
+                AMReorderableRowList(
+                    upNext,
+                    key = { it.id },
+                    onMove = model::moveUpNext,
+                    modifier = Modifier.weight(1f, fill = false),
+                    endAction = { entry ->
+                        AMSwipeAction("Remove", removeIcon, AMSemantic.Destructive, removesRow = true) {
+                            model.removeFromQueue(entry.id)
+                        }
+                    },
+                ) { entry ->
+                    val track = entry.track
+                    AMListRow(
+                        track.title,
+                        subtitle = model.catalog.album(track.albumId)?.title,
+                        leadingContent = { MusicThumb(track.coverUrl, model.cover(track.albumId)) },
+                    )
+                }
             }
         }
     }

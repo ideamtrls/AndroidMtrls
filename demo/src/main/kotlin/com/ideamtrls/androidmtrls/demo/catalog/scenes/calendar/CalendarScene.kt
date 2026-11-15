@@ -20,6 +20,8 @@ import com.ideamtrls.androidmtrls.AMAlertItem
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
+import com.ideamtrls.androidmtrls.AMSurfaceFill
+import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 import com.ideamtrls.androidmtrls.amInstantSwitch
 import com.ideamtrls.androidmtrls.amArtBackdrop
@@ -50,35 +52,38 @@ internal fun CalendarScene() {
     val navigator = LocalCatalogNavigator.current
     var showsRemote by rememberSaveable { mutableStateOf(false) }
 
-    AMBackdrop(
-        art = {
-            val month = if (model.currentView == CalendarView.Month) model.displayedMonth else YearMonth.now()
-            Box(Modifier.fillMaxSize().amArtBackdrop(calendarMonthArt(month)))
-        },
-        Modifier.fillMaxSize(),
-    ) {
-        AMScene(
-            current = model.currentView,
-            landing = CalendarView.Month,
-            onCurrentChange = { model.currentView = it },
-            containerColor = Color.Transparent,
-            floatingActions = {
-                AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
-                    CalendarRemote(
-                        model,
-                        onClose = { showsRemote = false },
-                        onExit = {
-                            showsRemote = false
-                            navigator.back()
-                        },
-                    )
-                }
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMBackdrop(
+            art = {
+                val month = if (model.currentView == CalendarView.Month) model.displayedMonth else YearMonth.now()
+                Box(Modifier.fillMaxSize().amArtBackdrop(calendarMonthArt(month)))
             },
-            overlays = { CalendarOverlays(model) },
-        ) { root ->
-            when (root) {
-                CalendarView.Month -> CalendarMonthView(model)
-                CalendarView.Months -> CalendarMonthsView(model)
+            Modifier.fillMaxSize(),
+        ) {
+            AMScene(
+                current = model.currentView,
+                landing = CalendarView.Month,
+                onCurrentChange = { model.currentView = it },
+                containerColor = Color.Transparent,
+                floatingActions = {
+                    AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
+                        CalendarRemote(
+                            model,
+                            onClose = { showsRemote = false },
+                            onExit = {
+                                showsRemote = false
+                                navigator.back()
+                            },
+                        )
+                    }
+                },
+                overlays = { CalendarOverlays(model) },
+            ) { root ->
+                when (root) {
+                    CalendarView.Month -> CalendarMonthView(model)
+                    CalendarView.Months -> CalendarMonthsView(model)
+                }
             }
         }
     }

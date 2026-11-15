@@ -27,6 +27,8 @@ import com.ideamtrls.androidmtrls.AMBanner
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSheet
+import com.ideamtrls.androidmtrls.AMSurfaceFill
+import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 import kotlinx.coroutines.launch
 
@@ -67,32 +69,35 @@ internal fun SocialScene() {
     LaunchedEffect(model) { model.load() }
     DisposableEffect(model) { onDispose { model.cancelPendingWork() } }
 
-    SocialBackdrop {
-        AMScene(
-            current = model.currentView,
-            landing = SocialView.Feed,
-            onCurrentChange = { view ->
-                model.cancelPendingWork()
-                model.currentView = view
-            },
-            floatingActions = {
-                AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
-                    SocialRemote(
-                        model,
-                        onClose = { showsRemote = false },
-                        onExit = {
-                            showsRemote = false
-                            model.cancelPendingWork()
-                            navigator.back()
-                        },
-                    )
-                }
-            },
-            backStack = { view -> model.stack(view) },
-            containerColor = Color.Transparent,
-        ) { view ->
-            SocialRootStack(model, view, postActions)
-            SocialOverlays(model, postActions)
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        SocialBackdrop {
+            AMScene(
+                current = model.currentView,
+                landing = SocialView.Feed,
+                onCurrentChange = { view ->
+                    model.cancelPendingWork()
+                    model.currentView = view
+                },
+                floatingActions = {
+                    AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }, contentDescription = "Actions") {
+                        SocialRemote(
+                            model,
+                            onClose = { showsRemote = false },
+                            onExit = {
+                                showsRemote = false
+                                model.cancelPendingWork()
+                                navigator.back()
+                            },
+                        )
+                    }
+                },
+                backStack = { view -> model.stack(view) },
+                containerColor = Color.Transparent,
+            ) { view ->
+                SocialRootStack(model, view, postActions)
+                SocialOverlays(model, postActions)
+            }
         }
     }
 }

@@ -114,7 +114,7 @@ internal fun SocialIdentityHeader(
 @Composable
 private fun SocialIdentityLine(author: SocialUser, timestamp: String) {
     val spacing = AMTheme.tokens.spacing
-    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val secondary = AMTheme.secondaryText
     Row(Modifier.fillMaxWidth()) {
         Text(author.name, Modifier.alignByBaseline(), style = MaterialTheme.typography.titleMedium, maxLines = 1)
         Spacer(Modifier.width(spacing.xs))
@@ -141,7 +141,7 @@ private fun SocialIdentityStack(author: SocialUser, timestamp: String, modifier:
         )
         Text(
             "${author.handle} · $timestamp",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AMTheme.secondaryText,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -201,7 +201,7 @@ internal fun SocialPostRow(
     onClick: () -> Unit,
     showsAuthor: Boolean = true,
 ) {
-    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val secondary = AMTheme.secondaryText
     if (showsAuthor) {
         val author = model.user(post.authorId)
         AMListRow(

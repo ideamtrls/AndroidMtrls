@@ -23,6 +23,7 @@ import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMTextEditor
 import com.ideamtrls.androidmtrls.AMTextFieldAutofocus
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /** How long a post or a reply may be. */
@@ -52,7 +53,7 @@ internal fun ColumnScope.SocialComposeSheet(model: SocialModel) {
         model.replyTarget?.let { target ->
             Text(
                 "Replying to ${model.user(target.authorId).handle}",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = AMTheme.secondaryText,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -60,27 +61,29 @@ internal fun ColumnScope.SocialComposeSheet(model: SocialModel) {
             Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            val self = model.selfUser
-            AMAvatar(
-                self.avatarUrl,
-                self.name,
-                Modifier.padding(top = spacing.sm).clearAndSetSemantics {},
-                size = AMAvatarSize.Small,
-            )
-            AMTextEditor(
-                draft,
-                label = if (isReply) "Write a reply" else "Write a post",
-                modifier = Modifier.weight(1f),
-                minLines = 5,
-                maxLines = 12,
-                autofocus = AMTextFieldAutofocus.CaretAtEnd,
-            )
+            ProvideAMOnSurface {
+                val self = model.selfUser
+                AMAvatar(
+                    self.avatarUrl,
+                    self.name,
+                    Modifier.padding(top = spacing.sm).clearAndSetSemantics {},
+                    size = AMAvatarSize.Small,
+                )
+                AMTextEditor(
+                    draft,
+                    label = if (isReply) "Write a reply" else "Write a post",
+                    modifier = Modifier.weight(1f),
+                    minLines = 5,
+                    maxLines = 12,
+                    autofocus = AMTextFieldAutofocus.CaretAtEnd,
+                )
+            }
         }
         Spacer(Modifier.weight(1f))
         Text(
             "$count/$SocialPostLimit",
             Modifier.fillMaxWidth(),
-            color = if (count > SocialPostLimit) AMSemantic.Destructive.color else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (count > SocialPostLimit) AMSemantic.Destructive.color else AMTheme.secondaryText,
             style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
             textAlign = TextAlign.End,
         )

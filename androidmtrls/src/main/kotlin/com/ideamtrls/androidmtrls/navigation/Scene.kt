@@ -143,6 +143,9 @@ public fun AMScene(
  *   panel on top, and follows it as roots switch, panels come and go and the art changes. While
  *   the root draws none, it samples whatever backdrop is around the scene, or with none it's frost
  *   over the page color.
+ * - **The remote's button lies on art too.** In a scene inside an [AMBackdrop] it frosts that
+ *   backdrop's art. A scene with none, whose art is each page's own, lays it on the showing root's
+ *   art, as it does [overlays], so the frosted + blurs the page under it.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -155,7 +158,8 @@ public fun AMScene(
  * @param landing the root the scene opens on, which back returns to before leaving the app.
  * @param onCurrentChange called with [landing] when back swaps to it. Apply it to [current].
  * @param modifier the scene's size and placement: usually the whole window.
- * @param floatingActions the remote's button and menu, an [AMFloatingActions]. Null shows none.
+ * @param floatingActions the remote's button and menu, an [AMFloatingActions], on the scene's
+ *   backdrop or, with none, on the showing root's art. Null shows none.
  * @param overlays what the whole scene presents over its roots, whichever is showing: its sheets,
  *   alerts, spotlight, loading overlay and toasts. Composed after the roots and before the remote,
  *   on the showing root's art. Null composes nothing.
@@ -179,7 +183,8 @@ public fun <T : Any> AMScene(
     content: @Composable (root: T) -> Unit,
 ) {
     val backdrops = remember { AMSceneBackdrops() }
-    AMScene(modifier, floatingActions, containerColor) {
+    val actions = floatingActions?.let { slot -> @Composable { SceneFloatingActions(backdrops, slot) } }
+    AMScene(modifier, actions, containerColor) {
         CompositionLocalProvider(LocalAMSceneBackdrops provides backdrops) {
             AMKeepsPlace(current, landing, onCurrentChange, Modifier.fillMaxSize(), backStack, content)
         }
@@ -197,5 +202,19 @@ private fun SceneOverlays(backdrops: AMSceneBackdrops, overlays: @Composable () 
     CompositionLocalProvider(
         LocalAMBackdrop provides (backdrops.showing ?: LocalAMBackdrop.current),
         content = overlays,
+    )
+}
+
+/**
+ * The scene's remote, on the backdrop around the scene, or, in a scene with none, on the art the
+ * showing root draws: its frosted button samples it in the scene's own window, by layout position.
+ * The scene's backdrop comes first because it lies still under the button while Navigation 3 fades
+ * and scales a root's pages.
+ */
+@Composable
+private fun SceneFloatingActions(backdrops: AMSceneBackdrops, floatingActions: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalAMBackdrop provides (LocalAMBackdrop.current ?: backdrops.showing),
+        content = floatingActions,
     )
 }

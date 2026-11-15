@@ -15,6 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMScene
 import com.ideamtrls.androidmtrls.AMSpotlight
+import com.ideamtrls.androidmtrls.AMSurfaceFill
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToast
 
@@ -55,32 +56,35 @@ internal fun MusicScene() {
     // Leaving the scene stops the music and lets go of the audio focus.
     DisposableEffect(model) { onDispose { model.stop() } }
 
-    AMScene(
-        current = model.rootView,
-        landing = MusicRootView.Artists,
-        onCurrentChange = { model.rootView = it },
-        floatingActions = {
-            AMFloatingActions(
-                model.showingMenu,
-                onExpandedChange = { model.showingMenu = it },
-                contentDescription = "Actions",
-            ) {
-                MusicMenu(
-                    model,
-                    onExit = {
-                        model.showingMenu = false
-                        model.stop()
-                        navigator.back()
-                    },
-                )
+    // The scene is a frosted app, from its root.
+    AMTheme(surfaceFill = AMSurfaceFill.Frosted) {
+        AMScene(
+            current = model.rootView,
+            landing = MusicRootView.Artists,
+            onCurrentChange = { model.rootView = it },
+            floatingActions = {
+                AMFloatingActions(
+                    model.showingMenu,
+                    onExpandedChange = { model.showingMenu = it },
+                    contentDescription = "Actions",
+                ) {
+                    MusicMenu(
+                        model,
+                        onExit = {
+                            model.showingMenu = false
+                            model.stop()
+                            navigator.back()
+                        },
+                    )
+                }
+            },
+            overlays = { MusicOverlays(model) },
+            backStack = { root -> if (root == MusicRootView.Artists) model.backStack else emptyList<MusicRoute>() },
+        ) { root ->
+            when (root) {
+                MusicRootView.Artists -> MusicArtistsStack(model)
+                MusicRootView.Player -> MusicPlayerView(model)
             }
-        },
-        overlays = { MusicOverlays(model) },
-        backStack = { root -> if (root == MusicRootView.Artists) model.backStack else emptyList<MusicRoute>() },
-    ) { root ->
-        when (root) {
-            MusicRootView.Artists -> MusicArtistsStack(model)
-            MusicRootView.Player -> MusicPlayerView(model)
         }
     }
 }

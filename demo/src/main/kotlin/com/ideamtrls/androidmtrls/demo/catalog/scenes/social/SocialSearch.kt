@@ -16,6 +16,7 @@ import com.ideamtrls.androidmtrls.AMEmptyState
 import com.ideamtrls.androidmtrls.AMSearchField
 import com.ideamtrls.androidmtrls.AMTextFieldAutofocus
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -82,8 +83,10 @@ private fun ColumnScope.SocialSearchResults(model: SocialModel) {
                 .padding(start = spacing.lg, end = spacing.lg, bottom = spacing.lg),
         ) {
             Column(Modifier.fillMaxWidth().amCard()) {
-                results.forEach { post ->
-                    SocialPostRow(post, model, onClick = { model.openSearchResult(post.id) })
+                ProvideAMOnSurface {
+                    results.forEach { post ->
+                        SocialPostRow(post, model, onClick = { model.openSearchResult(post.id) })
+                    }
                 }
             }
         }

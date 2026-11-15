@@ -29,6 +29,7 @@ import com.ideamtrls.androidmtrls.AMSheet
 import com.ideamtrls.androidmtrls.AMSheetHeight
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
@@ -76,21 +77,23 @@ private fun PhotosAlbumSheet(model: PhotosModel) {
             .padding(start = spacing.lg, end = spacing.lg, bottom = spacing.lg),
     ) {
         Column(Modifier.fillMaxWidth().amCard()) {
-            model.albums.forEach { album ->
-                // An empty target list never marks an album full.
-                val holdsAll = targets.isNotEmpty() && album.photoIds.containsAll(targets)
-                AMListRow(
-                    album.name,
-                    modifier = Modifier.semantics { selected = holdsAll },
-                    subtitle = photosCountLabel(album.photoIds.size),
-                    leadingContent = { PhotosAlbumCover(model.cover(album), 44.dp, MaterialTheme.shapes.small) },
-                    trailingContent = if (holdsAll) {
-                        { Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
-                    } else {
-                        null
-                    },
-                    onClick = { model.add(toAlbum = album.id) },
-                )
+            ProvideAMOnSurface {
+                model.albums.forEach { album ->
+                    // An empty target list never marks an album full.
+                    val holdsAll = targets.isNotEmpty() && album.photoIds.containsAll(targets)
+                    AMListRow(
+                        album.name,
+                        modifier = Modifier.semantics { selected = holdsAll },
+                        subtitle = photosCountLabel(album.photoIds.size),
+                        leadingContent = { PhotosAlbumCover(model.cover(album), 44.dp, MaterialTheme.shapes.small) },
+                        trailingContent = if (holdsAll) {
+                            { Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                        } else {
+                            null
+                        },
+                        onClick = { model.add(toAlbum = album.id) },
+                    )
+                }
             }
         }
     }

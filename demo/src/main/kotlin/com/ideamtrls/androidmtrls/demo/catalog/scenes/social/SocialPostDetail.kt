@@ -27,6 +27,7 @@ import com.ideamtrls.androidmtrls.AMSectionHeader
 import com.ideamtrls.androidmtrls.AMSectionStyle
 import com.ideamtrls.androidmtrls.AMTag
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
@@ -63,23 +64,25 @@ private fun SocialPostDetailCard(post: SocialPost, model: SocialModel) {
     val spacing = AMTheme.tokens.spacing
     val author = model.user(post.authorId)
     Column(Modifier.fillMaxWidth().socialCard()) {
-        Column(
-            Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.md),
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                SocialAvatarButton(author, onClick = { model.openProfile(author.id) })
-                SocialIdentityHeader(author, post.timestamp, Modifier.weight(1f), stacked = true)
+        ProvideAMOnSurface {
+            Column(
+                Modifier.padding(start = spacing.lg, top = spacing.lg, end = spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(spacing.md),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                    SocialAvatarButton(author, onClick = { model.openProfile(author.id) })
+                    SocialIdentityHeader(author, post.timestamp, Modifier.weight(1f), stacked = true)
+                }
+                SocialPostBody(post)
+                post.topic?.let { AMTag(it.title) }
             }
-            SocialPostBody(post)
-            post.topic?.let { AMTag(it.title) }
+            SocialPostCounts(
+                post,
+                model,
+                onReply = { model.beginReply(post.id) },
+                modifier = Modifier.padding(start = spacing.xs, top = spacing.xs, end = spacing.xs, bottom = spacing.xs),
+            )
         }
-        SocialPostCounts(
-            post,
-            model,
-            onReply = { model.beginReply(post.id) },
-            modifier = Modifier.padding(start = spacing.xs, top = spacing.xs, end = spacing.xs, bottom = spacing.xs),
-        )
     }
 }
 
@@ -115,7 +118,7 @@ private fun SocialReplies(post: SocialPost, model: SocialModel) {
                     Text(
                         reply.timestamp,
                         Modifier.alignByBaseline(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AMTheme.secondaryText,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                     )

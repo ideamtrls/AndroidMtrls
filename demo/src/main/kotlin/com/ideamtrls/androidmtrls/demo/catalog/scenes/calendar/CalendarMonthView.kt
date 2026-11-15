@@ -219,7 +219,7 @@ private fun CalendarMoreLabel(count: Int) {
     Text(
         "+$count more",
         Modifier.amTimelineFirstLine().clearAndSetSemantics { contentDescription = "$count more" },
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = AMTheme.secondaryText,
         style = CalendarAgendaCaption,
     )
 }

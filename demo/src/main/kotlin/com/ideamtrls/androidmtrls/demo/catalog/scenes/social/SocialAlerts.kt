@@ -40,6 +40,7 @@ import com.ideamtrls.androidmtrls.AMSemantic
 import com.ideamtrls.androidmtrls.AMSwipeAction
 import com.ideamtrls.androidmtrls.AMSwipeableRow
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amFloatingActions
 
 /**
@@ -105,8 +106,10 @@ private fun SocialAlertsBody(model: SocialModel, padding: PaddingValues) {
             }
         } else {
             Column(Modifier.fillMaxWidth().socialCard()) {
-                notifications.forEach { notification ->
-                    key(notification.id) { SocialAlertRow(notification, model) }
+                ProvideAMOnSurface {
+                    notifications.forEach { notification ->
+                        key(notification.id) { SocialAlertRow(notification, model) }
+                    }
                 }
             }
         }
