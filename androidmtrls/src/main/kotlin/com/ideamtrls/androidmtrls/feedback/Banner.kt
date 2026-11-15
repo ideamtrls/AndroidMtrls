@@ -105,8 +105,8 @@ public class AMBannerItem(
 /**
  * Shows [item] as a banner at the top of the window while it's non-null: a floating surface in the
  * app's surface setting with the two-layer shadow (solid with a hairline in both modes, or frosted
- * with the frosted edge) just under the status bar, over a fade of the surface color that keeps
- * the status bar legible.
+ * with the frosted edge, over the art under it or frost over the page color with none) just under
+ * the status bar, over a fade of the surface color that keeps the status bar legible.
  *
  * It draws nothing where it's called: the nearest [AMBannerHost], at the root of the window, shows
  * it, so a banner posted from deep inside a screen still spans the screen. While a sheet is up, it

@@ -76,7 +76,7 @@ Motion comes only from library components, Navigation 3's pushes, `amInstantSwit
 ## Banners and toasts
 
 - They go through `AMScene`'s own hosts: a scene calls `AMBanner` and `AMToast` from inside its `AMScene`, so banners come down at the top of the screen and toasts rise above the floating action button. A toast posted inside a sheet shows in the sheet.
-- Toasts are Material's snackbar: text only, no glyph.
+- Toasts are Material's snackbar, its container in the scene's surface setting: text only, no glyph.
 
 ## State and cancellation
 

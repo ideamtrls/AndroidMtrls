@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 /**
  * How an [AMProgressView] shows its progress. Sealed, so only these three exist:
  *
- * - [Spinner]: Material's circular indicator over a caption, centered, framed in a card by
- *   default.
+ * - [Spinner]: Material's circular indicator over a caption, centered, framed in a card in the
+ *   app's surface setting by default.
  * - [Glyph]: Material's circular indicator at a glyph's size, with no caption, in a row's
  *   trailing place.
  * - [Bar]: Material's linear indicator under a title and a trailing value, on the row recipe.
@@ -40,7 +40,10 @@ public sealed interface AMProgressViewStyle {
      * in the surface's secondary text color, [AMTheme.secondaryText]), `spacing.md` apart: for work that holds up a view or a block.
      *
      * @property card whether the spinner floats in its own full-width card (`spacing.xl` at the
-     *   sides, `spacing.lg` above and below), the way a view that's loading shows it on the page.
+     *   sides, `spacing.lg` above and below), the way a view that's loading shows it on the page,
+     *   in the app's surface setting ([Modifier.amCard][amCard]): solid in a solid app; in a
+     *   frosted app frosted on the backdrop, frost over the page color with no art under it, and
+     *   the tint on a sheet.
      *   Pass false to place the spinner inline, with no card, inside a card or on a strip of your
      *   own. A carded spinner inside a card lies flat by itself, as every nested card does.
      */

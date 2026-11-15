@@ -126,7 +126,7 @@ internal fun AMOverlayWindow(
  *
  * @param windowBlur the blurred window's blur-behind: true while the system allows cross-window
  *   blur, false while it doesn't, null for a window with no blur-behind (a sheet, a banner's
- *   window, the loading overlay's dialog).
+ *   window, an alert, the loading overlay's dialog).
  */
 @Composable
 internal fun ProvideOverlayWindowLocals(windowBlur: Boolean? = null, content: @Composable () -> Unit) {

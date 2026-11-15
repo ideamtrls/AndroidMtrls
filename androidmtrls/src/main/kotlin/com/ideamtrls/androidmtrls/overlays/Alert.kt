@@ -1,12 +1,15 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.takeOrElse
 
 /**
  * One button of an [AMAlertItem]: its label, whether it removes something, and what it does.
@@ -74,9 +77,13 @@ public class AMAlertItem(
  * AMAlert(alert, onDismissRequest = { alert = null })
  * ```
  *
- * It keeps Android's look, motion and dim: Material's dialog, its title and message, and text
- * buttons with the cancel before the confirm; a destructive action's label takes
- * [AMSemantic.Destructive].
+ * It keeps Android's shape, motion and dim: Material's dialog, its title and message in their own
+ * colors, and text buttons with the cancel before the confirm; a destructive action's label takes
+ * [AMSemantic.Destructive]. Its container follows the app's surface setting
+ * ([AMTheme.surfaceFill]): Material's own in a solid app; in a frosted one frost over the page
+ * color, opaque, since the dialog is a window of its own with no art to sample, wherever it's
+ * opened from, outlined by the frosted edge ([AMTheme.Frosted.edge]) as other frosted surfaces
+ * are, so its shape holds against the dimmed screen in dark mode.
  *
  * - **A button** runs its action, then calls [onDismissRequest].
  * - **Back and a tap outside** dismiss it: they run the cancel action when there is one, then call
@@ -97,17 +104,26 @@ public class AMAlertItem(
 public fun AMAlert(item: AMAlertItem?, onDismissRequest: () -> Unit, modifier: Modifier = Modifier) {
     ReportOverlayUp(item != null)
     if (item == null) return
-    AlertDialog(
-        onDismissRequest = {
-            item.cancel?.onClick?.invoke()
-            onDismissRequest()
-        },
-        confirmButton = { AlertButton(item.confirm, onDismissRequest) },
-        modifier = modifier,
-        dismissButton = item.cancel?.let { cancel -> { AlertButton(cancel, onDismissRequest) } },
-        title = { Text(item.title) },
-        text = item.message?.let { message -> { Text(message) } },
-    )
+    // The dialog is a window of its own: it starts from a window's fresh context wherever it's
+    // opened from (a sheet, the remote, the spotlight), lying on the page with no art to sample.
+    ProvideOverlayWindowLocals {
+        val container = frostedContainerColor()
+        val shape = AlertDialogDefaults.shape
+        AlertDialog(
+            onDismissRequest = {
+                item.cancel?.onClick?.invoke()
+                onDismissRequest()
+            },
+            confirmButton = { AlertButton(item.confirm, onDismissRequest) },
+            // Frosted, it's outlined by the frosted edge; solid, it's Material's dialog as it is.
+            modifier = if (container.isSpecified) modifier.amHairline(shape, AMTheme.Frosted.edge) else modifier,
+            dismissButton = item.cancel?.let { cancel -> { AlertButton(cancel, onDismissRequest) } },
+            title = { Text(item.title) },
+            text = item.message?.let { message -> { Text(message) } },
+            shape = shape,
+            containerColor = container.takeOrElse { AlertDialogDefaults.containerColor },
+        )
+    }
 }
 
 /** One of the alert's text buttons: runs [action], then asks the alert to close. */

@@ -170,3 +170,15 @@ internal fun fieldContainerColor(clear: Color): Color = when (fieldContainerKind
     FieldContainer.Solid -> AMTheme.Surface.primary
     FieldContainer.Clear -> clear
 }
+
+/**
+ * The container color of a Material surface that follows the app's setting by its container color
+ * alone (the toast's snackbar, the alert's dialog): in a frosted app frost over the page color
+ * ([frostOverPage]), opaque, wherever it shows; in a solid app [Color.Unspecified], so the caller
+ * keeps Material's own. It's never the tint: such a surface samples no art and floats over content
+ * (a toast over a sheet's rows), which the tint, having no blur, would let show through.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun frostedContainerColor(): Color =
+    if (AMTheme.surfaceFill == AMSurfaceFill.Solid) Color.Unspecified else frostOverPage(AMTheme.isDark)

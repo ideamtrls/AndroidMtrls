@@ -138,7 +138,7 @@ The remote for one specific thing. Holding an item blurs the screen and raises a
 - A sheet is Material's `ModalBottomSheet` wearing the style: a frosted background in either setting (what it holds follows the app's setting), Material's sheet shape with its rounded top corners, the frosted edge and the `medium` shadow, over a **transparent scrim**. The screen behind stays as it is.
 - It keeps Android's behavior: the drag handle, drag to dismiss, predictive back.
 - **The discard guard**: while a sheet holds edits, dismissing it (a drag, back, a tap outside) asks "Discard changes?" first.
-- **Alerts keep Android's look and dim**: an alert is Material's `AlertDialog`. Back and a tap outside dismiss it, running its cancel action if it has one; dismissing never runs a destructive action.
+- **Alerts keep Android's shape, motion and dim**: an alert is Material's `AlertDialog`, its container in the app's surface setting (frost over the page color, outlined by the frosted edge, in a frosted app). Back and a tap outside dismiss it, running its cancel action if it has one; dismissing never runs a destructive action.
 
 ## Folding
 

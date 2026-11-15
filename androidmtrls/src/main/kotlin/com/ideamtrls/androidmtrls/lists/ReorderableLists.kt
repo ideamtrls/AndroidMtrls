@@ -50,7 +50,10 @@ import androidx.compose.ui.draw.clip
  * - **Surface.** Rows lie flat on what holds the list: a card (`Modifier.amCard()`, frosted over
  *   art in a frosted app, its rows carrying `Modifier.amArtRow`); standing on its own, each row is
  *   a strip of the app's surface. A row's content lies flat on it either way, so an [AMListRow]
- *   draws no strip of its own and its text reads as on the card or strip.
+ *   draws no strip of its own and its text reads as on the card or strip. The lifted row is in the
+ *   app's surface setting and never the tint, so the rows it passes over never show through it:
+ *   solid in a solid app; in a frosted app frosted even inside a card or on a sheet, over the art
+ *   under it, the same frost the card shows there, or frost over the page color with no art.
  * - **Scrolling on its own.** Given a bounded height (a screen's, a weight, `heightIn(max = …)`),
  *   it's a `LazyColumn` on [state] that takes its rows' height up to that and scrolls inside it.
  * - **In a scrolling page.** Measured without a height limit (inside `Modifier.verticalScroll`, or
@@ -125,7 +128,7 @@ public fun <T> AMReorderableRowList(
                 startAction = start,
                 endAction = end,
                 enabled = isEnabled && !lifted,
-                modifier = if (lifted) Modifier.amElevatedSurface(liftShape, AMElevation.Medium).clip(liftShape) else Modifier,
+                modifier = if (lifted) Modifier.amElevatedSurface(liftShape, AMElevation.Medium, lifted = true).clip(liftShape) else Modifier,
             ) {
                 Row(Modifier.fillMaxWidth().amFlatSurface(), verticalAlignment = Alignment.CenterVertically) {
                     // The row's content lies flat on its strip, as on a card: an AMListRow in it

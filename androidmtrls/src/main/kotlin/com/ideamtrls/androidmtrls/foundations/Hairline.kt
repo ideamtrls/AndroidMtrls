@@ -129,7 +129,7 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  * the floating action button, the banner), drawn around the content in one place so the recipe
  * never drifts. Its look is the app's surface setting ([AMTheme.surfaceFill], read while it draws)
  * and where the surface stands ([surfaceLook]): solid in a solid app; in a frosted app frosted on
- * the backdrop and, embedded in another surface ([isEmbedded]), the tint.
+ * the backdrop and, embedded in another surface ([isEmbedded]), the tint, unless it's [lifted].
  *
  * - **Solid**: [elevation]'s shadow cast by [shape], the shape filled with
  *   [AMTheme.Surface.primary], the content, then a hairline: in dark mode only, where the shadow
@@ -142,7 +142,8 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  *   window's own blur-behind is the blur: the fill lies straight over it and samples nothing, and
  *   while the system has cross-window blur off the surface draws solid ([frostPath]).
  * - **Tinted**: the shadow outside the shape only, [AMTheme.Frosted.embeddedFill] in the shape
- *   with no blur of its own, the content, then the frosted edge.
+ *   with no blur of its own, the content, then the frosted edge. A [lifted] surface is never
+ *   tinted.
  *
  * It doesn't clip the content. Anything the content draws in its own background (a press wash)
  * sits above the fill.
@@ -152,13 +153,19 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  * @param alwaysOutlined whether the solid look's hairline shows in both modes, for a surface that
  *   always carries one (the floating action button, a tile, the banner). Frosted and tinted
  *   surfaces always draw the frosted edge.
+ * @param lifted whether the surface is lifted off what holds it and follows a drag over its
+ *   neighbors (a reorderable list's dragged row). It's never the tint, which would let the rows it
+ *   passes over show through: in a frosted app it's frosted as on the backdrop even inside a card
+ *   or on a sheet, over the art's slice under it or frost over the page color, opaque, as the
+ *   card it rose from is.
  */
 internal fun Modifier.amElevatedSurface(
     shape: Shape,
     elevation: AMElevation = AMElevation.Low,
     hairline: Color = Color.Unspecified,
     alwaysOutlined: Boolean = false,
-): Modifier = amElevatedSurface(shape, elevation.shadowLevel, hairline, alwaysOutlined)
+    lifted: Boolean = false,
+): Modifier = amElevatedSurface(shape, elevation.shadowLevel, hairline, alwaysOutlined, lifted)
 
 /**
  * [amElevatedSurface] casting a row of the shadow table that no [AMElevation] names: a shadow
@@ -169,21 +176,24 @@ internal fun Modifier.amElevatedSurface(
     shadow: ShadowLevel,
     hairline: Color = Color.Unspecified,
     alwaysOutlined: Boolean = false,
-): Modifier = this then ElevatedSurfaceElement(shape, shadow, hairline, alwaysOutlined)
+    lifted: Boolean = false,
+): Modifier = this then ElevatedSurfaceElement(shape, shadow, hairline, alwaysOutlined, lifted)
 
 private data class ElevatedSurfaceElement(
     val shape: Shape,
     val shadow: ShadowLevel,
     val hairline: Color,
     val alwaysOutlined: Boolean,
+    val lifted: Boolean,
 ) : ModifierNodeElement<ElevatedSurfaceNode>() {
-    override fun create() = ElevatedSurfaceNode(shape, shadow, hairline, alwaysOutlined)
+    override fun create() = ElevatedSurfaceNode(shape, shadow, hairline, alwaysOutlined, lifted)
 
     override fun update(node: ElevatedSurfaceNode) {
         node.shape = shape
         node.shadow = shadow
         node.hairline = hairline
         node.alwaysOutlined = alwaysOutlined
+        node.lifted = lifted
         node.invalidateDraw()
     }
 
@@ -193,6 +203,7 @@ private data class ElevatedSurfaceElement(
         properties["shadow"] = shadow
         properties["hairline"] = hairline
         properties["alwaysOutlined"] = alwaysOutlined
+        properties["lifted"] = lifted
     }
 }
 
@@ -201,6 +212,7 @@ private class ElevatedSurfaceNode(
     var shadow: ShadowLevel,
     var hairline: Color,
     var alwaysOutlined: Boolean,
+    var lifted: Boolean,
 ) : Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -214,11 +226,11 @@ private class ElevatedSurfaceNode(
 
     // A frosted surface that moves over its art (a scroll) samples a different slice, so it redraws.
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        if (surface.position(coordinates, backdropFor(lookOf(currentValueOf(LocalAMSurfaceFill))))) invalidateDraw()
+        if (surface.position(coordinates, backdropFor(look()))) invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
-        val look = lookOf(currentValueOf(LocalAMSurfaceFill))
+        val look = look()
         with(surface) {
             drawSurface(
                 context = requireGraphicsContext(),
@@ -233,6 +245,12 @@ private class ElevatedSurfaceNode(
                 alwaysOutlined = alwaysOutlined,
             )
         }
+    }
+
+    /** The look here ([lookOf]); lifted, as on the backdrop wherever it stands, so never the tint. */
+    private fun look(): SurfaceLook {
+        val fill = currentValueOf(LocalAMSurfaceFill)
+        return if (lifted) surfaceLook(fill, embedded = false) else lookOf(fill)
     }
 }
 
