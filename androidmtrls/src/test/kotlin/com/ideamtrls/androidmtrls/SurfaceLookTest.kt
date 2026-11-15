@@ -17,4 +17,14 @@ class SurfaceLookTest {
         assertEquals(SurfaceLook.Frosted, surfaceLook(AMSurfaceFill.Frosted, embedded = false))
         assertEquals(SurfaceLook.Tinted, surfaceLook(AMSurfaceFill.Frosted, embedded = true))
     }
+
+    @Test
+    fun fieldsTakeTheTintEmbeddedInAFrostedApp() {
+        assertEquals(FieldContainer.Tint, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Surface))
+        assertEquals(FieldContainer.Tint, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Sheet))
+        assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Page))
+        assertEquals(FieldContainer.Solid, fieldContainer(AMSurfaceFill.Solid, LiesOn.Sheet))
+        assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.Surface))
+        assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.Page))
+    }
 }

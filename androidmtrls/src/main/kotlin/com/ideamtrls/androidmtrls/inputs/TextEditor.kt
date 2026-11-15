@@ -6,9 +6,11 @@ import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardCapitalization
 
 /** A keyboard that starts each sentence with a capital: what the editor writes with. */
@@ -66,5 +68,11 @@ public fun AMTextEditor(
         inputTransformation = inputTransformation,
         keyboardOptions = SentenceKeyboard,
         lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = minLines, maxHeightInLines = maxLines),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = fieldContainerColor(Color.Transparent),
+            unfocusedContainerColor = fieldContainerColor(Color.Transparent),
+            disabledContainerColor = fieldContainerColor(Color.Transparent),
+            errorContainerColor = fieldContainerColor(Color.Transparent),
+        ),
     )
 }

@@ -1,10 +1,8 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -36,9 +34,7 @@ internal fun ColumnScope.ShopSearchSheet(model: ShopModel) {
             .padding(start = spacing.lg, end = spacing.lg, bottom = spacing.lg),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        Box(Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
-            AMSearchField(model.searchQuery, placeholder = "Search coffee and gear", autofocus = AMTextFieldAutofocus.CaretAtEnd)
-        }
+        AMSearchField(model.searchQuery, placeholder = "Search coffee and gear", autofocus = AMTextFieldAutofocus.CaretAtEnd)
         val results = model.searchResults
         if (results.isEmpty()) {
             AMEmptyState(

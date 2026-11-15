@@ -7,12 +7,14 @@ import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 /**
  * Whether a text input ([AMTextField], [AMSecureField], [AMSearchField], [AMTextEditor]) takes
@@ -113,5 +115,11 @@ public fun AMTextField(
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
         lineLimits = TextFieldLineLimits.SingleLine,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = fieldContainerColor(Color.Transparent),
+            unfocusedContainerColor = fieldContainerColor(Color.Transparent),
+            disabledContainerColor = fieldContainerColor(Color.Transparent),
+            errorContainerColor = fieldContainerColor(Color.Transparent),
+        ),
     )
 }

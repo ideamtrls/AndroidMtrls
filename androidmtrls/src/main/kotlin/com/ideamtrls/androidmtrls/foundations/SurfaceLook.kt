@@ -1,6 +1,9 @@
 package com.ideamtrls.androidmtrls
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DelegatableNode
 import androidx.compose.ui.node.currentValueOf
@@ -84,3 +87,43 @@ internal fun <T> T.lookOf(fill: AMSurfaceFill): SurfaceLook where T : Delegatabl
  */
 internal fun CompositionLocalConsumerModifierNode.backdropFor(look: SurfaceLook): AMBackdropSource? =
     if (look == SurfaceLook.Frosted) currentValueOf(LocalAMBackdrop) else null
+
+/** What a text field's container draws ([fieldContainer]). */
+internal enum class FieldContainer {
+    /** The field's own Material default: see-through on the page, or whatever the field uses. */
+    Clear,
+
+    /** The opaque surface color, so a field on a sheet's frost is never see-through. */
+    Solid,
+
+    /** The tint ([AMTheme.Frosted.embeddedFill]) over the surface the field sits on. */
+    Tint,
+}
+
+/**
+ * The container of a text field under the app's [setting] where it [liesOn]: the tint in a frosted
+ * app off the page; solid on a sheet in a solid app, since a sheet is frost in either setting;
+ * otherwise the field's own.
+ */
+internal fun fieldContainer(setting: AMSurfaceFill, liesOn: LiesOn): FieldContainer = when {
+    setting == AMSurfaceFill.Frosted && liesOn != LiesOn.Page -> FieldContainer.Tint
+    setting == AMSurfaceFill.Solid && liesOn == LiesOn.Sheet -> FieldContainer.Solid
+    else -> FieldContainer.Clear
+}
+
+/** The [fieldContainer] at this point of the composition. */
+@Composable
+@ReadOnlyComposable
+internal fun fieldContainerKind(): FieldContainer = fieldContainer(AMTheme.surfaceFill, LocalAMLiesOn.current)
+
+/**
+ * The container color of a text field here: [AMTheme.Frosted.embeddedFill] for a tint,
+ * [AMTheme.Surface.primary] for solid, and [clear] (the field's own Material default) otherwise.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun fieldContainerColor(clear: Color): Color = when (fieldContainerKind()) {
+    FieldContainer.Tint -> AMTheme.Frosted.embeddedFill
+    FieldContainer.Solid -> AMTheme.Surface.primary
+    FieldContainer.Clear -> clear
+}

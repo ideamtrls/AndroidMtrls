@@ -78,6 +78,9 @@ public fun AMSearchField(
         isBackEnabled = open && !keyboardUp,
         onBackCompleted = { scope.launch { barState.animateToCollapsed() } },
     )
+    // Material's own container for the field, which the tint or the solid surface replaces.
+    val material = SearchBarDefaults.inputFieldColors()
+    val tinted = fieldContainerKind() == FieldContainer.Tint
     SearchBarDefaults.InputField(
         textFieldState = state,
         searchBarState = barState,
@@ -90,8 +93,15 @@ public fun AMSearchField(
                     scope.launch { barState.snapTo(0f) }
                 }
             }
+            // The tint's light edge, since this field has no outline.
+            .then(if (tinted) Modifier.amHairline(SearchBarDefaults.inputFieldShape, AMTheme.Frosted.edge) else Modifier)
             .then(inputAutofocus(state, autofocus)),
         enabled = isEnabled,
+        colors = SearchBarDefaults.inputFieldColors(
+            focusedContainerColor = fieldContainerColor(material.focusedContainerColor),
+            unfocusedContainerColor = fieldContainerColor(material.unfocusedContainerColor),
+            disabledContainerColor = fieldContainerColor(material.disabledContainerColor),
+        ),
         placeholder = { Text(placeholder) },
         leadingIcon = { Icon(painterResource(R.drawable.am_ic_search), contentDescription = null) },
         trailingIcon = if (isEnabled && hasText) { { InputClearButton(state) } } else null,
