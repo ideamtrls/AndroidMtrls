@@ -104,6 +104,7 @@ adb exec-out screencap -p > .notes/shots/shot.png
 | `scrollTo` | `preview`, `loaded` | scrolls the opened page to that section |
 | `present` | `preview`, `loaded` | the `CatalogAutoPresent` demo in that section opens, once |
 | `appearance` | `light`, `dark`, `system` | pins the appearance for this launch |
+| `surfaces` | `frosted`, `solid` | pins the catalog's Surfaces setting for this launch |
 | `fontScale` | a float, such as `1.3` | pins the font scale for this launch |
 | `rtl` | `true`, `false` | pins the layout direction for this launch |
 | `artwork` | `night` | catalog photos switch to their second set |

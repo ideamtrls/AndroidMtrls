@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
  * - `appearance light|dark|system`, `fontScale <float>`, `rtl true|false`: pin that inspection
  *   setting for this launch. The stored setting is left alone, and the inspection menu can't
  *   change a pinned one until a launch without the extra.
+ * - `surfaces frosted|solid`: pins the catalog's Surfaces setting for this launch, like the others.
  * - `artwork night`: every catalog photo switches to its second set ([catalogPhoto]).
  * - `cover white|black`: every cover and photo in the Music scene becomes a solid white or black
  *   picture ([SolidArt]), the extremes the art's wash is tuned for.
@@ -44,6 +45,9 @@ internal object LaunchOptions {
         private set
 
     var appearance: InspectionAppearance? = null
+        private set
+
+    var surfaces: InspectionSurfaces? = null
         private set
 
     var fontScale: Float? = null
@@ -79,6 +83,9 @@ internal object LaunchOptions {
         present = extra("present")?.lowercase()
         appearance = extra("appearance")?.let { value ->
             InspectionAppearance.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+        }
+        surfaces = extra("surfaces")?.let { value ->
+            InspectionSurfaces.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
         }
         fontScale = extra("fontScale")?.toFloatOrNull()?.takeIf { it > 0f }
         rtl = extra("rtl")?.lowercase()?.toBooleanStrictOrNull()
