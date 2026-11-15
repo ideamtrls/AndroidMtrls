@@ -1,13 +1,13 @@
 ---
-scope: The demo catalog app — the activity and Navigation 3 root, the catalog list and its search, the CatalogCategory/ComponentEntry registry, the ComponentPage scaffold (preview, loaded — nothing else on a page), stage layouts, inspection controls, the library theme at the root, debug launch extras, sample photos, and the recipe for adding a component page.
-globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/MainActivity.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogRoot.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogList.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/Inspection.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogCategory.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentEntry.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentPage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/Stage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/LaunchOptions.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogPhoto.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ScreenHost.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/**, demo/src/main/res/drawable/**, demo/src/main/AndroidManifest.xml]
-keywords: [CatalogFrostedStage, frosted variant, cover extra, SolidArt, Demo, catalog, MainActivity, enableEdgeToEdge, SystemBarStyle, CatalogRoot, NavDisplay, Navigation 3, back stack, CatalogKey, CatalogKey.Panel, CatalogNavigator, openPanel, CatalogPanels, LocalCatalogNavigator, predictive back, listSaver, CatalogList, AMPageHeader, LargeTopAppBar, exitUntilCollapsedScrollBehavior, AMSectionHeader, search, SearchBarState, ExpandedFullScreenSearchBar, SearchBar, InputField, ListItem, subheader, CatalogCategory, componentEntries, ComponentEntry, CatalogRegistry, FoundationsPages, DataDisplayPages, CollectionsPages, ShowcasePages, entries, id convention, ComponentPage, NoPreview, Preview, Loaded, PageSection, Stage, StageLayout, Floating, FullBleed, Wide, Fill, PageGutter, bleed, LocalCatalogTarget, CatalogAutoPresent, CatalogScreenHost, AMBannerHost, AMToastHost, no launcher buttons, Inspection, Inspection.isDark, InspectionRoot, InspectionMenu, SceneAppearanceButton, InspectionAppearance, InspectionSurfaces, InspectionTextSize, InspectionLayoutDirection, LocalInspection, SharedPreferences, fontScale, LocalDensity, LocalLayoutDirection, AMTheme, darkTheme, AMTheme.isDark, AMTheme.Surface, LaunchOptions, entry, scrollTo, present, demoTime, LaunchOptions.clock, shopFillsCheckout, appearance, rtl, artwork, catalogPhoto, CatalogPhotos, commonsPhoto, CatalogArt, Wikimedia Commons, vivid, saturation, luminance, blue hour, ic_ glyphs, adding a component page]
-updated: 2026-11-14
+scope: The demo catalog app — the activity and its Navigation 3 back stack, the catalog list and its search, the CatalogCategory/ComponentEntry registry, the ComponentPage scaffold (title, summary, Preview, Loaded — nothing else on a page), stage layouts and the frosted stage, the page's banner and toast host, inspection controls, the library theme at the root, debug launch extras, sample photos and glyphs, and the recipe for adding a component page.
+globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/MainActivity.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogRoot.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/CatalogList.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/app/Inspection.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogCategory.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentEntry.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ComponentPage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/Stage.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/LaunchOptions.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/CatalogPhoto.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scaffold/ScreenHost.kt, demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/pages/**, demo/src/main/res/drawable/**]
+keywords: [Demo, catalog, MainActivity, enableEdgeToEdge, CatalogRoot, NavDisplay, Navigation 3, back stack, CatalogKey, CatalogKey.Panel, CatalogNavigator, openPanel, CatalogPanels, LocalCatalogNavigator, predictive back, listSaver, CatalogList, AMPageHeader, LargeTopAppBar, exitUntilCollapsedScrollBehavior, AMSectionHeader, search, SearchBarState, ExpandedFullScreenSearchBar, SearchBar, InputField, ListItem, subheader, CatalogCategory, componentEntries, ComponentEntry, ComponentEntry.matches, CatalogRegistry, FoundationsPages, DataDisplayPages, CollectionsPages, ShowcasePages, entries, id convention, ComponentPage, NoPreview, Preview, Loaded, PageSection, Stage, StageLayout, Floating, FullBleed, Wide, Fill, PageGutter, bleed, LocalCatalogTarget, CatalogFrostedStage, frosted variant, CatalogAutoPresent, claimPresentation, CatalogScreenHost, AMBannerHost, AMToastHost, no launcher buttons, Inspection, Inspection.isDark, InspectionRoot, InspectionMenu, SceneAppearanceButton, InspectionAppearance, InspectionSurfaces, InspectionTextSize, InspectionLayoutDirection, LocalInspection, SharedPreferences, fontScale, LocalDensity, LocalLayoutDirection, AMTheme, darkTheme, AMTheme.isDark, AMTheme.Surface, LaunchOptions, entry, scrollTo, present, surfaces, demoTime, LaunchOptions.clock, shopFillsCheckout, appearance, rtl, artwork, cover extra, SolidArt, catalogPhoto, CatalogPhotos, commonsPhoto, CatalogArt, Wikimedia Commons, vivid, saturation, luminance, blue hour, ic_ glyphs, Support.kt, adding a component page]
+updated: 2026-11-15
 ---
 
 # Demo
 
-`demo/` is the catalog app: a searchable list of every component grouped by category, a page per component (a simple live preview and one loaded composition, nothing else), and the six Showcase scenes. It dogfoods the library wherever a library piece fits: `AMTheme` at the root, `AMPageHeader` on the list and every page, `AMSectionHeader` over the list's categories. Each category's pages are listed in its own Digest file (`Foundations.md`, `Layout.md`, `Actions.md`, `Navigation.md`, `Feedback.md`, `Overlays.md`, …; the card stack and carousel pages in `Collections.md`); a category with no entries is hidden from the list. The scenes' shared rules are in `DemoScenes.md`, each scene's own in its `Scene<Name>.md`.
+`demo/` is the catalog app: a searchable list of every component grouped by category, a page per component (a simple live preview and one loaded composition, nothing else), and the six Showcase scenes. It dogfoods the library wherever a library piece fits: `AMTheme` at the root, `AMPageHeader` on the list and every page, `AMSectionHeader` over the list's categories. Each category's pages are described in its own Digest file (`Foundations.md`, `Layout.md`, `Actions.md`, `Navigation.md`, `Feedback.md`, `Overlays.md`, …; the card stack and carousel pages in `Collections.md`). The scenes' shared rules are in `DemoScenes.md`, each scene's own in its `Scene<Name>.md`.
 
 ## Where things live
 
@@ -16,12 +16,12 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 | Path | What lives there | Who edits it |
 |---|---|---|
 | `app/MainActivity.kt` | `MainActivity`: reads the launch extras, edge to edge, `InspectionRoot { CatalogRoot() }` | shared |
-| `app/CatalogRoot.kt` | `CatalogKey`, `CatalogNavigator`, `LocalCatalogNavigator`, `CatalogRoot` (the Navigation 3 back stack) | shared |
+| `app/CatalogRoot.kt` | `CatalogKey`, `CatalogNavigator`, `LocalCatalogNavigator`, `CatalogPanels`, `CatalogRoot` (the Navigation 3 back stack) | shared |
 | `app/CatalogList.kt` | `CatalogList` (the list screen and its search) and the private `CatalogSearchField`, `CatalogSections`, `CatalogSubheader`, `CatalogRow` | shared |
 | `app/Inspection.kt` | `InspectionAppearance`, `InspectionSurfaces`, `InspectionTextSize`, `InspectionLayoutDirection`, `Inspection` and its `isDark()`, `LocalInspection`, `InspectionRoot` (which installs `AMTheme`), `InspectionMenu`, `SceneAppearanceButton` | shared |
-| `catalog/scaffold/` | `CatalogCategory.kt`; `ComponentEntry.kt` (`ComponentEntry`, `CatalogRegistry`); `ComponentPage.kt` (`ComponentPage`); `Stage.kt` (`StageLayout`, `Stage`, `CatalogFrostedStage`, `PageSection`, `LocalCatalogTarget`); `LaunchOptions.kt` (`LaunchOptions`, `CatalogAutoPresent`); `CatalogPhoto.kt` (`catalogPhoto`, `commonsPhoto`, `CatalogArt`); `ScreenHost.kt` (`CatalogScreenHost`) | shared |
-| `catalog/pages/<category>/` | one `<Category>Pages.kt` (the category's `entries`) plus one `<Name>Page.kt` per component. Folders: `foundations`, `actions`, `inputs`, `selection`, `navigation`, `layout`, `lists`, `feedback`, `overlays`, `datadisplay`, `collections` (its `CollectionsPages` list at the end of Data display), `showcase` | that category only |
-| `catalog/scenes/<scene>/` | each Showcase scene's files (`DemoScenes.md`) | scene work only |
+| `catalog/scaffold/` | `CatalogCategory.kt`; `ComponentEntry.kt` (`ComponentEntry`, `CatalogRegistry`); `ComponentPage.kt` (`ComponentPage`); `Stage.kt` (`StageLayout`, `Stage`, `CatalogFrostedStage`, `PageSection`, `LocalCatalogTarget`); `LaunchOptions.kt` (`LaunchOptions`, `CatalogAutoPresent`); `CatalogPhoto.kt` (`catalogPhoto`, `commonsPhoto`, `CatalogArt`, `SolidArt`); `ScreenHost.kt` (`CatalogScreenHost`) | shared |
+| `catalog/pages/<category>/` | one `<Category>Pages.kt` (the category's `entries`), one `<Name>Page.kt` per component, and optionally a `<Category>Support.kt` (`ActionsSupport.kt`, `ListsSupport.kt`). Folders: `foundations`, `actions`, `inputs`, `selection`, `navigation`, `layout`, `lists`, `feedback`, `overlays`, `datadisplay`, `collections` (its `CollectionsPages` list at the end of Data display), `showcase` (`ShowcasePages.kt` alone) | that category only |
+| `catalog/scenes/<scene>/` | each Showcase scene's files, its `<Name>SceneEntry` included (`DemoScenes.md`) | scene work only |
 | `demo/src/main/res/drawable/` | the demo's own glyphs, `ic_<name>.xml` | shared |
 
 ## The activity — `MainActivity`
@@ -41,16 +41,16 @@ All Kotlin is in **one package, `com.ideamtrls.androidmtrls.demo`**; folders und
 ## The list — `CatalogList`
 
 - A `Scaffold` on the page color (`AMTheme.Surface.page`, content color `onSurface`) under **`AMPageHeader`** (Material's `LargeTopAppBar`) titled "AndroidMtrls", collapsing on scroll (`exitUntilCollapsedScrollBehavior`), transparent at rest and the page color once content scrolls under it. Actions: search, then `InspectionMenu`.
-- A `LazyColumn` with, for each category that has entries, a **subheader** (`AMSectionHeader`: `titleSmall` in `colorScheme.primary`, Android's list-subheader look, heading semantics; 16 dp at the sides, 16 above, 8 below) and then one **Material `ListItem`** per entry, the interactive `ListItem(onClick)` with its ripple: the entry's glyph, its full title, its summary on one line (ellipsized), on a transparent container so it lies on the page. Categories with no entries don't show. Rows come from `CatalogRegistry.all`, so the registry's debug checks run on launch.
+- A `LazyColumn` with, for each category that has entries, a **subheader** (`AMSectionHeader`, 16 dp at the sides, 16 above, 8 below) and then one **Material `ListItem`** per entry, the interactive `ListItem(onClick)` with its ripple: the entry's glyph, its full title, its summary on one line (ellipsized), on a transparent container so it lies on the page. Categories with no entries don't show. Rows come from `CatalogRegistry.all`, so the registry's category check runs on launch; its duplicate-id check runs on the first lookup by id (opening any page, or the `entry` extra).
 - **Search** is Material's: the search action expands a `SearchBarState` into an `ExpandedFullScreenSearchBar`. While search is showing, a collapsed Material `SearchBar` stands under the status bar, so the full-screen search opens out of it and closes back into it. The input field (`SearchBarDefaults.InputField` on a saved `TextFieldState`) has a back arrow that closes the search and a clear button while there's text; system back and predictive back close it too. Results use the same subheaders and rows, filtered by `ComponentEntry.matches` (title, summary, category title and keywords, ignoring case and accents); with no matches the search shows `AMEmptyState` at the top of the search window, 16 dp in from the sides: the search glyph, "No results", and "Nothing matches “query”. Try a component name or an API like AMButton.", so the keyboard never covers it. The search is a window over the catalog, so tapping a result snaps it closed, then opens the page; the query stays for the next search.
 
 ## Registry
 
-- **`CatalogCategory`** (`scaffold/CatalogCategory.kt`): `Foundations`, `Actions`, `Inputs`, `Selection`, `Navigation`, `Layout`, `Lists`, `Feedback`, `Overlays`, `DataDisplay`, `Showcase`. Declaration order is list order. Each has a `title` in sentence case ("Data display") and an `icon` (a demo glyph). `componentEntries` switches to the category's `<Category>Pages.entries`; Data display's ends with `CollectionsPages.entries` (Card stack, Carousel).
+- **`CatalogCategory`** (`scaffold/CatalogCategory.kt`): `Foundations`, `Actions`, `Inputs`, `Selection`, `Navigation`, `Layout`, `Lists`, `Feedback`, `Overlays`, `DataDisplay`, `Showcase`. Declaration order is list order. Each has a `title` in sentence case ("Data display") and an `icon` (a demo glyph). `componentEntries` switches to the category's `<Category>Pages.entries`; `DataDisplayPages.entries` ends with `CollectionsPages.entries` (Card stack, Carousel, both `CatalogCategory.DataDisplay`).
 - **`ComponentEntry`** (`scaffold/ComponentEntry.kt`): `id`, `category`, `title` (full component name in sentence case, no abbreviations; also the page's top bar title), `summary` (one line), `icon` (`@DrawableRes`), `keywords`, and `page`, the composable that builds the entry's page. Equality and hash are on `id`.
 - **Id convention**: the lowerCamelCase of the title: "Button styles" → `buttonStyles`, "Floating action button" → `floatingActionButton`. Showcase scenes take a `Scene` suffix so they never collide with a component: "Calendar" → `calendarScene`, "Photos" → `photosScene`.
 - **`CatalogRegistry`**: `all` (every category's entries, in category order) and `entry(id)`. Debug builds fail fast on an entry listed under the wrong category and on a duplicate id.
-- **`<Category>Pages`** (`pages/<category>/<Category>Pages.kt`): an `internal object` with `val entries: List<ComponentEntry>`, flagship component first.
+- **`<Category>Pages`** (`pages/<category>/<Category>Pages.kt`): an `internal object` with `val entries: List<ComponentEntry>`, flagship component first. `ShowcasePages.entries` lists the scenes' entries, each declared in its scene's folder.
 
 ## The page scaffold — `ComponentPage`
 
@@ -72,7 +72,7 @@ The page is a `Scaffold` on the page color (`AMTheme.Surface.page`) with a verti
 Building blocks (`scaffold/Stage.kt`):
 - **`PageSection(title, modifier) { }`**: content inset by `StageLayout.PageGutter` (16 dp), with no header. Its title only names it: it provides `LocalCatalogTarget` (the lowercased title, `preview` or `loaded`) to its content, and `ComponentPage` records where it sits for `scrollTo`.
 - **`Stage(layout) { }`**: the content placed directly on the page per its `StageLayout`, in a column (start-aligned for `Floating`, centered otherwise), with no frame around it. Surfaces (buttons, cards) sit bare, the way an app places them; flat widgets (rows, inputs, pickers) get their container (`Modifier.amCard()`, `AMSection`, a surface-colored strip) inside the demo itself.
-- **`CatalogFrostedStage(modifier, art = CatalogArt.Valley) { }`**: the catalog's one deliberate demonstration of the other surface setting. A nested `AMTheme(surfaceFill = AMSurfaceFill.Frosted)` over an `AMBackdrop` of the art (following the appearance), clipped to `MaterialTheme.shapes.large`, filling the width; the content is a `BoxScope` the caller pads (`spacing.lg`) and places. A page of a container, control, tag, selection, input or feedback piece shows its frosted variant inside its Loaded composition, first where the page is tall enough that the end falls below the `scrollTo loaded` frame: the Loaded fragment's main piece again inside this stage, as a believable bit of a screen over a photo, with no caption or heading. The chip group and segmented control sit straight on the photo; each field sits in an `amCard` whose content is in `ProvideAMOnSurface`; the banner and toast pages put an `AMBannerHost` or `AMToastHost` inside the stage with a long-lived item, a frosted card beside it: the banner's stage is a fixed 330 dp, which holds the banner and the field card apart at `fontScale 2`; the toast's is at least 320 dp and grows with its card, keeping the toast's room clear under it (`Feedback.md`).
+- **`CatalogFrostedStage(modifier, art = CatalogArt.Valley) { }`**: the catalog's one deliberate demonstration of the frosted surface setting, shown whatever the Surfaces setting is (the page's other demos follow it). A nested `AMTheme(surfaceFill = AMSurfaceFill.Frosted)` over an `AMBackdrop` of the art (following the appearance), clipped to `MaterialTheme.shapes.large`, filling the width; the content is a `BoxScope` the caller pads (`spacing.lg`) and places, and the caller sets the height. A page of a container, control, tag, selection, input or feedback piece shows its frosted variant inside its Loaded composition, first where the Loaded composition would otherwise run past the `scrollTo loaded` frame: the Loaded fragment's main piece again inside this stage, as a believable bit of a screen over a photo, with no caption or heading. Each page's frosted fragment is described in its area's digest.
 
 ### Stage layouts — `StageLayout`
 
@@ -93,15 +93,15 @@ The widening is done in layout (a private `bleed` layout modifier measures the c
 
 **The screen host — `CatalogScreenHost { }`** (`scaffold/ScreenHost.kt`). Banners and toasts aren't windows: they show in the nearest `AMBannerHost` / `AMToastHost`, at the root of their window (`Feedback.md`). In an app that root is the screen's; in the catalog it's the page's, since each page fills the screen. `ComponentPage` wraps its whole `Scaffold` in `CatalogScreenHost`, which is `AMBannerHost(fillMaxSize) { AMToastHost(fillMaxSize) { … } }`, so a demo that sits inline calls `AMBanner` or `AMToast` from its own button and the banner comes down over the top app bar, the toast up above the navigation bar, over the whole page. A demo needs nothing else: no cover, no screen of its own. A sheet the demo opens carries its own toast host (`AMSheet` has one), and a demo that is itself a small scene (`AMScene`, on a `Fill` band) has its own hosts.
 
-**`CatalogAutoPresent(onPresent)`** (`scaffold/LaunchOptions.kt`) is the screenshot hook for a demo that shows something inline on its own (a hub opening its menu): placed in the demo, it calls `onPresent` once, 800 ms after it enters the composition, when the `present` extra names its section (`LocalCatalogTarget`). At most one demo per launch (`LaunchOptions.claimPresentation`). Overlay demos aren't opened this way; a screenshot taps their own button. The Floating action button page places one in each section, so `present preview` opens the hub's menu and `present loaded` opens the mail scene's remote.
+**`CatalogAutoPresent(onPresent)`** (`scaffold/LaunchOptions.kt`) is the screenshot hook for a demo that shows something inline on its own (a hub opening its menu): placed in the demo, it calls `onPresent` once, 800 ms after it enters the composition, when the `present` extra names its section (`LocalCatalogTarget`). At most one demo per process (`LaunchOptions.claimPresentation`: the first match wins, and a page that comes back doesn't present again). Overlay demos aren't opened this way; a screenshot taps their own button. The Floating action button page is the one user: a hook in each section's scene, so `present preview` opens the notes scene's menu and `present loaded` the mail scene's remote.
 
 ## Inspection controls
 
-`app/Inspection.kt`. Four settings, persisted in the `inspection` SharedPreferences as enum names:
-- **Appearance** (`InspectionAppearance`): System, Light, Dark.
+`app/Inspection.kt`. Four settings, persisted in the `inspection` SharedPreferences as enum names (keys `appearance`, `surfaces`, `textSize`, `layoutDirection`):
+- **Appearance** (`InspectionAppearance`): System (default), Light, Dark.
 - **Surfaces** (`InspectionSurfaces`): Solid (default), Frosted. The app's surface setting; a scene root that sets its own frosted setting holds inside it.
-- **Text size** (`InspectionTextSize`): System, or one of the font scales the system's font size setting offers: 85%, 100% (default), 115%, 130%, 150%, 180%, 200%.
-- **Layout direction** (`InspectionLayoutDirection`): Left to right, Right to left.
+- **Text size** (`InspectionTextSize`): System (default), or one of the font scales the system's font size setting offers: 85%, 100% (labeled "100% (default)", the system's own default), 115%, 130%, 150%, 180%, 200%.
+- **Layout direction** (`InspectionLayoutDirection`): Left to right (default), Right to left.
 
 `Inspection` holds them as Compose state and writes each change through to SharedPreferences. Its `applied…` values are what the root applies: a launch extra's pinned value when there is one, the stored value otherwise. `isDefault` is whether everything applied is at its default.
 
@@ -115,33 +115,34 @@ Only the root (its theme sets the bar icons too), the menu and the scene chip re
 
 ## The theme — `AMTheme`
 
-The catalog runs inside the library's own theme: `InspectionRoot` wraps everything in `AMTheme(darkTheme = inspection.isDark(), surfaceFill = inspection.appliedSurfaces.fill)`, Material's baseline static scheme under the style layer, so a forced appearance reaches every style color. The scaffold reads `AMTheme.Surface.page` for backgrounds (the page headers take it when scrolled) and `AMTheme.Surface.primary` for `Fill` stages and surface strips; a demo reads `AMTheme.isDark` where its content follows the appearance (`CatalogArt.url(AMTheme.isDark)`).
+The catalog runs inside the library's own theme: `InspectionRoot` wraps everything in `AMTheme(darkTheme = inspection.isDark(), surfaceFill = inspection.appliedSurfaces.fill)`, Material's baseline static scheme under the style layer, so a forced appearance reaches every style color. The scaffold reads `AMTheme.Surface.page` for backgrounds (the page headers take it when scrolled) and `AMTheme.Surface.primary` for `Fill` bands, the color demos paint their surface strips with too; a demo reads `AMTheme.isDark` where its content follows the appearance (`CatalogArt.url(AMTheme.isDark)`).
 
 ## Debug launch extras — `LaunchOptions`
 
 `scaffold/LaunchOptions.kt`, for screenshots and page checks. `LaunchOptions.read(intent)` reads string extras in debug builds only (`BuildConfig.DEBUG`), so release builds ignore them. The entry id matches exactly; the other values match case-insensitively.
 
 - `entry <id>`: opens that entry's page over the list on launch; a Showcase id opens its scene.
-- `scrollTo preview|loaded`: once the page has laid out and 400 ms have passed, the page collapses its top bar and scrolls the section to just under it. While it's set, a page that scrolls gets the viewport's height again as room at its end, so the section can always reach the top instead of the scroll stopping at the page's end; a page that doesn't scroll gets none and still doesn't.
+- `scrollTo preview|loaded`: once the page has laid out and 400 ms have passed, the page collapses its top bar and scrolls the section to just under it. While it's set, a page that scrolls gets one more viewport height of room at its end, so the section can always reach the top; a page that fits the screen gets none and stays put.
 - `present preview|loaded`: the `CatalogAutoPresent` demo in that section opens, once.
 - `surfaces frosted|solid`: pins the Surfaces setting for the launch (a scene root's own frosted setting holds under `solid`).
 - `appearance light|dark|system`, `fontScale <float>`, `rtl true|false`: pin that inspection setting for the launch. A pinned setting doesn't write the stored one, and the inspection menu can't change it until a launch without the extra.
-- `artwork night`: every catalog photo switches to a second set (below).
-- `cover white|black`: every cover and photo in the Music scene (its art rows, art backdrops, art cards and thumbnails) becomes one of `SolidArt`'s solid pictures (`catalog/scaffold/CatalogPhoto.kt`, a 4 × 4 bitmap each, one per process), the extremes the art's wash is tuned for (`SceneMusic.md`).
+- `artwork night`: every `catalogPhoto` switches to its night file (below). Any value switches; `night` is the one used.
+- `cover white|black`: every cover and photo in the Music scene becomes one of `SolidArt`'s solid pictures, the extremes the art's wash is tuned for (`DataDisplay.md`).
 - `demoTime <H:MM>`: the clock-driven samples (the Date picker page's starting value, the Calendar scene's now marker) read the time through `LaunchOptions.clock()`, which pins the time of day (24-hour, today's date) so screenshots agree with a pinned status bar clock.
-- `shopFillsCheckout yes`: the Shop scene's checkout opens with its form filled in (`LaunchOptions.shopFillsCheckout`).
+- `shopFillsCheckout yes` (or `true`, `1`): the Shop scene's checkout opens with its form filled in (`LaunchOptions.shopFillsCheckout`).
 
 ```bash
 adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry card --es appearance dark
 adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry card --es scrollTo loaded --es fontScale 2
 ```
 
-## Sample photos — `catalogPhoto`, `commonsPhoto`, `CatalogArt`
+## Sample photos — `catalogPhoto`, `commonsPhoto`, `CatalogArt`, `SolidArt`
 
 `scaffold/CatalogPhoto.kt` builds the URLs a page's sample pictures load from:
-- **`catalogPhoto(seed, width, height)`**: the Commons file `CatalogPhotos` maps the seed to, through `commonsPhoto`. Each seed has a day file and a night file, and no file repeats within a set: the default set is bright scenes in color (an orchard, a mountain lake, a coast's tide pools, a Dolomites valley, the card stack's albums) and Ada Lovelace for `ada` and `spacing-ada` (a daguerreotype and a watercolour); under `artwork night` the whole catalog switches to the night set (dusk and blue-hour scenes, city lights, and two other portraits of Ada Lovelace, a painting's detail and an engraving: a named person's portrait shows the same person in both sets), so a component's light and dark screenshots show different artwork. The selection tiles and picker (`selection-tile-<n>`, `selection-picker-<n>`) are the exception: they are photo grids, so each shows a photo from the Photos scene's library, the same file in both sets (`CatalogPick(file)`), the way a photo library shows the same photos in either mode; every other seed's two files differ. Commons serves a file at its own shape and the frame crops it, so the width asked for is the larger of `width` and 1.5 × the frame's height (`height`, or `width` when null), enough for a 3:2 landscape to cover the frame. A seed missing from the map fails at once (`getValue`); adding a page photo means adding its seed there.
+- **`catalogPhoto(seed, width, height = null)`**: the Commons file `CatalogPhotos` maps the seed to (a private `CatalogPick(day, night)`), through `commonsPhoto`. Each seed has a day file and a night file, and no file repeats within a set: the day set is bright scenes in color (an orchard, a mountain lake, a coast's tide pools, a Dolomites valley, the card stack's albums) and Ada Lovelace for `ada` and `spacing-ada`; the night set is dusk and blue-hour scenes, city lights, and other portraits of Ada Lovelace (a named person's portrait shows the same person in both sets). The set follows the `artwork` extra, not the appearance, so a component's light and dark screenshots show different artwork. The selection tiles and picker (`selection-tile-<n>`, `selection-picker-<n>`) are the exception: they are photo grids, so each shows a photo from the Photos scene's library, the same file in both sets (`CatalogPick(file)`), the way a photo library shows the same photos in either mode; every other seed's two files differ. Only the pages use it; the scenes keep their own art. Commons serves a file at its own shape and the frame crops it, so the width asked for is the larger of `width` and 1.5 × the frame's height (`height`, or `width` when null), enough for a 3:2 landscape to cover the frame. A seed missing from the map fails at once (`getValue`); adding a page photo means adding its seed there.
 - **`commonsPhoto(file, width = 1000)`**: a Wikimedia Commons file by name at `width` px (`Special:FilePath?width=`; the file's page credits its author and license). Commons redirects to the nearest of its standard thumbnail widths at or above it (360 gets 500), at the file's own shape. Every photo in the demo comes from Commons this way.
-- **`CatalogArt`**: vetted Commons pairs for wide hero photos, lakes, valleys, peaks, a forest and a garden in daylight color by day and deep-blue dusk and blue-hour scenes by dark: `Mountain`, `Valley`, `Forest`, `Peaks`, `Garden`, read with `url(dark)`.
+- **`CatalogArt`**: vetted Commons pairs for wide hero photos, lakes, valleys, peaks, a forest and a garden in daylight color by day and deep-blue dusk and blue-hour scenes by dark: `Mountain`, `Valley`, `Forest`, `Peaks`, `Garden`, read with `url(dark)`. Unlike `catalogPhoto`, it follows the appearance (`CatalogArt.url(AMTheme.isDark)`).
+- **`SolidArt`**: `White` and `Black`, a 4 × 4 `ImageBitmap` each, one per process so the art made from them is kept: the `cover` extra's pictures, and the Art backdrop page's all-white and all-black albums.
 - **Color.** Every sample photo is vivid: a Wikimedia Commons file whose thumbnail measures a mean saturation of at least 0.35 and a mean luminance between 0.25 and 0.75, so no snow, fog, black and white or flat gray daylight. Night and dark-mode photos stay darker, as deep-blue dusk and blue-hour scenes rather than black skies; the selection grids' library photos are the same in both modes. The exceptions are named people's portraits (the Avatar and Spacing pages' and the Social scene's), the Music scene's artist photos and covers, and the Shop scene's coffee beans and bags.
 
 ## Glyphs
@@ -161,8 +162,8 @@ Follow these steps exactly; touch only your category's folder.
        category = CatalogCategory.Actions,       // this folder's category
        title = "Icon button",                    // full name, sentence case, no abbreviations
        summary = "A bare glyph with a 48 dp touch target",  // one line, about 45 characters, no period
-       icon = R.drawable.ic_more_vert,           // a demo glyph
-       keywords = listOf("AMIconButton", "glyph", "toolbar"),  // API names and synonyms
+       icon = R.drawable.ic_play_circle,         // a demo glyph
+       keywords = listOf("AMIconButton", "IconButton", "glyph", "badge"),  // API names and synonyms
    ) { IconButtonPage() }
    ```
 
@@ -182,12 +183,12 @@ Follow these steps exactly; touch only your category's folder.
    ```
    No state in the page function: state lives in the demo composables.
 
-   A component that lives flat or in a card previews flat: the preview leaves out its container and sits on a surface strip.
+   A component that lives flat or in a card previews flat: the preview leaves out its container and sits on a surface strip, as the Text field page does.
    ```kotlin
    ComponentPage(
-       FieldEntry,
+       TextFieldEntry,
        previewLayout = StageLayout.FullBleed,
-       preview = { PreviewField(Modifier.background(AMTheme.Surface.primary)) },
+       preview = { NameField() },  // Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(spacing.lg)) { AMTextField(…) }
    ) { … }
    ```
 
@@ -198,14 +199,20 @@ Follow these steps exactly; touch only your category's folder.
    - Every row follows the row recipe (`Layout.md`). Hand-built rows (a title, a title and supporting line, a label and value) carry `Modifier.amRowPadding()`; rows built on Material's `ListItem` pass `colors = AMRowDefaults.colors()`, `shapes = AMRowDefaults.shapes()` and `contentPadding = AMRowDefaults.contentPadding`. Several stack in a `Column` with `AMDivider(inset = AMTheme.tokens.spacing.lg)` between.
    - Stand-in actions are `private fun save() {}` at file scope, as in `AMButton("Save", onClick = ::save)`.
    - Overlays: the demo sits inline, and its own button presents the overlay ("Overlays on a page").
+   - Frosted variant: a container, control, tag, selection, input or feedback piece also shows its main piece in a `CatalogFrostedStage` inside Loaded (above).
    - Stage fit (the demo rule): self-surfaced content and carded flat content float (default); a flat strip that spans the screen → `FullBleed`; a self-inset component whose surfaces float edge to edge → `Wide`; content that is itself a small screen → `Fill`, through `previewLayout` / `loadedLayout`. Never negative padding, a frame or a box.
    - Sample pictures come from `catalogPhoto`, `commonsPhoto` or `CatalogArt`.
    - Use theme values (`AMTheme` for the style layer and spacing, `MaterialTheme.colorScheme`, `typography` and `shapes`), never raw colors or sizes. A demo whose content follows the appearance reads `AMTheme.isDark` (`CatalogArt.url(AMTheme.isDark)`).
 
-6. **Verify.** Build, install, and launch with `--es entry <id>` (plus `--es scrollTo loaded`), and look at screenshots in light, dark (`--es appearance dark --es artwork night`) and a large font scale (`--es fontScale 2`) (`Testing.md`).
+6. **Verify.** Build, install, and launch with `--es entry <id>` (plus `--es scrollTo loaded`), and look at screenshots in light, dark (`--es appearance dark --es artwork night`), the frosted setting (`--es surfaces frosted`) and a large font scale (`--es fontScale 2`) (`Testing.md`).
 
 Rules for category work: don't edit `app/`, `catalog/scaffold/`, `catalog/pages/showcase/`, `catalog/scenes/`, or another category's folder. File-scope helpers are `private` (the demo is one package, so two pages may both declare a `save()`); a helper shared by several pages in one category goes in a `<Category>Support.kt` in that folder, `internal`, with a category-prefixed name. Missing scaffold capability → report it rather than patching shared files.
 
 ## Motion in the catalog
 
 The catalog writes no animation code: pushes and predictive back are Navigation 3's, the top app bars collapse with Material's scroll behavior, the search opens and closes with Material's own motion, and the `scrollTo` jump is instant.
+
+## See also
+- `DemoScenes.md` — the Showcase scenes' shared rules.
+- `Layout.md` — the row recipe every demo row follows.
+- `Testing.md` — the build-and-screenshot check a new page ends with.
