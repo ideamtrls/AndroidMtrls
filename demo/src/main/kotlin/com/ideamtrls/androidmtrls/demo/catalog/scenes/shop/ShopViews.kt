@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -117,7 +118,7 @@ internal sealed interface ShopLabelStyle {
     /** A row's square thumbnail with the label's first letter. */
     data object Thumb : ShopLabelStyle
 
-    /** A grid card's square label. */
+    /** A grid card's square label, square-cornered: it fills the card's top, whose corners round it. */
     data object Tile : ShopLabelStyle
 
     /** The product panel's 3:2 label. */
@@ -152,9 +153,9 @@ internal fun ShopLabelArt(product: ShopProduct, style: ShopLabelStyle, modifier:
             }
         }
         ShopLabelStyle.Tile -> if (photo != null) {
-            ShopBagPhoto(photo, width = 500, product.color, shapes.small, art.fillMaxWidth().aspectRatio(1f))
+            ShopBagPhoto(photo, width = 500, product.color, RectangleShape, art.fillMaxWidth().aspectRatio(1f))
         } else {
-            Box(art.fillMaxWidth().aspectRatio(1f).background(product.color, shapes.small)) {
+            Box(art.fillMaxWidth().aspectRatio(1f).background(product.color)) {
                 ShopLabel(product, brand = 9f, title = 26f, footer = 10f, Modifier.padding(spacing.md))
             }
         }
@@ -277,8 +278,9 @@ private fun ShopLabelText(
 // Product card
 
 /**
- * A grid card: the product's square label over its name (two lines reserved, so the cards in a row
- * match) and its price, in a frosted card. [interaction] goes after the card (its tap and hold),
+ * A grid card: the product's square label filling its top edge to edge, the card's corners rounding
+ * it, over its name (two lines reserved, so the cards in a row match) and its price, padded, in a
+ * frosted card. [interaction] goes after the card (its tap and hold),
  * so the ripple stays inside the card's shape. While [loading], the same card holds the shapes of
  * what it will show, shimmering: the label's square and a bar over each line of the real name and
  * price, so the card is the size it will be. It says nothing to TalkBack.
@@ -293,23 +295,28 @@ internal fun ShopProductCard(
     val spacing = AMTheme.tokens.spacing
     val nameStyle = MaterialTheme.typography.titleSmall
     val priceStyle = MaterialTheme.typography.bodyMedium.shopFigures()
+    // The card takes no padding, so it clips what it holds to its shape: the label fills its top
+    // edge to edge under its corners, and only the words below are padded.
     Column(
         modifier
             .fillMaxWidth()
             .amCard(fill = AMSurfaceFill.Frosted)
-            .then(if (loading) Modifier.clearAndSetSemantics {} else interaction)
-            .padding(spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            .then(if (loading) Modifier.clearAndSetSemantics {} else interaction),
     ) {
         if (loading) {
-            AMSkeleton.Rect(Modifier.aspectRatio(1f), shape = MaterialTheme.shapes.small)
-            AMSkeleton.Text(product.name, style = nameStyle, minLines = 2, maxLines = 2)
-            AMSkeleton.Text(product.priceLabel, style = priceStyle, maxLines = 1)
+            AMSkeleton.Rect(Modifier.aspectRatio(1f), shape = RectangleShape)
         } else {
             ShopLabelArt(product, ShopLabelStyle.Tile)
-            Text(product.name, style = nameStyle, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
-                Text(product.priceLabel, style = priceStyle, color = AMTheme.secondaryText, maxLines = 1)
+        }
+        Column(Modifier.padding(spacing.sm), verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+            if (loading) {
+                AMSkeleton.Text(product.name, style = nameStyle, minLines = 2, maxLines = 2)
+                AMSkeleton.Text(product.priceLabel, style = priceStyle, maxLines = 1)
+            } else {
+                Text(product.name, style = nameStyle, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                ProvideAMSurfaceFill(AMSurfaceFill.Frosted) {
+                    Text(product.priceLabel, style = priceStyle, color = AMTheme.secondaryText, maxLines = 1)
+                }
             }
         }
     }
