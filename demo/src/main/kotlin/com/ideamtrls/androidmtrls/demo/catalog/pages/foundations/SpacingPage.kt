@@ -97,7 +97,7 @@ private fun ProfileAndSettings() {
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.md), verticalAlignment = Alignment.CenterVertically) {
                 AMRemoteImage(
-                    catalogPhoto("spacing-ada", 144),
+                    catalogPhoto("ada", 144),
                     contentDescription = null,
                     modifier = Modifier.size(48.dp).clip(CircleShape),
                 )
