@@ -176,7 +176,7 @@ Scaffold(topBar = { AMPageHeader("Feed", scrollBehavior = scrollBehavior) }) { p
 - The fields are `AMTextField`s on a `TextFieldState` in `amCard(padding = spacing.lg)`, as the Form actions page does.
 - The Loading overlay page's stand-in async work is two private `suspend fun`s (`work`, `uploadPhoto`) that wait 2 s, launched from the buttons in a `rememberCoroutineScope`.
 - **Empty states lie on the page.** The Empty state page's demos sit on the bare page in the gutters, with no strip or card behind their text: that's the pattern itself (`Patterns.md`). The catalog's search shows an `AMEmptyState` when nothing matches, and the Calendar page shows one for a day with no events.
-- Demo glyphs only these pages use: `ic_top_panel_open` (Banner), `ic_bottom_panel_open` (Toast), `ic_hourglass_empty` (Loading overlay), `ic_progress_activity` (Progress), `ic_segment` (Skeleton). Empty state uses the shared `ic_inbox` (its entry icon and Preview), `ic_edit_square` and `ic_group`.
+- Demo glyphs only these pages use: `ic_top_panel_open` (Banner), `ic_bottom_panel_open` (Toast), `ic_hourglass_empty` (Loading overlay), `ic_progress_activity` (Progress), `ic_segment` (Skeleton). Toast's glyphs are the shared `ic_link` and `ic_playlist_add`; empty state uses the shared `ic_inbox` (its entry icon and Preview), `ic_edit_square` and `ic_group`.
 
 ## See also
 
