@@ -2,48 +2,58 @@ package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import kotlinx.coroutines.launch
 
 /**
- * A search input: Material's search bar input field on a [TextFieldState], with the search glyph
- * at its start and a clear button at its end while it holds text.
+ * A search input that is its own card: Material's text field on a [TextFieldState], drawn on the
+ * floating card ([amCard]) with no outline or indicator line, the search glyph at its start, the
+ * placeholder naming what's searched, and a clear button at its end while it holds text.
  *
  * ```kotlin
  * val query = rememberTextFieldState()
- * AMSearchField(query, placeholder = "Search cities")
- * cities.filter { it.contains(query.text, ignoreCase = true) }.forEach { … }
+ * Column(verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+ *     AMSearchField(query, placeholder = "Search cities")
+ *     Column(Modifier.amCard()) { cities.filter { it.contains(query.text, ignoreCase = true) }.forEach { … } }
+ * }
  * ```
  *
- * - **Material's look**: the search field's own filled container and shape, 56 dp tall, spanning
- *   the width it's given. In a card, pad it `spacing.lg`, as any field.
- * - **Open while focused.** Tapping it focuses it and raises the keyboard; the keyboard's action key
- *   is Search and calls [onSearch]. Back closes it: the first back hides the keyboard, and the next
- *   one takes the focus away, before back leaves the screen. The query stays; the clear button
- *   empties it. There is no Cancel button.
+ * - **A card, not a field in one.** The search is the screen's first surface: the card's surface,
+ *   shape and shadow in the app's surface setting, 64 dp tall, spanning the width it's given. Put
+ *   it straight on the page or sheet, in the gutter, above the card of results; inside another
+ *   card it demotes as any card does.
+ * - **The keyboard's action key is Search** and calls [onSearch] with the query.
+ * - **Back closes it**: the first back hides the keyboard, and the next one takes the focus away,
+ *   before back leaves the screen. The query stays; the clear button empties it. There is no
+ *   Cancel button.
  * - Quiet by default: it takes focus only when tapped, unless [autofocus] says otherwise.
- * - TalkBack reads it as a search field with its placeholder or query.
  *
- * Disabled, it greys to Material's disabled look and ignores taps.
+ * Disabled, its content greys to Material's disabled look and it ignores taps.
  *
  * @param state the query and its selection, usually `rememberTextFieldState()`. Filter as it
  *   changes, reading `state.text`.
@@ -53,7 +63,6 @@ import kotlinx.coroutines.launch
  * @param onSearch called with the query when the keyboard's Search key is pressed.
  * @param enabled whether the field takes input.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun AMSearchField(
     state: TextFieldState,
@@ -64,46 +73,49 @@ public fun AMSearchField(
     enabled: Boolean = true,
 ) {
     val isEnabled = resolveEnabled(enabled)
-    val barState = rememberSearchBarState()
-    val scope = rememberCoroutineScope()
-    val open = barState.targetValue == SearchBarValue.Expanded
     val hasText by remember(state) { derivedStateOf { state.text.isNotEmpty() } }
+    var focused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     val ime = WindowInsets.ime
     val density = LocalDensity.current
     val keyboardUp by remember(ime, density) { derivedStateOf { ime.getBottom(density) > 0 } }
-    // Back closes an open field (Material's field then takes its focus away), standing aside while
-    // the keyboard is up so the keyboard's own back hides it first.
+    // Back takes the focus away from a focused field, standing aside while the keyboard is up so
+    // the keyboard's own back hides it first.
     NavigationBackHandler(
         state = rememberNavigationEventState(currentInfo = NavigationEventInfo.None),
-        isBackEnabled = open && !keyboardUp,
-        onBackCompleted = { scope.launch { barState.animateToCollapsed() } },
+        isBackEnabled = focused && !keyboardUp,
+        onBackCompleted = { focusManager.clearFocus() },
     )
-    // Material's own container for the field, which the tint or the solid surface replaces.
-    val material = SearchBarDefaults.inputFieldColors()
-    val tinted = fieldContainerKind() == FieldContainer.Tint
-    SearchBarDefaults.InputField(
-        textFieldState = state,
-        searchBarState = barState,
-        onSearch = onSearch,
+    // The card is the field's surface, so Material draws no container and no line of its own.
+    val clear = Color.Transparent
+    TextField(
+        state = state,
         modifier = modifier
             .fillMaxWidth()
-            // Focus taken elsewhere closes it too.
-            .onFocusChanged {
-                if (!it.isFocused && barState.targetValue == SearchBarValue.Expanded) {
-                    scope.launch { barState.snapTo(0f) }
-                }
-            }
-            // The tint's light edge, since this field has no outline.
-            .then(if (tinted) Modifier.amHairline(SearchBarDefaults.inputFieldShape, AMTheme.Frosted.edge) else Modifier)
+            .amCard()
+            .heightIn(min = SearchFieldHeight)
+            .onFocusChanged { focused = it.isFocused }
             .then(inputAutofocus(state, autofocus)),
         enabled = isEnabled,
-        colors = SearchBarDefaults.inputFieldColors(
-            focusedContainerColor = fieldContainerColor(material.focusedContainerColor),
-            unfocusedContainerColor = fieldContainerColor(material.unfocusedContainerColor),
-            disabledContainerColor = fieldContainerColor(material.disabledContainerColor),
-        ),
         placeholder = { Text(placeholder) },
         leadingIcon = { Icon(painterResource(R.drawable.am_ic_search), contentDescription = null) },
         trailingIcon = if (isEnabled && hasText) { { InputClearButton(state) } } else null,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        onKeyboardAction = { onSearch(state.text.toString()) },
+        lineLimits = TextFieldLineLimits.SingleLine,
+        shape = MaterialTheme.shapes.large,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = clear,
+            unfocusedContainerColor = clear,
+            disabledContainerColor = clear,
+            errorContainerColor = clear,
+            focusedIndicatorColor = clear,
+            unfocusedIndicatorColor = clear,
+            disabledIndicatorColor = clear,
+            errorIndicatorColor = clear,
+        ),
     )
 }
+
+/** The search field's height: a step taller than Material's 56 dp field, as the screen's first card. */
+internal val SearchFieldHeight = 64.dp

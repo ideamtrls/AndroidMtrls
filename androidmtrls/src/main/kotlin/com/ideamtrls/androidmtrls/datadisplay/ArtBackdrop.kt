@@ -228,7 +228,7 @@ public fun Modifier.amArtBackdrop(
  * picture is a URL or a bitmap the app holds, and one page can mix them.
  *
  * On its own, the colors are this content's background. For frosted surfaces over the rows (a
- * collapsing header's fill, frosted buttons, a frosted sheet) to blur them, and for the components
+ * scrolled header's fill, frosted buttons, a frosted sheet) to blur them, and for the components
  * on them to take their over-art look, put the page in an [AMArtRowsBackdrop]: the colors then draw
  * as that backdrop's art, behind the whole page.
  *
@@ -270,8 +270,9 @@ public fun Modifier.amArtRows(
  *   page color: a page with no rows (loading, empty) sits on the page color by itself, with no
  *   switching.
  * - **Frosted surfaces** anywhere in [content] sample the rows: a header over them, cards and
- *   buttons on them, and a sheet opened from here. Only the colors are sampled, never the content,
- *   so a surface never blurs itself.
+ *   buttons on them. Only the colors are sampled, never the content, so a surface never blurs
+ *   itself. A sheet opened from here is a window over the screen, so it blurs the page whole: the
+ *   colors and everything on them ([AMSheet]).
  * - It's decoration: it adds nothing for a screen reader and takes no input.
  *
  * @param modifier the region's size and placement: usually the whole screen.
@@ -287,10 +288,11 @@ public fun AMArtRowsBackdrop(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layer = rememberGraphicsLayer()
-    val source = remember(layer) { AMBackdropSource(layer) }
+    val screen = rememberGraphicsLayer()
+    val source = remember(layer, screen) { AMBackdropSource(layer, screen) }
     val art = remember(source) { ArtRowsArt(source) }
     val artTone = tone ?: modeArtTone()
-    Box(modifier.then(artStatusBar(source, artTone))) {
+    Box(modifier.then(artStatusBar(source, artTone)).backdropScreen(source)) {
         Box(Modifier.matchParentSize().backdropSource(source).then(ArtRowsArtElement(art)))
         val scope = this
         CompositionLocalProvider(

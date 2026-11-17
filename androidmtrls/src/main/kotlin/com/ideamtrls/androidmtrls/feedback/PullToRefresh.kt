@@ -18,7 +18,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
  * header: pass the header's [scrollBehavior] here, and leave its connection off the `Scaffold`.
  *
  * ```kotlin
- * val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+ * val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
  * Scaffold(
  *     topBar = { AMPageHeader("Feed", actions = { … }, scrollBehavior = scrollBehavior) },
  *     containerColor = AMTheme.Surface.page,
@@ -34,12 +34,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
  * }
  * ```
  *
- * The box owns the header's connection and puts it inside the pull, nearer the content. So a
- * downward drag scrolls the content to its top, then reopens a collapsed header, and only pulls
- * once the header is fully open; an upward drag puts a pulled indicator away before it collapses
- * the header, then scrolls the content. Padded below the header, as above, the indicator comes
- * out from under it. The header's connection belongs in one place: on the `Scaffold` as well, it
- * would collapse the header ahead of the pull.
+ * The box owns the header's connection and puts it inside the pull, nearer the content, so the
+ * header hears only the content's own scrolling: a downward drag scrolls the content to its top,
+ * then pulls; an upward drag puts a pulled indicator away, then scrolls the content, and the
+ * header takes its fill once content is under it. Padded below the header, as above, the
+ * indicator comes out from under it. The header's connection belongs in one place: on the
+ * `Scaffold` as well, it would count the pull as content scrolled away from under the header, and
+ * the header would stay clear over content after the pull.
  *
  * [isRefreshing] is the caller's: a release past the threshold calls [onRefresh], and the
  * indicator spins while [isRefreshing] is true and leaves when it turns false.
@@ -49,7 +50,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
  *   [isRefreshing].
  * @param modifier the box's placement: usually the screen's content area, padded below its header.
  * @param scrollBehavior the scroll behavior of the [AMPageHeader] above the content, whose
- *   connection the box installs, or null for a screen without a collapsing header.
+ *   connection the box installs, or null for a screen without one.
  * @param state the pull's state, Material's, for reading the pull's progress.
  * @param enabled whether a pull can start; while false, drags only scroll.
  * @param content the scrolling content.
@@ -71,7 +72,7 @@ public fun AMPullToRefreshBox(
         onRefresh = onRefresh,
     )
     // Later in the chain is nearer the content: the content's leftover drag reaches the header
-    // first, and a drag's first share reaches the pull first.
+    // before the pull takes it, and a drag's first share reaches the pull first.
     Box(if (scrollBehavior != null) pull.nestedScroll(scrollBehavior.nestedScrollConnection) else pull) {
         content()
         PullToRefreshDefaults.Indicator(

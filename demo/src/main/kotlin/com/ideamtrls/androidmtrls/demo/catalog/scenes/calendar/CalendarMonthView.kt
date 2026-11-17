@@ -61,7 +61,7 @@ import java.time.LocalDate
 internal fun CalendarMonthView(model: CalendarModel) {
     val spacing = AMTheme.tokens.spacing
     val formats = rememberCalendarFormats()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {

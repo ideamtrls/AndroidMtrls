@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -40,9 +41,26 @@ import java.util.function.Consumer
 import kotlin.math.roundToInt
 
 // The paused-world window the remote and the spotlight present in: a full-screen dialog window
-// that blurs everything behind it with the platform's blur-behind, sheets included, under the
-// mode's wash, white in light mode and black in dark mode. Where the system has cross-window blur
-// off (battery saver, some devices), the wash alone stills the screen.
+// that blurs everything behind it with the platform's blur-behind (mist), sheets included, under
+// its cover: the mode's wash for the spotlight, the bare blur (a black scrim in dark mode) for the
+// remote. Where the system has cross-window blur off (battery saver, some devices), the wash alone
+// stills the screen.
+
+/** What an overlay window lays over the blurred screen behind it ([AMOverlayWindow]). */
+internal enum class OverlayCover {
+    /**
+     * The mode's wash ([AMTheme.Overlay.wash]), white in light mode and black in dark mode, so a
+     * title set straight on the blur holds over any screen: the spotlight's.
+     */
+    Wash,
+
+    /**
+     * The bare blur in light mode and a black scrim in dark mode ([Style.ModalOverlay.ScrimDark]),
+     * for content that brings its own surfaces: the remote's solid tiles. While the system has
+     * cross-window blur off there's no blur to lie bare, so the mode's wash stills the screen.
+     */
+    Scrim,
+}
 
 /** What a screen reader says for the blurred area around the content, which closes the window. */
 internal const val OverlayCloseLabel: String = "Close"
@@ -52,11 +70,12 @@ internal const val OverlayCloseLabel: String = "Close"
  * a moment longer while it fades away.
  *
  * - **The window**: a full-screen dialog window, edge to edge, so it sits above the app and above
- *   any sheet, and takes back first. It blurs what's behind it ([AMTheme.Overlay.blurRadius]) and
- *   lays the mode's wash ([AMTheme.Overlay.wash]) over it, so a title over it holds over any screen;
- *   while the system has cross-window blur off the wash alone stills it, switching live when the
- *   setting changes.
- * - **Motion**: the blur, the wash and the content fade in together with Material's default effects
+ *   any sheet, and takes back first. It blurs what's behind it ([AMBlur.Mist]) and lays
+ *   its [cover] over the blur: the mode's wash ([AMTheme.Overlay.wash]) so a title on it holds
+ *   over any screen (the spotlight), or the bare blur with a black scrim in dark mode (the remote).
+ *   While the system has cross-window blur off the wash alone stills the screen, switching live
+ *   when the setting changes.
+ * - **Motion**: the blur, the cover and the content fade in together with Material's default effects
  *   spec and out with its fast effects spec. Input is ignored while it fades out.
  * - **Dismissal**: back, and a tap anywhere the content doesn't take, call [onDismissRequest].
  *   The area around the content is one "Close" button for TalkBack, after the content.
@@ -75,6 +94,7 @@ internal const val OverlayCloseLabel: String = "Close"
 internal fun AMOverlayWindow(
     visible: Boolean,
     onDismissRequest: () -> Unit,
+    cover: OverlayCover,
     content: @Composable BoxScope.() -> Unit,
 ) {
     ReportOverlayUp(visible)
@@ -101,8 +121,13 @@ internal fun AMOverlayWindow(
     ) {
         val blurEnabled by rememberCrossWindowBlurEnabled()
         BlurBehind(progress, blurEnabled)
+        val coverColor = when {
+            cover == OverlayCover.Wash || !blurEnabled -> AMTheme.Overlay.wash
+            AMTheme.isDark -> Style.ModalOverlay.ScrimDark
+            else -> Color.Transparent
+        }
         ProvideOverlayWindowLocals(windowBlur = blurEnabled) {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = progress.value }.background(AMTheme.Overlay.wash)) {
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = progress.value }.background(coverColor)) {
                 DismissCatcher(onDismiss = { if (visible) dismiss() })
                 content()
                 // Fading out, the window takes no more input.
@@ -145,18 +170,18 @@ internal fun ProvideOverlayWindowLocals(windowBlur: Boolean? = null, content: @C
 
 /**
  * The window's blur-behind, following [progress] (0 hidden, 1 shown) and whether the system allows
- * cross-window blur ([blurEnabled]), and its bar icons for the appearance. The wash over it is the
- * window's content.
+ * cross-window blur ([blurEnabled]), and its bar icons for the appearance. The cover over it (the
+ * wash or the remote's scrim) is the window's content.
  */
 @Composable
 private fun BlurBehind(progress: Animatable<Float, AnimationVector1D>, blurEnabled: Boolean) {
     val view = LocalView.current
     val window = (view.parent as? DialogWindowProvider)?.window ?: return
     val dark = AMTheme.isDark
-    val blurPx = with(LocalDensity.current) { Style.ModalOverlay.BlurRadius.roundToPx() }
+    val blurPx = with(LocalDensity.current) { AMBlur.Mist.radius.roundToPx() }
 
     DisposableEffect(window, view, dark) {
-        // Under the wash the paused screen is light in light mode and dark in dark mode.
+        // The paused screen reads light in light mode and dark in dark mode, under either cover.
         WindowCompat.getInsetsController(window, view).apply {
             isAppearanceLightStatusBars = !dark
             isAppearanceLightNavigationBars = !dark

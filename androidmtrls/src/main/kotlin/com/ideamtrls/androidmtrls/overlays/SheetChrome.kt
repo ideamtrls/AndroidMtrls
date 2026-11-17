@@ -1,5 +1,7 @@
 package com.ideamtrls.androidmtrls
 
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
@@ -31,7 +33,8 @@ import kotlin.math.roundToInt
 
 /**
  * The sheet's frosted background, its shadow and its edge ([FrostNode]), drawn exactly where the
- * sheet is, over Material's transparent container.
+ * sheet is, over Material's transparent container. [backdrop] is the region the sheet blurs, and
+ * [screen] the view of the window it's presented over, whose draws it follows.
  *
  * Material's sheet takes this as its `modifier`, which comes first in the sheet's chain: ahead of
  * the offset that moves the sheet to its drag position and ahead of its clip. What it draws isn't
@@ -44,10 +47,15 @@ import kotlin.math.roundToInt
  * sheet, the chrome keeps the sheet's resting size.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-internal fun Modifier.sheetChrome(sheetState: SheetState, shape: Shape, backdrop: AMBackdropSource?): Modifier =
+internal fun Modifier.sheetChrome(
+    sheetState: SheetState,
+    shape: Shape,
+    backdrop: AMBackdropSource?,
+    screen: View,
+): Modifier =
     this
         .offset { IntOffset(0, sheetOffset(sheetState)) }
-        .then(FrostElement(shape, backdrop))
+        .then(FrostElement(shape, backdrop, screen))
         .offset { IntOffset(0, -sheetOffset(sheetState)) }
 
 /** The sheet's offset from the top of its window, or far below the screen before it's known. */
@@ -63,12 +71,17 @@ private fun sheetOffset(sheetState: SheetState): Int {
 
 private const val OffscreenOffset = 100_000
 
-private data class FrostElement(val shape: Shape, val backdrop: AMBackdropSource?) : ModifierNodeElement<FrostNode>() {
-    override fun create() = FrostNode(shape, backdrop)
+private data class FrostElement(
+    val shape: Shape,
+    val backdrop: AMBackdropSource?,
+    val screen: View,
+) : ModifierNodeElement<FrostNode>() {
+    override fun create() = FrostNode(shape, backdrop, screen)
 
     override fun update(node: FrostNode) {
         node.shape = shape
-        node.follow(backdrop)
+        node.backdrop = backdrop
+        node.follow(screen)
         node.invalidateDraw()
     }
 
@@ -79,19 +92,19 @@ private data class FrostElement(val shape: Shape, val backdrop: AMBackdropSource
 }
 
 /**
- * The sheet's frosted background: the art of the [AMBackdrop] the sheet was presented from, under
- * the sheet, blurred by [AMTheme.Frosted.blurRadius], then the frosted fill, the sheet, and the
- * frosted edge; the `Medium` shadow falls outside the shape only, since under frost it would show
- * through.
+ * The sheet's frosted background: the screen under the sheet (the region of the [AMBackdrop] the
+ * sheet was presented from, its art and everything on it), blurred by
+ * [AMBlur.Frost], then the frosted fill, the sheet, and the frosted edge; the
+ * `Medium` shadow falls outside the shape only, since under frost it would show through.
  *
- * The sheet is a window of its own, so it finds its slice of the art by screen position rather
+ * The sheet is a window of its own, so it finds its slice of the region by screen position rather
  * than through the layout tree, and samples it again whenever the sheet moves and whenever the
- * art records itself anew (a band's new picture, a scroll under the sheet), which its own window
- * wouldn't otherwise redraw for. With no backdrop, or before the art and the sheet are placed, the
- * page color takes the art's place under the fill: frost over the page, opaque, never unblurred
- * translucency.
+ * window under it draws (a band's new picture, a scroll, the + fading out), which its own window
+ * wouldn't otherwise redraw for. With no backdrop, or before the region and the sheet are placed,
+ * the page color takes the screen's place under the fill: frost over the page, opaque, never
+ * unblurred translucency.
  */
-private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
+private class FrostNode(var shape: Shape, var backdrop: AMBackdropSource?, screen: View) :
     Modifier.Node(),
     DrawModifierNode,
     CompositionLocalConsumerModifierNode,
@@ -104,27 +117,31 @@ private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
     private var coordinates: LayoutCoordinates? = null
     private var lastPosition = Offset.Unspecified
 
-    /** The art the sheet samples, which it listens to while attached. */
-    var backdrop: AMBackdropSource? = backdrop
-        private set
+    /** The view of the window under the sheet, whose draws it follows while attached. */
+    private var screen: View = screen
 
-    private val artRecorded: () -> Unit = { if (isAttached) invalidateDraw() }
+    private val screenDrew = ViewTreeObserver.OnDrawListener { if (isAttached) invalidateDraw() }
 
-    /** Samples [source] from now on, listening to it instead of the art before. */
-    fun follow(source: AMBackdropSource?) {
-        if (source === backdrop) return
-        if (isAttached) backdrop?.removeRecordListener(artRecorded)
-        backdrop = source
-        if (isAttached) source?.addRecordListener(artRecorded)
+    /** Follows [view]'s window from now on, instead of the one before. */
+    fun follow(view: View) {
+        if (view === screen) return
+        if (isAttached) stopFollowing()
+        screen = view
+        if (isAttached) screen.viewTreeObserver.addOnDrawListener(screenDrew)
+    }
+
+    private fun stopFollowing() {
+        val observer = screen.viewTreeObserver
+        if (observer.isAlive) observer.removeOnDrawListener(screenDrew)
     }
 
     override fun onAttach() {
         layer = requireGraphicsContext().createGraphicsLayer()
-        backdrop?.addRecordListener(artRecorded)
+        screen.viewTreeObserver.addOnDrawListener(screenDrew)
     }
 
     override fun onDetach() {
-        backdrop?.removeRecordListener(artRecorded)
+        stopFollowing()
         layer?.let { requireGraphicsContext().releaseGraphicsLayer(it) }
         layer = null
         coordinates = null
@@ -150,7 +167,7 @@ private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
         // Under frost the shadow would show through, so it falls outside the shape only.
         clipPath(path, ClipOp.Difference) { shadows.draw(this, context, shape, level, dark) }
         val frost = layer
-        if (frost != null && sampleArt(frost)) {
+        if (frost != null && sampleScreen(frost)) {
             clipPath(path) { drawLayer(frost) }
         } else {
             // Nothing to sample: frost over the page color, opaque.
@@ -162,17 +179,17 @@ private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
     }
 
     /**
-     * Records the art under the sheet, blurred, into [frost], placed over the sheet. Returns false,
-     * recording nothing, while there's nothing to sample: no backdrop, the art or the sheet not
-     * placed, or no art under the sheet.
+     * Records the screen under the sheet, blurred, into [frost], placed over the sheet. Returns
+     * false, recording nothing, while there's nothing to sample: no backdrop, the region or the
+     * sheet not placed, or none of the region under the sheet.
      */
-    private fun ContentDrawScope.sampleArt(frost: GraphicsLayer): Boolean {
+    private fun ContentDrawScope.sampleScreen(frost: GraphicsLayer): Boolean {
         val source = backdrop ?: return false
         val art = source.coordinates?.takeIf { it.isAttached } ?: return false
         val sheet = coordinates?.takeIf { it.isAttached } ?: return false
         // Two windows: through the screen, not the layout tree.
         val offset = art.screenToLocal(sheet.localToScreen(Offset.Zero))
-        val radius = Style.Frosted.BlurRadius.toPx()
+        val radius = AMBlur.Frost.radius.toPx()
         val region = frostedSampleRegion(
             x = offset.x,
             y = offset.y,
@@ -190,7 +207,7 @@ private class FrostNode(var shape: Shape, backdrop: AMBackdropSource?) :
         frost.renderEffect = effect
         frost.topLeft = IntOffset((region.left - offset.x).roundToInt(), (region.top - offset.y).roundToInt())
         frost.record(IntSize(region.width, region.height)) {
-            translate(-region.left.toFloat(), -region.top.toFloat()) { drawLayer(source.layer) }
+            translate(-region.left.toFloat(), -region.top.toFloat()) { drawLayer(source.screen) }
         }
         return true
     }

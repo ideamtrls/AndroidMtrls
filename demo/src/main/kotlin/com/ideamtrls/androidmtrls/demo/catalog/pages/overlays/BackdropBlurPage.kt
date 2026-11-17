@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMArtTone
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMBackdropBlur
+import com.ideamtrls.androidmtrls.AMBlur
+import com.ideamtrls.androidmtrls.AMSegmentedControl
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amArtText
@@ -35,8 +41,27 @@ private fun BackdropBlurPage() {
         BackdropBlurEntry,
         preview = { CrispAndBlurred() },
     ) {
-        NowPlaying()
+        var blur by rememberSaveable { mutableStateOf(AMBlur.Mist) }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
+            BlurChoice(blur, onBlurChange = { blur = it })
+            NowPlaying(blur)
+        }
     }
+}
+
+/** The blurs a page's demo offers, the components' default first. */
+private val BlurOptions = listOf(AMBlur.Mist, AMBlur.Frost)
+
+/** Mist or Frost, for a page's blur demo. */
+@Composable
+internal fun BlurChoice(blur: AMBlur, onBlurChange: (AMBlur) -> Unit) {
+    AMSegmentedControl(
+        BlurOptions,
+        label = { it.name },
+        selected = blur,
+        onSelectedChange = onBlurChange,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 /** The picture, then the same picture blurred, side by side. */
@@ -55,9 +80,9 @@ private fun CrispAndBlurred() {
     }
 }
 
-/** A track's cover and title over the same art, blurred. */
+/** A track's cover and title over the same art, blurred by [blur]. */
 @Composable
-private fun NowPlaying() {
+private fun NowPlaying(blur: AMBlur) {
     val art = CatalogArt.Garden.url(AMTheme.isDark)
     val spacing = AMTheme.tokens.spacing
     AMBackdrop(
@@ -66,7 +91,7 @@ private fun NowPlaying() {
         // The photo is shown as it is, unwashed: its art text is white over it.
         tone = AMArtTone.Dark,
     ) {
-        AMBackdropBlur(Modifier.matchParentSize())
+        AMBackdropBlur(Modifier.matchParentSize(), blur)
         Column(
             Modifier.align(Alignment.Center),
             verticalArrangement = Arrangement.spacedBy(spacing.md),

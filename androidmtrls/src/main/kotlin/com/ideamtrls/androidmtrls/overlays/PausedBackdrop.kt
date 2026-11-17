@@ -13,13 +13,12 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.unit.Dp
 
 /** What [Modifier.amPausedBackdrop][amPausedBackdrop] lays over the blurred picture. */
 public enum class AMPausedScrim {
     /**
      * The modal backdrop: the mode's wash ([AMTheme.Overlay.wash], white in light mode, black in
-     * dark mode) over the blur, the look behind the remote and the spotlight.
+     * dark mode) over the blur, the look behind the spotlight.
      */
     Modal,
 
@@ -54,11 +53,11 @@ public enum class AMPausedScrim {
  *
  * @param scrim what lies over the blur: [AMPausedScrim.Modal] (the default) or
  *   [AMPausedScrim.Page].
- * @param blurRadius the blur, as Android's blur radius: [AMTheme.Overlay.blurRadius] by default.
+ * @param blur how much the picture blurs: [AMBlur.Mist] (the default) or [AMBlur.Frost].
  */
 public fun Modifier.amPausedBackdrop(
     scrim: AMPausedScrim = AMPausedScrim.Modal,
-    blurRadius: Dp = AMTheme.Overlay.blurRadius,
+    blur: AMBlur = AMBlur.Mist,
 ): Modifier =
     this
         .then(PausedScrimElement(scrim))
@@ -71,7 +70,7 @@ public fun Modifier.amPausedBackdrop(
                 }
             }
         }
-        .blur(blurRadius, BlurredEdgeTreatment.Rectangle)
+        .blur(blur.radius, BlurredEdgeTreatment.Rectangle)
 
 private data class PausedScrimElement(val scrim: AMPausedScrim) : ModifierNodeElement<PausedScrimNode>() {
     override fun create() = PausedScrimNode(scrim)

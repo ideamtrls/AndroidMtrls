@@ -3,9 +3,8 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -19,21 +18,20 @@ import com.ideamtrls.androidmtrls.AMAvatar
 import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonStyle
+import com.ideamtrls.androidmtrls.AMPlainTextEditor
 import com.ideamtrls.androidmtrls.AMSemantic
-import com.ideamtrls.androidmtrls.AMTextEditor
 import com.ideamtrls.androidmtrls.AMTextFieldAutofocus
 import com.ideamtrls.androidmtrls.AMTheme
-import com.ideamtrls.androidmtrls.ProvideAMOnSurface
-import com.ideamtrls.androidmtrls.amCard
 
 /** How long a post or a reply may be. */
 private const val SocialPostLimit = 280
 
 /**
- * The compose sheet's content, under its "New post" / "Reply" title: who you're replying to, your
- * avatar beside the editor (focused as the sheet opens), a character count (red past the limit),
- * and Post or Reply at the bottom, disabled while the text is blank or too long. The draft lives in
- * the sheet, so any close but sending drops it, without asking.
+ * The compose sheet's content, under its "New post" / "Reply" title: who you're replying to, then
+ * your avatar beside a plain editor that writes straight on the sheet, down to the character count
+ * (red past the limit), focused as the sheet opens; then Post or Reply at the bottom, disabled
+ * while the text is blank or too long. The draft lives in the sheet, so any close but sending
+ * drops it, without asking.
  */
 @Composable
 internal fun ColumnScope.SocialComposeSheet(model: SocialModel) {
@@ -58,28 +56,23 @@ internal fun ColumnScope.SocialComposeSheet(model: SocialModel) {
             )
         }
         Row(
-            Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            Modifier.fillMaxWidth().weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            ProvideAMOnSurface {
-                val self = model.selfUser
-                AMAvatar(
-                    self.avatarUrl,
-                    self.name,
-                    Modifier.padding(top = spacing.sm).clearAndSetSemantics {},
-                    size = AMAvatarSize.Small,
-                )
-                AMTextEditor(
-                    draft,
-                    label = if (isReply) "Write a reply" else "Write a post",
-                    modifier = Modifier.weight(1f),
-                    minLines = 5,
-                    maxLines = 12,
-                    autofocus = AMTextFieldAutofocus.CaretAtEnd,
-                )
-            }
+            val self = model.selfUser
+            AMAvatar(
+                self.avatarUrl,
+                self.name,
+                Modifier.padding(top = spacing.xs).clearAndSetSemantics {},
+                size = AMAvatarSize.Small,
+            )
+            AMPlainTextEditor(
+                draft,
+                placeholder = if (isReply) "Write a reply" else "Write a post",
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                autofocus = AMTextFieldAutofocus.CaretAtEnd,
+            )
         }
-        Spacer(Modifier.weight(1f))
         Text(
             "$count/$SocialPostLimit",
             Modifier.fillMaxWidth(),

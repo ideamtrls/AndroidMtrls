@@ -5,11 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.dp
+import com.ideamtrls.androidmtrls.AMAvatar
+import com.ideamtrls.androidmtrls.AMAvatarSize
+import com.ideamtrls.androidmtrls.AMPlainTextEditor
 import com.ideamtrls.androidmtrls.AMTextEditor
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.ProvideAMOnSurface
@@ -21,7 +29,18 @@ internal val TextEditorEntry = ComponentEntry(
     title = "Text editor",
     summary = "Multiline input that grows with its text",
     icon = R.drawable.ic_notes,
-    keywords = listOf("AMTextEditor", "multiline", "notes", "compose", "message", "auto-grow", "lines"),
+    keywords = listOf(
+        "AMTextEditor",
+        "AMPlainTextEditor",
+        "multiline",
+        "notes",
+        "compose",
+        "message",
+        "auto-grow",
+        "lines",
+        "plain",
+        "frameless",
+    ),
 ) { TextEditorPage() }
 
 @Composable
@@ -34,6 +53,7 @@ private fun TextEditorPage() {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
             FrostedNoteCard()
             WeeklyUpdate()
+            PlainReply()
         }
     }
 }
@@ -80,3 +100,25 @@ private fun WeeklyUpdate() {
         AMTextEditor(blockers, label = "Blockers", placeholder = "Anything the team should know")
     }
 }
+
+/** A reply written straight on its card: your avatar beside a plain editor holding a line. */
+@Composable
+private fun PlainReply() {
+    val spacing = AMTheme.tokens.spacing
+    val reply = rememberTextFieldState("Count me in for Thursday. I'll bring the slides.")
+    Row(
+        Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)).height(PlainReplyHeight),
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+        AMAvatar(
+            null,
+            "Ada Lovelace",
+            Modifier.padding(top = spacing.xs).clearAndSetSemantics {},
+            size = AMAvatarSize.Small,
+        )
+        AMPlainTextEditor(reply, "Write a reply", Modifier.weight(1f).fillMaxHeight())
+    }
+}
+
+/** How tall the reply's card is: room to write under the line it holds. */
+private val PlainReplyHeight = 160.dp

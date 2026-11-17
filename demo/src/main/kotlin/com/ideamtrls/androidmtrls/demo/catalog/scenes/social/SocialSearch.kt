@@ -3,7 +3,6 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -20,8 +19,8 @@ import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 /**
- * The search sheet's content, under its "Search" title: the search field (focused as the sheet
- * opens) in a card, the topic chips (any number), then the matching posts in a card of rows, each
+ * The search sheet's content, under its "Search" title: the search field (its own card, focused as
+ * the sheet opens), the topic chips (any number), then the matching posts in a card of rows, each
  * closing the sheet and opening its post. Before there's anything to search, and when nothing
  * matches, an empty state says so.
  */
@@ -37,10 +36,7 @@ internal fun ColumnScope.SocialSearchSheet(model: SocialModel) {
     ) {
         AMSearchField(
             model.searchQuery,
-            Modifier
-                .padding(horizontal = spacing.lg)
-                .fillMaxWidth()
-                .amCard(padding = PaddingValues(spacing.lg)),
+            Modifier.padding(horizontal = spacing.lg),
             placeholder = "Search posts and people",
             autofocus = AMTextFieldAutofocus.CaretAtEnd,
         )

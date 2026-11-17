@@ -1,5 +1,7 @@
 package com.ideamtrls.androidmtrls
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
@@ -85,6 +87,8 @@ public fun AMSecureField(
     val isEnabled = resolveEnabled(enabled)
     var revealed by rememberSaveable { mutableStateOf(false) }
     val hasText by remember(state) { derivedStateOf { state.text.isNotEmpty() } }
+    val interactions = remember { MutableInteractionSource() }
+    val focused by interactions.collectIsFocusedAsState()
     val trailingIcon: (@Composable () -> Unit)? = when {
         showRevealButton -> {
             {
@@ -96,7 +100,7 @@ public fun AMSecureField(
                 }
             }
         }
-        isEnabled && hasText -> { { InputClearButton(state) } }
+        isEnabled && focused && hasText -> { { InputClearButton(state) } }
         else -> null
     }
     val container = outlinedFieldContainer()
@@ -118,5 +122,6 @@ public fun AMSecureField(
         keyboardOptions = PasswordKeyboard.merge(keyboardOptions),
         onKeyboardAction = onKeyboardAction,
         colors = container.colors,
+        interactionSource = interactions,
     )
 }

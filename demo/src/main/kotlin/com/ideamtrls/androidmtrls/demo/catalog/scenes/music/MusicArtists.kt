@@ -48,15 +48,15 @@ import com.ideamtrls.androidmtrls.amFloatingActions
  * The Artists root, the scene's landing view: the "Artists" header with the light/dark chip at its
  * end, over one art entry per artist, each on its photo's art row. A tap opens the artist; press
  * and hold opens the queue menu. The header's title reads on the art at rest and on its frosted
- * fill as it collapses, and the status bar's icons follow the appearance: the rows are washed
- * toward the mode (the library's page header and art rows do all of it).
+ * fill once the rows scroll under it, and the status bar's icons follow the appearance: the rows
+ * are washed toward the mode (the library's page header and art rows do all of it).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MusicArtistsView(model: MusicModel) {
     val spacing = AMTheme.tokens.spacing
     val catalog = model.catalog
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     AMArtRowsBackdrop(Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

@@ -22,7 +22,8 @@ display, collections) and the style values behind them. It has no app logic and 
   shadows and hairlines, cards, the remote (the floating action button and its tiles) as the app's
   main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color
   under cards, folding, and quiet defaults. The screen is a backdrop layer (always frosty) and a surface
-  layer on it, solid or frosted by one setting, `AMTheme(surfaceFill = …)`.
+  layer on it, solid or frosted by one setting, `AMTheme(surfaceFill = …)`. The remote is solid in
+  either setting, so the app's main navigation is always easy to see.
 - **Where the line falls: stateless surfaces wear the style; native controls keep Material's
   shapes, outlines and behavior and take the model's container colors.** Cards, buttons, tiles and
   the floating action button get the floating surface, the shadow and the hairline; sheets get a
@@ -38,9 +39,9 @@ the one package.
 
 | Area | Main components |
 |---|---|
-| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frost over art), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
+| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frost over art), `AMBlur` (`Frost`, `Mist`), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
 | `actions` | `AMButton` and `AMButtonStyle`, `AMIconButton`, `AMCardButton`, `AMFloatingActionButton`, `AMFloatingActions` (the remote), `AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`, `AMFormActions`, `AMCardActionRow` |
-| `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
+| `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMPlainTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
 | `selection` | `AMSegmentedControl`, `AMMenuPicker`, `AMChipGroup`, `AMFlowLayout`, `AMCalendar`, `AMSelectionMark` and `Modifier.amSelectionCheck` |
 | `navigation` | `AMScene` (a screen's root, with slots for the remote and scene-wide overlays), `AMKeepsPlace`, `AMStatusBarIcons`, `AMPanel`, `AMPanelChrome`, `AMArtPanelChrome`, `AMToolbar`, `AMToolbarButton`, `AMTabs`, `AMPageIndicator` |
 | `layout` | `Modifier.amCard()`, the row recipe (`Modifier.amRowPadding()`, `AMRowDefaults`), `AMSection`, `AMDisclosureGroup`, `AMDivider` |

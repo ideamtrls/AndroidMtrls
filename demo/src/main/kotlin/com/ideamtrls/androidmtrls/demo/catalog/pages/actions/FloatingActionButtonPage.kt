@@ -80,7 +80,7 @@ private fun compose() {}
 
 private fun search() {}
 
-/** The frosted + over a photo: its height. */
+/** The + over a photo in a frosted app, solid there too: its height. */
 private val PhotoSceneHeight = 220.dp
 
 /** The band's height: the scene's screen. */

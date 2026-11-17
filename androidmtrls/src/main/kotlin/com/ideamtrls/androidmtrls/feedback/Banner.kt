@@ -186,7 +186,7 @@ public fun AMBannerHost(
  *
  * A screen's host lays its banners on the backdrop around it, or with none on the art the showing
  * root of [sceneBackdrops] draws (a scene with several root views), so the band and the card frost
- * that art as the scene's remote button does.
+ * that art.
  */
 @Composable
 internal fun BannerHost(

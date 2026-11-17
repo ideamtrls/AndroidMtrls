@@ -25,7 +25,7 @@ internal val SearchFieldEntry = ComponentEntry(
     summary = "Search input that filters as you type",
     icon = R.drawable.ic_search,
     keywords = listOf(
-        "AMSearchField", "SearchBarDefaults", "InputField", "search", "filter", "query", "clear", "back",
+        "AMSearchField", "TextField", "card", "search", "filter", "query", "clear", "back",
     ),
 ) { SearchFieldPage() }
 
@@ -54,36 +54,41 @@ private fun SearchStrip() {
     }
 }
 
-/** A search field in a frosted card over a photo, a few cities under it. */
+/** A search field over a photo, the first few cities that match in a card under it. */
 @Composable
 private fun FrostedCitySearch() {
     val spacing = AMTheme.tokens.spacing
     val query = rememberTextFieldState()
     val text = query.text.toString().trim()
     CatalogFrostedStage {
-        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard()) {
-            ProvideAMOnSurface {
-                AMSearchField(query, Modifier.padding(spacing.lg), placeholder = "Search cities")
-                Cities.filter { it.contains(text, ignoreCase = true) }.take(3).forEach { city ->
-                    AMDivider(inset = spacing.lg)
-                    Text(city, Modifier.amRowPadding(), style = MaterialTheme.typography.bodyLarge)
-                }
-            }
+        Column(Modifier.padding(spacing.lg).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+            AMSearchField(query, placeholder = "Search cities")
+            CityCard(Cities.filter { it.contains(text, ignoreCase = true) }.take(3))
         }
     }
 }
 
-/** A card of cities under a search field that filters them as you type. */
+/** A search field over a card of cities that it filters as you type. */
 @Composable
 private fun CitySearch() {
-    val spacing = AMTheme.tokens.spacing
     val query = rememberTextFieldState()
     val text = query.text.toString().trim()
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
+        AMSearchField(query, placeholder = "Search cities")
+        CityCard(Cities.filter { it.contains(text, ignoreCase = true) })
+    }
+}
+
+/** The cities that match, one row each in a card; nothing while none do. */
+@Composable
+private fun CityCard(cities: List<String>) {
+    if (cities.isEmpty()) return
     Column(Modifier.fillMaxWidth().amCard()) {
-        AMSearchField(query, Modifier.padding(spacing.lg), placeholder = "Search cities")
-        Cities.filter { it.contains(text, ignoreCase = true) }.forEach { city ->
-            AMDivider(inset = spacing.lg)
-            Text(city, Modifier.amRowPadding(), style = MaterialTheme.typography.bodyLarge)
+        ProvideAMOnSurface {
+            cities.forEachIndexed { index, city ->
+                if (index > 0) AMDivider(inset = AMTheme.tokens.spacing.lg)
+                Text(city, Modifier.amRowPadding(), style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }

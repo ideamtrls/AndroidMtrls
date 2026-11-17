@@ -243,6 +243,12 @@ internal object Style {
         val WashDark = Color.Black.copy(alpha = 0.65f)
 
         /**
+         * The remote's cover over the blurred screen in dark mode: black at 0.4, so the paused
+         * screen dims; in light mode the blur lies bare.
+         */
+        val ScrimDark = Color.Black.copy(alpha = 0.4f)
+
+        /**
          * The page wash over a paused picture (`AMPausedScrim.Page`), in both modes: enough to demote
          * the picture while its color shows through.
          */

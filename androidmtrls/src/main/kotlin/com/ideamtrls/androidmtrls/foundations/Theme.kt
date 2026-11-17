@@ -41,9 +41,9 @@ import androidx.compose.ui.unit.Dp
  * **The surface setting** ([surfaceFill]) is the app's material, set once here: solid floating
  * surfaces, or frosted ones over the app's art. A piece embedded in a frosted surface (inside a
  * card, tabs or a section, or on a sheet) draws the tint, [AMTheme.Frosted.embeddedFill]. With no
- * art behind it, a frosted surface is frost over the page color; in the remote's and the
- * spotlight's blurred windows it's frost over the window's own blur, and solid while the system
- * has cross-window blur off.
+ * art behind it, a frosted surface is frost over the page color; in the spotlight's blurred
+ * window it's frost over the window's own blur, and solid while the system has cross-window blur
+ * off. The remote's content, and the + that opens it, are solid in either setting.
  *
  * Nested inside another `AMTheme`, the defaults keep what the outer theme set: its appearance, in
  * that appearance its color scheme, and its surface setting. So a subtree that only changes
@@ -218,9 +218,6 @@ public object AMTheme {
          */
         public val tint: Color
             @Composable @ReadOnlyComposable get() = frostedTint(MaterialTheme.colorScheme.primary, isDark)
-
-        /** The blur under the fill, as Android's blur radius. */
-        public val blurRadius: Dp = Style.Frosted.BlurRadius
     }
 
     /**
@@ -257,17 +254,10 @@ public object AMTheme {
     public val rowVerticalPadding: Dp = Style.Row.VerticalPadding
 
     /**
-     * The modal overlay recipe behind the remote and the spotlight: the screen behind blurs, and
+     * The modal overlay recipe behind the spotlight: the screen behind blurs ([AMBlur.Mist]), and
      * the mode's [wash] lies over it.
      */
     public object Overlay {
-        /**
-         * The blur behind the overlay window, as Android's blur radius: 34 dp, a Gaussian sigma of
-         * about 20. [AMBackdropBlur] and [Modifier.amPausedBackdrop][amPausedBackdrop] blur by it
-         * too.
-         */
-        public val blurRadius: Dp = Style.ModalOverlay.BlurRadius
-
         /**
          * The wash over the paused screen: white at 0.6 in light mode, black at 0.65 in dark mode,
          * enough for the spotlight's title, in the tone's fixed ink, to hold 4.5:1 over any screen behind
@@ -386,7 +376,7 @@ internal fun tintedGround(dark: Boolean): Float {
 }
 
 /**
- * The relative luminance of the frosted fill in a blurred window (the remote's, the spotlight's),
+ * The relative luminance of the frosted fill in a blurred window (the spotlight's),
  * at its hardest for text: the fill over the window's wash over the worst screen behind it, black
  * in light mode and white in dark mode. The window's blur only evens that screen out.
  */
@@ -442,6 +432,6 @@ internal fun surfaceAccent(): Color =
 @ReadOnlyComposable
 private fun liesOnFrost(): Boolean = when (LocalAMLiesOn.current) {
     LiesOn.Sheet -> true
-    LiesOn.Surface -> LocalAMSurfaceFill.current == AMSurfaceFill.Frosted
+    LiesOn.Surface, LiesOn.EmbeddedSurface -> LocalAMSurfaceFill.current == AMSurfaceFill.Frosted
     LiesOn.Page -> false
 }

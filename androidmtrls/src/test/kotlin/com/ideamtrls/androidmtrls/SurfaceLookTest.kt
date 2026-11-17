@@ -22,6 +22,8 @@ class SurfaceLookTest {
     fun fieldsTakeTheTintEmbeddedInAFrostedApp() {
         assertEquals(FieldContainer.Tint, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Surface))
         assertEquals(FieldContainer.Tint, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Sheet))
+        assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Frosted, LiesOn.EmbeddedSurface))
+        assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.EmbeddedSurface))
         assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Frosted, LiesOn.Page))
         assertEquals(FieldContainer.Solid, fieldContainer(AMSurfaceFill.Solid, LiesOn.Sheet))
         assertEquals(FieldContainer.Clear, fieldContainer(AMSurfaceFill.Solid, LiesOn.Surface))

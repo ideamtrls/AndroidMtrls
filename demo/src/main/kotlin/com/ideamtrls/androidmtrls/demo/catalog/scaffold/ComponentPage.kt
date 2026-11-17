@@ -67,13 +67,13 @@ internal fun ComponentPage(
     loaded: @Composable () -> Unit = {},
 ) {
     val navigator = LocalCatalogNavigator.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scrollState = rememberScrollState()
     val sectionTops = remember { mutableMapOf<String, Int>() }
     var scrollRoom by remember { mutableIntStateOf(0) }
 
-    // The `scrollTo` extra: once the page has laid out, collapse the bar and bring the section
-    // to just under it. A page that scrolls gets the viewport's height again as room at its end,
+    // The `scrollTo` extra: once the page has laid out, bring the section to just under the bar,
+    // which takes the page color as it would scrolled by hand. A page that scrolls gets the viewport's height again as room at its end,
     // so the target can always reach the top instead of the scroll stopping at the page's end.
     // A page that doesn't scroll gets none and still doesn't.
     LaunchedEffect(Unit) {
@@ -83,8 +83,9 @@ internal fun ComponentPage(
         scrollRoom = scrollState.viewportSize
         delay(400)
         val top = sectionTops[target] ?: return@LaunchedEffect
-        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
         scrollState.scrollTo(top)
+        // A programmatic scroll goes past the bar's connection, so tell the bar what's under it.
+        scrollBehavior.state.contentOffset = -scrollState.value.toFloat()
     }
 
     // The screen root: banners and toasts the demos post show over the whole page.

@@ -60,7 +60,7 @@ import androidx.compose.ui.draw.clip
  *   as an item of a lazy list), it's a plain column as tall as its rows that scrolls with the
  *   page, so the card holding it is as long as its rows. Everything else stays: the lift, the
  *   neighbors sliding aside, the settle, the swipes. A lifted row scrolls the page near the edges
- *   of what's visible of the list, through nested scrolling, so a collapsing top app bar follows
+ *   of what's visible of the list, through nested scrolling, so the top app bar above follows
  *   along. Every row is composed, so keep this for lists of a page's length; [state] isn't used.
  * - **Holding a row.** A hold that lifts a row and a hold on the row itself (`Modifier.amHoldable`
  *   opening its spotlight) answer the same long-press timeout. With [holdToLift] false only the
@@ -170,7 +170,7 @@ public fun <T> AMReorderableRowList(
  *   as an item of a lazy list), it's a plain column as tall as its cards that scrolls with the
  *   page, the way a page of cards under a header reads. Everything else stays: the lift, the
  *   neighbors sliding aside, the settle. A lifted card scrolls the page near the edges of what's
- *   visible of the list, through nested scrolling, so a collapsing top app bar follows along. Every
+ *   visible of the list, through nested scrolling, so the top app bar above follows along. Every
  *   card is composed, so keep this for lists of a page's length; [state] isn't used.
  * - **TalkBack** gets "Move up" and "Move down" on each card, on an [AMListCard]'s own node.
  *

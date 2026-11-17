@@ -39,14 +39,14 @@ import com.ideamtrls.androidmtrls.amHoldable
 /**
  * The Feed, the scene's landing view: its header (the light/dark chip and the alerts bell, which
  * pushes the alerts as a panel) over the posts, newest first, each a card. Pulling the list down
- * reopens a collapsed header, then refreshes it. Until the first load lands, the same feed shows as shimmering placeholders under
- * a live header.
+ * from its top refreshes it. Until the first load lands, the same feed shows as shimmering
+ * placeholders under a live header.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocialFeed(model: SocialModel, postActions: SocialPostActions) {
     val spacing = AMTheme.tokens.spacing
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         topBar = {
             AMPageHeader(

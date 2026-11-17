@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.Dp
  * the picture itself; a modal layer's blur comes with [AMActionsOverlay] and [AMSpotlight].
  *
  * @param modifier the blurred area's size and placement.
- * @param radius the blur, as Android's blur radius: [AMTheme.Overlay.blurRadius] by default.
+ * @param blur how much it blurs: [AMBlur.Mist] (the default) or [AMBlur.Frost].
  */
 @Composable
-public fun AMBackdropBlur(modifier: Modifier = Modifier, radius: Dp = AMTheme.Overlay.blurRadius) {
-    Spacer(modifier.then(BackdropBlurElement(radius)))
+public fun AMBackdropBlur(modifier: Modifier = Modifier, blur: AMBlur = AMBlur.Mist) {
+    Spacer(modifier.then(BackdropBlurElement(blur.radius)))
 }
 
 private data class BackdropBlurElement(val radius: Dp) : ModifierNodeElement<BackdropBlurNode>() {

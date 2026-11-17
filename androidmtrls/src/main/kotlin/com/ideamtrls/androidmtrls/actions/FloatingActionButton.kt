@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,10 +106,11 @@ public fun rememberAMFloatingActionButtonState(): AMFloatingActionButtonState =
  * [AMScene], which opens the remote from it and fades it out of the way while any overlay is up;
  * a button placed by hand gets none of that.
  *
- * It wears the floating surface in the app's surface setting ([AMTheme.surfaceFill]) with the
- * circle's two-layer shadow: in a solid app white in light mode and black in dark mode, with a
- * hairline in both modes; in a frosted app frosted over the backdrop, with the frosted edge. A tap
- * ripples and calls [onClick].
+ * It wears the solid floating surface with the circle's two-layer shadow, white in light mode and
+ * black in dark mode, with a hairline in both modes, whatever the app's surface setting
+ * ([AMTheme.surfaceFill]): like the remote's tiles, the button that opens the app's main
+ * navigation never shows the screen through it, so it's always easy to see. A tap ripples and
+ * calls [onClick].
  *
  * **It always moves.** A long press (the system's long-press timeout) lifts it, with a haptic: it
  * grows a little and casts a deeper shadow. While lifted it follows the finger, and where it's let
@@ -145,78 +147,82 @@ public fun AMFloatingActionButton(
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "lift",
     )
-    Box(
-        modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(bottom = AMTheme.tokens.spacing.lg),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
+    // The + is solid in either surface setting, as the remote's tiles are, so the button that
+    // opens the app's main navigation never shows the screen through it.
+    CompositionLocalProvider(LocalAMSurfaceFill provides AMSurfaceFill.Solid) {
         Box(
-            Modifier
-                // Absolute: the drag is in screen terms, so the button follows the finger in right
-                // to left layouts too.
-                .absoluteOffset {
-                    IntOffset(
-                        (state.offset.x.toPx() + drag.x).roundToInt(),
-                        (state.offset.y.toPx() + drag.y).roundToInt(),
+            modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(bottom = AMTheme.tokens.spacing.lg),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Box(
+                Modifier
+                    // Absolute: the drag is in screen terms, so the button follows the finger in right
+                    // to left layouts too.
+                    .absoluteOffset {
+                        IntOffset(
+                            (state.offset.x.toPx() + drag.x).roundToInt(),
+                            (state.offset.y.toPx() + drag.y).roundToInt(),
+                        )
+                    }
+                    .systemGestureExclusion()
+                    .size(FloatingActionButtonDiameter)
+                    // The tap: Material's ripple, the button role, focus and keys. The lift below takes
+                    // the touch from it, so a lifted button never counts as a tap.
+                    .clickable(
+                        interactionSource = interactions,
+                        indication = null,
+                        enabled = isEnabled,
+                        role = Role.Button,
+                        onClick = onClick,
                     )
-                }
-                .systemGestureExclusion()
-                .size(FloatingActionButtonDiameter)
-                // The tap: Material's ripple, the button role, focus and keys. The lift below takes
-                // the touch from it, so a lifted button never counts as a tap.
-                .clickable(
-                    interactionSource = interactions,
-                    indication = null,
-                    enabled = isEnabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                )
-                .pointerInput(isEnabled, state) {
-                    if (!isEnabled) return@pointerInput
-                    awaitEachGesture {
-                        val down = awaitFirstDown(requireUnconsumed = false)
-                        val hold = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
-                        lifted = true
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        var released = false
-                        try {
-                            while (!released) {
-                                val change = awaitPointerEvent().changes.firstOrNull { it.id == hold.id } ?: break
-                                drag += change.positionChangeIgnoreConsumed()
-                                change.consume()
-                                released = !change.pressed
+                    .pointerInput(isEnabled, state) {
+                        if (!isEnabled) return@pointerInput
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            val hold = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
+                            lifted = true
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            var released = false
+                            try {
+                                while (!released) {
+                                    val change = awaitPointerEvent().changes.firstOrNull { it.id == hold.id } ?: break
+                                    drag += change.positionChangeIgnoreConsumed()
+                                    change.consume()
+                                    released = !change.pressed
+                                }
+                            } finally {
+                                // A release leaves the button where it is; a cancelled touch puts it back.
+                                if (released) {
+                                    state.offset = DpOffset(state.offset.x + drag.x.toDp(), state.offset.y + drag.y.toDp())
+                                }
+                                drag = Offset.Zero
+                                lifted = false
                             }
-                        } finally {
-                            // A release leaves the button where it is; a cancelled touch puts it back.
-                            if (released) {
-                                state.offset = DpOffset(state.offset.x + drag.x.toDp(), state.offset.y + drag.y.toDp())
-                            }
-                            drag = Offset.Zero
-                            lifted = false
                         }
                     }
-                }
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                // In the app's surface setting, outlined in both modes when it's solid.
-                .amElevatedSurface(
-                    CircleShape,
-                    if (lifted) AMElevation.Medium else AMElevation.Low,
-                    alwaysOutlined = true,
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    // Solid (the provider above), outlined in both modes.
+                    .amElevatedSurface(
+                        CircleShape,
+                        if (lifted) AMElevation.Medium else AMElevation.Low,
+                        alwaysOutlined = true,
+                    )
+                    .clip(CircleShape)
+                    .indication(interactions, ripple()),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(R.drawable.am_ic_add),
+                    contentDescription = contentDescription,
+                    tint = if (isEnabled) onSurface else onSurface.copy(alpha = DisabledContentAlpha),
                 )
-                .clip(CircleShape)
-                .indication(interactions, ripple()),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painterResource(R.drawable.am_ic_add),
-                contentDescription = contentDescription,
-                tint = if (isEnabled) onSurface else onSurface.copy(alpha = DisabledContentAlpha),
-            )
+            }
         }
     }
 }

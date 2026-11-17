@@ -21,9 +21,11 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
  * }
  * ```
  *
- * The region takes its size from [modifier] and [content]; [art] fills it. Only [art] is sampled,
- * never the content, so a frosted surface never blurs itself or another frosted surface. The
- * nearest backdrop wins: a row's own art beats the page's.
+ * The region takes its size from [modifier] and [content]; [art] fills it. The surfaces in
+ * [content] sample only [art], never the content, so a frosted surface never blurs itself or
+ * another frosted surface. The nearest backdrop wins: a row's own art beats the page's. A sheet
+ * presented from [content] is a window over the screen, so it blurs the region whole: the art
+ * and everything on it ([AMSheet]).
  *
  * **It's an art surface.** What lies on it takes its over-art look for its [tone]: section
  * headers and footers, empty states, ghost buttons, page headers, panel chrome and art text
@@ -45,9 +47,10 @@ public fun AMBackdrop(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layer = rememberGraphicsLayer()
-    val source = remember(layer) { AMBackdropSource(layer) }
+    val screen = rememberGraphicsLayer()
+    val source = remember(layer, screen) { AMBackdropSource(layer, screen) }
     val artTone = tone ?: modeArtTone()
-    Box(modifier.then(artStatusBar(source, artTone))) {
+    Box(modifier.then(artStatusBar(source, artTone)).backdropScreen(source)) {
         Box(Modifier.matchParentSize().backdropSource(source)) { art() }
         val scope = this
         CompositionLocalProvider(

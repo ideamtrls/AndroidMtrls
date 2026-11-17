@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMBackdrop
+import com.ideamtrls.androidmtrls.AMBlur
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.AMToolbar
@@ -115,6 +116,6 @@ private fun PhotoScreen() {
 /** The photo behind the toolbar: heavily blurred under the frosted wash, so the title reads on it. */
 @Composable
 private fun PhotoArt() {
-    AMRemoteImage(Photo, contentDescription = null, Modifier.fillMaxSize().blur(AMTheme.Frosted.blurRadius))
+    AMRemoteImage(Photo, contentDescription = null, Modifier.fillMaxSize().blur(AMBlur.Frost.radius))
     Box(Modifier.fillMaxSize().background(AMTheme.Frosted.fill))
 }

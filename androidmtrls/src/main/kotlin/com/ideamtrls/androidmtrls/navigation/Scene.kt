@@ -159,12 +159,12 @@ private fun SceneRoot(
  *   panel on top, and follows it as roots switch, panels come and go and the art changes. While
  *   the root draws none, it samples whatever backdrop is around the scene, or with none it's frost
  *   over the page color.
- * - **The remote's button lies on art too.** In a scene inside an [AMBackdrop] it frosts that
- *   backdrop's art. A scene with none, whose art is each page's own, lays it on the showing root's
- *   art, as it does [overlays], so the frosted + blurs the page under it.
- * - **So do the scene's banners.** The band behind a banner and the banner's card frost the same
- *   art the + does: the backdrop around the scene, or with none the showing root's. Only the banner
- *   layer lies on it; the roots keep their own backdrops.
+ * - **The remote's button is always solid.** Whatever the app's surface setting, the + is white in
+ *   light mode and black in dark, as the remote's tiles are, so it never shows the page under it
+ *   ([AMFloatingActionButton]).
+ * - **The scene's banners lie on art too.** The band behind a banner and the banner's card frost
+ *   the backdrop around the scene, or, in a scene with none, whose art is each page's own, the
+ *   showing root's. Only the banner layer lies on it; the roots keep their own backdrops.
  * - **Back to the landing view.** Back goes to the topmost window first (an alert, the spotlight or
  *   the remote, a sheet), then to the current root's panels (its `NavDisplay` pops them). On a root
  *   other than [landing] with no panel left, back calls [onCurrentChange] with [landing], an
@@ -177,8 +177,8 @@ private fun SceneRoot(
  * @param landing the root the scene opens on, which back returns to before leaving the app.
  * @param onCurrentChange called with [landing] when back swaps to it. Apply it to [current].
  * @param modifier the scene's size and placement: usually the whole window.
- * @param floatingActions the remote's button and menu, an [AMFloatingActions], on the scene's
- *   backdrop or, with none, on the showing root's art. Null shows none.
+ * @param floatingActions the remote's button and menu, an [AMFloatingActions], solid in either
+ *   surface setting. Null shows none.
  * @param overlays what the whole scene presents over its roots, whichever is showing: its sheets,
  *   alerts, spotlight, loading overlay and toasts. Composed after the roots and before the remote,
  *   on the showing root's art. Null composes nothing.
@@ -226,9 +226,10 @@ private fun SceneOverlays(backdrops: AMSceneBackdrops, overlays: @Composable () 
 
 /**
  * The scene's remote, on the backdrop around the scene, or, in a scene with none, on the art the
- * showing root draws: its frosted button samples it in the scene's own window, by layout position.
- * The scene's backdrop comes first because it lies still under the button while Navigation 3 fades
- * and scales a root's pages.
+ * showing root draws, for a frosted piece in the slot to sample in the scene's own window, by
+ * layout position; the + itself is solid in either setting and samples nothing. The scene's
+ * backdrop comes first because it lies still under the slot while Navigation 3 fades and scales a
+ * root's pages.
  */
 @Composable
 private fun SceneFloatingActions(backdrops: AMSceneBackdrops, floatingActions: @Composable () -> Unit) {
