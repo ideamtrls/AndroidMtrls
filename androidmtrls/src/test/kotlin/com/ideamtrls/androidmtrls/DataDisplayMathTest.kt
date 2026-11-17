@@ -216,26 +216,61 @@ class DataDisplayMathTest {
         assertEquals(1f, pixels[15], 0f)
     }
 
-    // The art rows' bands
-
     @Test
-    fun bandsMeetHalfwayAndBleedPastTheEnds() {
-        val bands = artRowBands(listOf(ArtSpan(0f, 100f), ArtSpan(200f, 300f)), height = 300f, blend = 50f, bleed = 1000f)
-        assertEquals(-1000f, bands[0].top, 0f)
-        assertEquals(200f, bands[0].bottom, 0f) // halfway (150) plus the blend
-        assertEquals(0f, bands[0].fade, 0f)
-        assertEquals(100f, bands[1].top, 0f) // halfway less the blend
-        assertEquals(1300f, bands[1].bottom, 0f)
-        assertEquals(100f, bands[1].fade, 0f) // twice the blend
+    fun flipRowsTurnsThePixelsUpsideDown() {
+        // Two pixels a row, three rows: each row's pixels hold its number.
+        val pixels = FloatArray(2 * 3 * 4) { it / 8 + 1f }
+        flipRows(pixels, width = 2, height = 3)
+        assertEquals(3f, pixels[0], 0f)
+        assertEquals(3f, pixels[7], 0f)
+        assertEquals(2f, pixels[8], 0f)
+        assertEquals(1f, pixels[16], 0f)
+        assertEquals(1f, pixels[23], 0f)
     }
 
     @Test
-    fun aLoneRowCoversEverything() {
+    fun aFlippedBandHasAKeyOfItsOwn() {
+        val url = ArtSource.Url("https://example.com/a.jpg")
+        val upright = artKey(url, IntSize(1080, 600), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 240f)
+        val flipped = artKey(url, IntSize(1080, 600), 543f, 2.2f, dark = false, wash = 0.7f, washSaturation = 1.8f, fade = 240f, flipped = true)
+        assertNotEquals(upright, flipped)
+    }
+
+    // The art rows' bands
+
+    @Test
+    fun bandsMeetHalfwayAndRunCopiesPastTheEnds() {
+        val bands = artRowBands(listOf(ArtSpan(0f, 100f), ArtSpan(200f, 300f)), height = 300f, blend = 50f, bleed = 1000f)
+        assertEquals(5, bands.size)
+        // A mirror of the first row, a pitch (its height and its gap) above it, fading in over the page.
+        assertBand(bands[0], top = -300f, bottom = 0f, fade = 100f, row = 0, copy = true, flipped = true)
+        // The rows: each from halfway to the frame above less the blend to halfway below plus it.
+        assertBand(bands[1], top = -100f, bottom = 200f, fade = 100f, row = 0, copy = false, flipped = false)
+        assertBand(bands[2], top = 100f, bottom = 400f, fade = 100f, row = 1, copy = false, flipped = false)
+        assertBand(bands[3], top = 300f, bottom = 600f, fade = 100f, row = 1, copy = true, flipped = true)
+        // Then the page color fades back in and runs the bleed past the end.
+        assertBand(bands[4], top = 500f, bottom = 1300f, fade = 100f, row = ArtBand.Blank, copy = false, flipped = false)
+    }
+
+    @Test
+    fun anEndRowsBandIsInItsOwnFrame() {
         val bands = artRowBands(listOf(ArtSpan(40f, 120f)), height = 500f, blend = 50f, bleed = 1000f)
-        assertEquals(1, bands.size)
-        assertEquals(-1000f, bands[0].top, 0f)
-        assertEquals(1500f, bands[0].bottom, 0f)
-        assertEquals(0f, bands[0].fade, 0f)
+        val row = bands.single { it.row == 0 && !it.copy }
+        assertEquals(-10f, row.top, 0f)
+        assertEquals(170f, row.bottom, 0f)
+    }
+
+    @Test
+    fun copiesCoverTwiceTheBlendFlippedInTurn() {
+        // An 80-pixel row needs two copies to cover 100 pixels on each side.
+        val bands = artRowBands(listOf(ArtSpan(40f, 120f)), height = 500f, blend = 50f, bleed = 1000f)
+        assertEquals(listOf(true, true, false, true, true, false), bands.map { it.copy })
+        assertEquals(listOf(false, true, false, true, false, false), bands.map { it.flipped })
+        assertEquals(ArtBand.Blank, bands.last().row)
+        assertEquals(230f, bands.last().top, 0f)
+        assertEquals(1500f, bands.last().bottom, 0f)
+        // A short row's copies stop at six a side.
+        assertEquals(12, artRowBands(listOf(ArtSpan(0f, 10f)), height = 10f, blend = 50f, bleed = 1000f).count { it.copy })
     }
 
     @Test
@@ -246,9 +281,20 @@ class DataDisplayMathTest {
             blend = 50f,
             bleed = 1000f,
         )
-        assertEquals(50f, bands[1].top, 0f)
-        assertEquals(160f, bands[1].bottom, 0f)
-        assertEquals(100f, bands[1].fade, 0f)
-        assertEquals(2, artRowBands(listOf(ArtSpan(0f, 0f), ArtSpan(0f, 0f)), 0f, 0f, 0f).count { it.bottom - it.top >= 1f })
+        val middle = bands.single { it.row == 1 && !it.copy }
+        assertEquals(50f, middle.top, 0f)
+        assertEquals(160f, middle.bottom, 0f)
+        assertEquals(100f, middle.fade, 0f)
+        assertTrue(artRowBands(listOf(ArtSpan(0f, 0f), ArtSpan(0f, 0f)), 0f, 0f, 0f).all { it.bottom - it.top >= 1f })
+        assertTrue(artRowBands(emptyList(), 100f, 50f, 1000f).isEmpty())
+    }
+
+    private fun assertBand(band: ArtBand, top: Float, bottom: Float, fade: Float, row: Int, copy: Boolean, flipped: Boolean) {
+        assertEquals(top, band.top, 0f)
+        assertEquals(bottom, band.bottom, 0f)
+        assertEquals(fade, band.fade, 0f)
+        assertEquals(row, band.row)
+        assertEquals(copy, band.copy)
+        assertEquals(flipped, band.flipped)
     }
 }
