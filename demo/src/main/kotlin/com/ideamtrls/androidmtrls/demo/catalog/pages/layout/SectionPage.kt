@@ -107,7 +107,7 @@ private fun WorkspaceSettings() {
         }
         AMSection("About", elevation = AMElevation.None) {
             Text(
-                "Atlas keeps every project, task and deadline in one place so nothing slips between meetings.",
+                "Atlas keeps every project, task, and deadline in one place so nothing slips between meetings.",
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

@@ -113,7 +113,7 @@ private fun NotificationSettings() {
     var followers by rememberSaveable { mutableStateOf(false) }
     val spacing = AMTheme.tokens.spacing
 
-    AMButton("Notification settings", onClick = { showsSettings = true })
+    AMButton("Notification settings", onClick = { showsSettings = true }, modifier = Modifier.fillMaxWidth())
     AMSheet(
         showsSettings,
         onDismissRequest = { showsSettings = false },

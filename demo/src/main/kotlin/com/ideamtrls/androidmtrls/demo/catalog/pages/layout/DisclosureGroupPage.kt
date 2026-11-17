@@ -57,38 +57,51 @@ private fun AdvancedOptions() {
     }
 }
 
-/** An order's details folded into cards: the summary open, billing and shipping closed. */
+/**
+ * An order's details folded into cards, first over a photo in a frosted app (the summary open, the
+ * shipping closed), then in the page's own setting: the summary open, billing and shipping closed.
+ */
 @Composable
 private fun OrderDetails() {
+    val spacing = AMTheme.tokens.spacing
     var showsSummary by rememberSaveable { mutableStateOf(true) }
     var showsBilling by rememberSaveable { mutableStateOf(false) }
     var showsShipping by rememberSaveable { mutableStateOf(false) }
-    var showsFrosted by rememberSaveable { mutableStateOf(true) }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
-        AMDisclosureGroup("Order summary", showsSummary, onExpandedChange = { showsSummary = it }) {
-            Detail("2 items, $48.00")
-        }
-        AMDisclosureGroup(
-            "Billing",
-            showsBilling,
-            onExpandedChange = { showsBilling = it },
-            icon = painterResource(R.drawable.ic_credit_card),
-        ) {
-            Detail("Your plan renews on the 1st of each month.")
-        }
-        AMDisclosureGroup("Shipping details", showsShipping, onExpandedChange = { showsShipping = it }) {
-            Detail("Standard delivery takes three to five business days.")
-        }
+    var showsFrostedSummary by rememberSaveable { mutableStateOf(true) }
+    var showsFrostedShipping by rememberSaveable { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
         CatalogFrostedStage {
-            AMDisclosureGroup(
-                "Order summary",
-                showsFrosted,
-                onExpandedChange = { showsFrosted = it },
-                modifier = Modifier.padding(AMTheme.tokens.spacing.lg),
-            ) {
-                Detail("2 items, $48.00")
+            Column(Modifier.fillMaxWidth().padding(spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+                OrderSummary(showsFrostedSummary) { showsFrostedSummary = it }
+                ShippingDetails(showsFrostedShipping) { showsFrostedShipping = it }
             }
         }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+            OrderSummary(showsSummary) { showsSummary = it }
+            AMDisclosureGroup(
+                "Billing",
+                showsBilling,
+                onExpandedChange = { showsBilling = it },
+                icon = painterResource(R.drawable.ic_credit_card),
+            ) {
+                Detail("Your plan renews on the 1st of each month.")
+            }
+            ShippingDetails(showsShipping) { showsShipping = it }
+        }
+    }
+}
+
+@Composable
+private fun OrderSummary(expanded: Boolean, onExpandedChange: (Boolean) -> Unit) {
+    AMDisclosureGroup("Order summary", expanded, onExpandedChange = onExpandedChange) {
+        Detail("2 items, $48.00")
+    }
+}
+
+@Composable
+private fun ShippingDetails(expanded: Boolean, onExpandedChange: (Boolean) -> Unit) {
+    AMDisclosureGroup("Shipping details", expanded, onExpandedChange = onExpandedChange) {
+        Detail("Standard delivery takes three to five business days.")
     }
 }
 

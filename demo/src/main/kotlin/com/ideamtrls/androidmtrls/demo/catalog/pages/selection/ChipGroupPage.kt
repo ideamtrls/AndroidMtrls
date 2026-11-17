@@ -35,8 +35,8 @@ private fun ChipGroupPage() {
         ChipGroupEntry,
         preview = { GenreChips() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
-            FrostedMoods()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            FrostedPlaceFilters()
             PlaceFilters()
         }
     }
@@ -63,19 +63,23 @@ private val MoodIcons = mapOf(
     "Live music" to R.drawable.ic_music_note,
 )
 
-/** Moods as chips straight on a photo, in a frosted app. */
+/** The place finder's filters straight on a photo, in a frosted app: one city over any moods. */
 @Composable
-private fun FrostedMoods() {
+private fun FrostedPlaceFilters() {
+    var city by rememberSaveable { mutableStateOf("Kyoto") }
     var moods by rememberSaveable { mutableStateOf(setOf("Quiet", "Good coffee")) }
+    val spacing = AMTheme.tokens.spacing
     CatalogFrostedStage {
-        AMChipGroup(
-            Moods,
-            label = { it },
-            selection = moods,
-            onSelectionChange = { moods = it },
-            modifier = Modifier.padding(AMTheme.tokens.spacing.lg),
-            icon = { painterResource(MoodIcons.getValue(it)) },
-        )
+        Column(Modifier.fillMaxWidth().padding(spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+            AMChipGroup(Cities, label = { it }, selected = city, onSelectedChange = { city = it })
+            AMChipGroup(
+                Moods,
+                label = { it },
+                selection = moods,
+                onSelectionChange = { moods = it },
+                icon = { painterResource(MoodIcons.getValue(it)) },
+            )
+        }
     }
 }
 

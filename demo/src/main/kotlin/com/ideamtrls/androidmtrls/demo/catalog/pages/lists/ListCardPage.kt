@@ -43,49 +43,67 @@ private fun markDone() {}
 
 private fun showMore() {}
 
-/** A board of tasks: one with its actions, one with its labels, one with a note. */
+/**
+ * A board of tasks: over a photo in a frosted app, one with its actions and one with its labels;
+ * then, in the page's own setting, those two again and one with a note.
+ */
 @Composable
 private fun Tasks() {
     val spacing = AMTheme.tokens.spacing
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
-        AMListCard(
-            supportingContent = {
-                // The buttons carry their own padding; reach out so their glyphs line up with the text.
-                AMCardActionRow(
-                    modifier = Modifier.padding(top = spacing.xs).widenBy(spacing.lg - spacing.xs),
-                    counts = {
-                        AMCardButton(painterResource(R.drawable.ic_radio_button_unchecked), "Mark done", onClick = ::markDone)
-                        AMTag("Mon", icon = painterResource(R.drawable.ic_calendar_today), tint = AMTagTint.Warning)
-                    },
-                ) {
-                    AMCardButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = ::showMore)
-                }
-            },
-        ) {
-            Text("Recompute Mercury trajectory")
-        }
-        AMListCard(
-            supportingContent = {
-                Row(Modifier.padding(top = spacing.sm), horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
-                    AMTag("Draft")
-                    AMTag("Infra", tint = AMTagTint.Info)
-                    AMTag("P2", tint = AMTagTint.Warning)
-                }
-            },
-        ) {
-            Text("Cache-warm policies")
-        }
-        AMListCard(
-            "Field survey wrapped early",
-            subtitle = "The rain held off until evening, which gave the crew a clean window to finish the eastern fence line.",
-        )
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
         CatalogFrostedStage {
+            Column(Modifier.fillMaxWidth().padding(spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+                TrajectoryTask()
+                CachePoliciesTask(priority = false)
+            }
+        }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+            TrajectoryTask()
+            CachePoliciesTask(priority = true)
             AMListCard(
-                "Write the release notes",
-                subtitle = "Due Friday · Docs",
-                modifier = Modifier.padding(spacing.lg),
+                "Field survey wrapped early",
+                subtitle = "The rain held off until evening, which gave the crew a clean window to finish the eastern fence line.",
             )
         }
+    }
+}
+
+/** A task with its actions: mark done, its due day, and more. */
+@Composable
+private fun TrajectoryTask() {
+    val spacing = AMTheme.tokens.spacing
+    AMListCard(
+        supportingContent = {
+            // The buttons carry their own padding; reach out so their glyphs line up with the text.
+            AMCardActionRow(
+                modifier = Modifier.padding(top = spacing.xs).widenBy(spacing.lg - spacing.xs),
+                counts = {
+                    AMCardButton(painterResource(R.drawable.ic_radio_button_unchecked), "Mark done", onClick = ::markDone)
+                    AMTag("Mon", icon = painterResource(R.drawable.ic_calendar_today), tint = AMTagTint.Warning)
+                },
+            ) {
+                AMCardButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = ::showMore)
+            }
+        },
+    ) {
+        Text("Recompute Mercury trajectory")
+    }
+}
+
+/** A task with its labels; with [priority], its priority too. */
+@Composable
+private fun CachePoliciesTask(priority: Boolean) {
+    val spacing = AMTheme.tokens.spacing
+    AMListCard(
+        supportingContent = {
+            Row(Modifier.padding(top = spacing.sm), horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                AMTag("Draft")
+                AMTag("Infra", tint = AMTagTint.Info)
+                if (priority) AMTag("P2", tint = AMTagTint.Warning)
+            }
+        },
+    ) {
+        Text("Cache-warm policies")
     }
 }
 

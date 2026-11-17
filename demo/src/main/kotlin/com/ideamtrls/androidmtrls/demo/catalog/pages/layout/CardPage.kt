@@ -79,12 +79,12 @@ private fun ProjectDetail() {
             }
         }
         Text(
-            "Atlas keeps every survey, task and deadline in one place so nothing slips between site visits.",
+            "Atlas keeps every survey, task, and deadline in one place so nothing slips between site visits.",
             Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
             style = MaterialTheme.typography.bodyLarge,
         )
         Column(Modifier.fillMaxWidth().amCard()) {
-            TitledRow("Weekly report", "Sent every Monday at 9:00")
+            TitledRow("Weekly report", "Sent every Monday at 9:00 AM")
             AMDivider(inset = spacing.lg)
             ListItem(
                 checked = sendsReport,

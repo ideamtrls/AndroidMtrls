@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,42 +80,57 @@ private enum class ListsPlan(val title: String, val detail: String) {
     Team("Team", "Shared workspaces"),
 }
 
-/** An account's settings card, then its plans, the chosen one ringed. */
+/**
+ * An account's settings card over a photo in a frosted app; then, in the page's own setting, the
+ * same card over its plans, the chosen one ringed.
+ */
 @Composable
 private fun AccountSettings() {
     val spacing = AMTheme.tokens.spacing
     var plan by rememberSaveable { mutableStateOf(ListsPlan.Plus) }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-        Column(Modifier.fillMaxWidth().amCard()) {
-            AMListRow(
-                "Ada Lovelace",
-                subtitle = "ada@example.com",
-                leadingContent = { RowGlyph(R.drawable.ic_account_circle, AMSemantic.Info) },
-                onClick = ::openAccount,
-            )
-            AMDivider(inset = spacing.lg)
-            AMListRow(
-                "Storage",
-                subtitle = "Downloads and cache",
-                leadingContent = { RowGlyph(R.drawable.ic_hard_drive, AMSemantic.Warning) },
-                trailingContent = { AMTag("82% full", tint = AMTagTint.Warning) },
-                onClick = ::openStorage,
-            )
-            AMDivider(inset = spacing.lg)
-            AMListRow("About", onClick = ::openAbout)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
+        CatalogFrostedStage {
+            AccountCard(Modifier.padding(spacing.lg))
         }
-        Column(Modifier.fillMaxWidth().amCard()) {
-            ListsPlan.entries.forEach { option ->
-                AMListRow(
-                    option.title,
-                    subtitle = option.detail,
-                    selected = option == plan,
-                    onClickLabel = "Choose",
-                    onClick = { plan = option },
-                )
-                if (option != ListsPlan.entries.last()) AMDivider(inset = spacing.lg)
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
+            AccountCard()
+            Column(Modifier.fillMaxWidth().amCard()) {
+                ListsPlan.entries.forEach { option ->
+                    AMListRow(
+                        option.title,
+                        subtitle = option.detail,
+                        selected = option == plan,
+                        onClickLabel = "Choose",
+                        onClick = { plan = option },
+                    )
+                    if (option != ListsPlan.entries.last()) AMDivider(inset = spacing.lg)
+                }
             }
         }
+    }
+}
+
+/** The account's card: who's signed in, how full the storage is, and About. */
+@Composable
+private fun AccountCard(modifier: Modifier = Modifier) {
+    val spacing = AMTheme.tokens.spacing
+    Column(modifier.fillMaxWidth().amCard()) {
+        AMListRow(
+            "Ada Lovelace",
+            subtitle = "ada@example.com",
+            leadingContent = { RowGlyph(R.drawable.ic_account_circle, AMSemantic.Info) },
+            onClick = ::openAccount,
+        )
+        AMDivider(inset = spacing.lg)
+        AMListRow(
+            "Storage",
+            subtitle = "Downloads and cache",
+            leadingContent = { RowGlyph(R.drawable.ic_hard_drive, AMSemantic.Warning) },
+            trailingContent = { AMTag("82% full", tint = AMTagTint.Warning) },
+            onClick = ::openStorage,
+        )
+        AMDivider(inset = spacing.lg)
+        AMListRow("About", onClick = ::openAbout)
     }
 }
 

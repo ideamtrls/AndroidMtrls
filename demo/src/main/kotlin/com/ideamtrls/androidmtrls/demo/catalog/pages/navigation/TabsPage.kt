@@ -87,15 +87,15 @@ private val Shared = listOf(
 // Stand-in for your own action.
 private fun openItem() {}
 
-/** A photo library in a card: Photos, Albums and Shared, each with its glyph and a list of rows. */
+/**
+ * A photo library in a card, over a photo in a frosted app and then in the page's own setting:
+ * Photos, Albums and Shared, each with its glyph and a list of rows.
+ */
 @Composable
 private fun LibraryTabs() {
     var tab by rememberSaveable { mutableStateOf("albums") }
     var frostedTab by rememberSaveable { mutableStateOf("albums") }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
-        AMTabs(tab, onSelectionChange = { tab = it }, Modifier.fillMaxWidth().amCard()) {
-            libraryTabs()
-        }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
         CatalogFrostedStage {
             AMTabs(
                 frostedTab,
@@ -104,6 +104,9 @@ private fun LibraryTabs() {
             ) {
                 libraryTabs()
             }
+        }
+        AMTabs(tab, onSelectionChange = { tab = it }, Modifier.fillMaxWidth().amCard()) {
+            libraryTabs()
         }
     }
 }

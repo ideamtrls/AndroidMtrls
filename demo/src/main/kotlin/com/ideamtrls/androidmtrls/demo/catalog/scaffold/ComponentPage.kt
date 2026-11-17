@@ -13,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +40,7 @@ private val NoPreview: @Composable () -> Unit = {}
 /**
  * The scaffold every component page uses, top to bottom:
  *
- * 1. the page header ([AMPageHeader]), titled with the component's name, and the one-line summary;
+ * 1. the page header ([AMPageHeader]), titled with the component's name, with nothing under it;
  * 2. **Preview**: the component once, in its simplest default setup, live;
  * 3. **Loaded**: one fuller composition that shows most of what the component does at a glance.
  *
@@ -112,15 +111,9 @@ internal fun ComponentPage(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(padding)
-                    .padding(top = 8.dp, bottom = 32.dp),
+                    .padding(top = 16.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(32.dp),
             ) {
-                Text(
-                    text = entry.summary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = StageLayout.PageGutter),
-                )
                 if (preview !== NoPreview) {
                     PageSection("Preview", Modifier.recordTop("preview", sectionTops)) {
                         Stage(previewLayout, preview)

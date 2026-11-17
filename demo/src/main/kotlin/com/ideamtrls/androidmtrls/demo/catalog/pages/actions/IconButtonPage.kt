@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.ideamtrls.androidmtrls.AMIconButton
 import com.ideamtrls.androidmtrls.AMIconButtonSize
+import com.ideamtrls.androidmtrls.AMMenuSpotlight
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
 
@@ -74,19 +75,21 @@ private fun PreviewControls() {
     }
 }
 
-/** The playback speeds the speed button steps through. */
-private val Speeds = listOf(1f, 1.25f, 1.5f, 2f, 0.75f)
+/** The playback speeds the speed button offers. */
+private val Speeds = listOf("1", "1.25", "1.5", "2")
 
 /**
- * A now-playing card: the track over its artist with the playback speed (the text form, stepping
- * through [Speeds]) and casting unavailable, then shuffle (toggling), the transport and repeat-one
- * marked with a badge.
+ * A now-playing card: the track over its artist with the playback speed (the text form, opening
+ * the speeds in the spotlight), the sleep timer (toggling) and casting unavailable, then shuffle
+ * (toggling), the transport and repeat-one marked with a badge.
  */
 @Composable
 private fun NowPlaying() {
     val spacing = AMTheme.tokens.spacing
     var shuffles by rememberSaveable { mutableStateOf(false) }
-    var speed by rememberSaveable { mutableStateOf(1f) }
+    var sleepTimer by rememberSaveable { mutableStateOf(false) }
+    var speed by rememberSaveable { mutableStateOf("1") }
+    var choosingSpeed by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
@@ -100,11 +103,13 @@ private fun NowPlaying() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            val speedText = if (speed == speed.toInt().toFloat()) "${speed.toInt()}.0" else "$speed"
+            AMIconButton("$speed×", "Playback speed, $speed times", onClick = { choosingSpeed = true })
             AMIconButton(
-                "$speedText×",
-                "Playback speed, $speedText times",
-                onClick = { speed = Speeds[(Speeds.indexOf(speed) + 1) % Speeds.size] },
+                painterResource(R.drawable.ic_bedtime),
+                "Sleep timer",
+                checked = sleepTimer,
+                onCheckedChange = { sleepTimer = it },
+                size = AMIconButtonSize.Small,
             )
             AMIconButton(painterResource(R.drawable.ic_cast), "Cast unavailable", onClick = ::cast, enabled = false)
         }
@@ -137,4 +142,13 @@ private fun NowPlaying() {
             )
         }
     }
+    AMMenuSpotlight(
+        choosingSpeed,
+        onDismissRequest = { choosingSpeed = false },
+        title = "Playback speed",
+        options = Speeds,
+        label = { "$it×" },
+        selected = speed,
+        onSelectedChange = { speed = it },
+    )
 }

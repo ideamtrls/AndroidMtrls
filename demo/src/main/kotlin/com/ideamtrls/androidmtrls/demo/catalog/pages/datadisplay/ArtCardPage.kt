@@ -32,7 +32,7 @@ internal val ArtCardEntry = ComponentEntry(
 private fun ArtCardPage() {
     ComponentPage(
         ArtCardEntry,
-        preview = { AMArtCard(catalogPhoto("mountain", 400), contentDescription = null, Modifier.size(160.dp)) },
+        preview = { AMArtCard(CatalogArt.Mountain.url(AMTheme.isDark), contentDescription = null, Modifier.size(160.dp)) },
     ) {
         AlbumHeader()
     }
@@ -62,7 +62,7 @@ private fun AlbumHeader() {
             ) {
                 Text("Orchard", Modifier.amArtText(), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
                 Text(
-                    "Juniper Row · 9 songs · 38 min",
+                    "Field Notes · 9 songs · 38 min",
                     Modifier.amArtText(secondary = true),
                     style = MaterialTheme.typography.labelLarge,
                     textAlign = TextAlign.Center,

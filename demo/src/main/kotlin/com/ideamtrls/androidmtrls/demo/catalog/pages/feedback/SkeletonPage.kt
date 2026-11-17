@@ -12,11 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ideamtrls.androidmtrls.AMAvatar
+import com.ideamtrls.androidmtrls.AMAvatarSize
 import com.ideamtrls.androidmtrls.AMSkeleton
 import com.ideamtrls.androidmtrls.AMTheme
 import com.ideamtrls.androidmtrls.amCard
-import com.ideamtrls.androidmtrls.amShimmer
 
 internal val SkeletonEntry = ComponentEntry(
     id = "skeleton",
@@ -48,8 +47,8 @@ private fun SkeletonPage() {
 }
 
 /**
- * A contact row while it loads: the person's avatar, shimmering, beside the name and the role
- * held in place by their text placeholders, each bar as long as its words.
+ * A contact row while it loads: a circle in the avatar's place beside the name and the role held
+ * in place by their text placeholders, each bar as long as its words, all shimmering.
  */
 @Composable
 private fun SkeletonContact(modifier: Modifier = Modifier) {
@@ -60,7 +59,7 @@ private fun SkeletonContact(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AMAvatar(url = null, name = "Ada Lovelace", modifier = Modifier.amShimmer())
+        AMSkeleton.Circle(diameter = AMAvatarSize.Medium.diameter)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
             AMSkeleton.Text("Ada Lovelace", style = typography.bodyLarge)
             AMSkeleton.Text("Mathematician and writer", style = typography.bodyMedium)
