@@ -249,15 +249,6 @@ internal object Style {
         val ScrimDark = Color.Black.copy(alpha = 0.4f)
 
         /**
-         * The cover over a picture blurred in place inside a page, in dark mode: a neutral dark
-         * gray (`#1C1C1C`) at 0.73, so the blurred picture dims and grays toward the dark page
-         * instead of glowing on it (`AMBackdropBlur`, and `AMPausedScrim.Page` under its page
-         * wash). In light mode the blur lies bare, and so does a blur that fills the window: it's
-         * the screen's own backdrop.
-         */
-        val InPageDark = Color(0xFF1C1C1C).copy(alpha = 0.73f)
-
-        /**
          * The page wash over a paused picture (`AMPausedScrim.Page`), in both modes: enough to demote
          * the picture while its color shows through.
          */
