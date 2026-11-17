@@ -24,8 +24,8 @@ public enum class AMPausedScrim {
 
     /**
      * The page wash: [AMTheme.Surface.page] at 0.55 over the blur in both modes, so the picture's
-     * color bleeds through while the page still reads as itself. A photo's detail view behind the
-     * photo.
+     * color bleeds through while the page still reads as itself; in dark mode the remote's dark
+     * scrim (black at 0.4) dims the blur under it first. A photo's detail view behind the photo.
      */
     Page,
 }
@@ -95,7 +95,10 @@ private class PausedScrimNode(var scrim: AMPausedScrim) :
         val dark = currentValueOf(LocalAMDarkTheme) ?: false
         when (scrim) {
             AMPausedScrim.Modal -> drawRect(if (dark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight)
-            AMPausedScrim.Page -> drawRect((if (dark) Style.Page.Dark else Style.Page.Light).copy(alpha = Style.ModalOverlay.PageWashAlpha))
+            AMPausedScrim.Page -> {
+                if (dark) drawRect(Style.ModalOverlay.ScrimDark)
+                drawRect((if (dark) Style.Page.Dark else Style.Page.Light).copy(alpha = Style.ModalOverlay.PageWashAlpha))
+            }
         }
     }
 }

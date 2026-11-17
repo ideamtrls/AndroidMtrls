@@ -244,7 +244,8 @@ internal object Style {
 
         /**
          * The remote's cover over the blurred screen in dark mode: black at 0.4, so the paused
-         * screen dims; in light mode the blur lies bare.
+         * screen dims; in light mode the blur lies bare. The in-place blurs dim by it in dark mode
+         * too: `AMBackdropBlur`'s, and `AMPausedScrim.Page`'s under its page wash.
          */
         val ScrimDark = Color.Black.copy(alpha = 0.4f)
 
