@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DrawModifierNode
@@ -16,13 +19,15 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.requireGraphicsContext
 import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 
 /**
- * A pure Gaussian blur of the art behind this area, with no tint: the nearest [AMBackdrop]'s art,
- * the part under this area, blurred and drawn over it. In light mode the blur lies bare, so the
- * picture's own colors and brightness come through untouched; in dark mode the remote's dark scrim
- * (black at 0.4) lies over it, so the blurred art dims as the remote's paused screen does.
+ * A pure Gaussian blur of the art behind this area: the nearest [AMBackdrop]'s art, the part under
+ * this area, blurred and drawn over it. In light mode the blur lies bare, so the picture's own
+ * colors and brightness come through untouched. In dark mode, inside a page, a dark gray lies over
+ * it (`#1C1C1C` at 0.73), so the blurred art dims and grays toward the dark page instead of glowing
+ * on it; a blur that fills the window is the screen's own backdrop and lies bare.
  *
  * ```kotlin
  * AMBackdrop(art = { AMRemoteImage(cover, contentDescription = null) }, Modifier.height(280.dp)) {
@@ -64,8 +69,8 @@ private data class BackdropBlurElement(val radius: Dp) : ModifierNodeElement<Bac
 }
 
 /**
- * Draws its slice of the nearest backdrop's art, blurred, under the dark scrim in dark mode, and
- * redraws as it moves over the art.
+ * Draws its slice of the nearest backdrop's art, blurred, under the in-page cover, and redraws as
+ * it moves over the art.
  */
 private class BackdropBlurNode(var radius: Dp) :
     Modifier.Node(),
@@ -104,8 +109,22 @@ private class BackdropBlurNode(var radius: Dp) :
         if (backdrop != null) {
             val area = Path().apply { addRect(size.toRect()) }
             slice.draw(this, area, backdrop, coordinates, radius.toPx())
-            if (currentValueOf(LocalAMDarkTheme) == true) drawRect(Style.ModalOverlay.ScrimDark)
+            val cover = inPageCover(size)
+            if (cover.isSpecified) drawRect(cover)
         }
         drawContent()
     }
+}
+
+/**
+ * What a blur stilled in place lays over itself at [size]: in dark mode, while it lies inside the
+ * page (narrower or shorter than the window), [Style.ModalOverlay.InPageDark]; in light mode, or
+ * filling the window as the screen's own backdrop, nothing ([Color.Unspecified]). Read while
+ * drawing, so a change of mode or window size redraws it.
+ */
+internal fun CompositionLocalConsumerModifierNode.inPageCover(size: Size): Color {
+    if (currentValueOf(LocalAMDarkTheme) != true) return Color.Unspecified
+    val window = currentValueOf(LocalWindowInfo).containerSize
+    val fillsWindow = size.width >= window.width && size.height >= window.height
+    return if (fillsWindow) Color.Unspecified else Style.ModalOverlay.InPageDark
 }

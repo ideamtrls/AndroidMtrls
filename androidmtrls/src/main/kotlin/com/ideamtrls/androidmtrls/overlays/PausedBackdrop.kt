@@ -4,6 +4,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
@@ -24,8 +25,10 @@ public enum class AMPausedScrim {
 
     /**
      * The page wash: [AMTheme.Surface.page] at 0.55 over the blur in both modes, so the picture's
-     * color bleeds through while the page still reads as itself; in dark mode the remote's dark
-     * scrim (black at 0.4) dims the blur under it first. A photo's detail view behind the photo.
+     * color bleeds through while the page still reads as itself. A photo's detail view behind the
+     * photo. Filling the window, as that screen's own backdrop, the blur takes the wash alone; in
+     * dark mode a picture paused inside a page takes [AMBackdropBlur]'s dark gray under the wash
+     * first, so it dims and grays toward the page as that blur does.
      */
     Page,
 }
@@ -96,7 +99,8 @@ private class PausedScrimNode(var scrim: AMPausedScrim) :
         when (scrim) {
             AMPausedScrim.Modal -> drawRect(if (dark) Style.ModalOverlay.WashDark else Style.ModalOverlay.WashLight)
             AMPausedScrim.Page -> {
-                if (dark) drawRect(Style.ModalOverlay.ScrimDark)
+                val cover = inPageCover(size)
+                if (cover.isSpecified) drawRect(cover)
                 drawRect((if (dark) Style.Page.Dark else Style.Page.Light).copy(alpha = Style.ModalOverlay.PageWashAlpha))
             }
         }
