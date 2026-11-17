@@ -13,6 +13,7 @@ internal object DataDisplayPages {
         ArtThumbnailEntry,
         ArtCardEntry,
         ArtBackdropEntry,
+        ArtRowsEntry,
         TimelineEntry,
     ) + CollectionsPages.entries
 }

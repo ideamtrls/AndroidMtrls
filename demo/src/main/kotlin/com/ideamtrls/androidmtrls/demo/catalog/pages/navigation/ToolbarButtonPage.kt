@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMBackdrop
 import com.ideamtrls.androidmtrls.AMBlur
 import com.ideamtrls.androidmtrls.AMRemoteImage
@@ -68,28 +66,35 @@ private val Photo: String
     get() = catalogPhoto("brooklyn", 800, 600)
 
 /**
- * The top of a photo's screen: a toolbar over the photo's blurred, washed colors, its buttons chips
- * in the app's surface setting (sharing unavailable, delete in the destructive color), over the
- * photo itself.
+ * A photo's toolbar over the photo in a frosted app, its buttons frosted chips; then the top of the
+ * photo's screen in the page's own setting: the toolbar over the photo's blurred, washed colors,
+ * its buttons chips in the app's surface setting, over the photo itself.
  */
 @Composable
 private fun PhotoDetail() {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
-        PhotoScreen()
-        CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter).height(160.dp)) {
-            AMToolbar(
-                "Brooklyn",
-                navigationIcon = {
-                    AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
-                },
-                actions = {
-                    AMToolbarButton(painterResource(R.drawable.ic_share), "Share", onClick = ::share)
-                    AMToolbarButton(painterResource(R.drawable.ic_delete), "Delete photo", onClick = ::delete, destructive = true)
-                },
-                windowInsets = WindowInsets(0),
-            )
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+        CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
+            BrooklynToolbar(Modifier.padding(vertical = AMTheme.tokens.spacing.xl))
         }
+        PhotoScreen()
     }
+}
+
+/** The photo's toolbar: back, the title, then share (unavailable) and delete in the destructive color. */
+@Composable
+private fun BrooklynToolbar(modifier: Modifier = Modifier) {
+    AMToolbar(
+        "Brooklyn",
+        modifier,
+        navigationIcon = {
+            AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
+        },
+        actions = {
+            AMToolbarButton(painterResource(R.drawable.ic_share), "Share", onClick = ::share, enabled = false)
+            AMToolbarButton(painterResource(R.drawable.ic_delete), "Delete photo", onClick = ::delete, destructive = true)
+        },
+        windowInsets = WindowInsets(0),
+    )
 }
 
 /** The photo's screen: the toolbar over the blurred photo, then the photo. */
@@ -97,17 +102,7 @@ private fun PhotoDetail() {
 private fun PhotoScreen() {
     AMBackdrop(art = { PhotoArt() }, Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth()) {
-            AMToolbar(
-                "Brooklyn",
-                navigationIcon = {
-                    AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
-                },
-                actions = {
-                    AMToolbarButton(painterResource(R.drawable.ic_share), "Share", onClick = ::share, enabled = false)
-                    AMToolbarButton(painterResource(R.drawable.ic_delete), "Delete photo", onClick = ::delete, destructive = true)
-                },
-                windowInsets = WindowInsets(0),
-            )
+            BrooklynToolbar()
             AMRemoteImage(Photo, contentDescription = null, Modifier.fillMaxWidth().aspectRatio(4f / 3f))
         }
     }

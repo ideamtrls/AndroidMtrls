@@ -86,6 +86,7 @@ private fun DeleteProject() {
                     cancel = AMAlertAction("Keep"),
                 )
             },
+            modifier = Modifier.fillMaxWidth(),
             destructive = true,
         )
     }

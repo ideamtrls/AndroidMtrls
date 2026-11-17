@@ -1,7 +1,11 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -41,20 +45,31 @@ private fun ToolbarPage() {
             )
         },
     ) {
-        AMToolbar(
-            "Now playing",
-            Modifier.background(AMTheme.Surface.primary),
-            subtitle = "Recently added",
-            navigationIcon = {
-                AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
-            },
-            actions = {
-                AMToolbarButton(painterResource(R.drawable.ic_search), "Search", onClick = ::search)
-                AMToolbarButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = ::openMenu)
-            },
-            windowInsets = WindowInsets(0),
-        )
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
+                NowPlayingToolbar(Modifier.padding(vertical = AMTheme.tokens.spacing.xl))
+            }
+            NowPlayingToolbar(Modifier.background(AMTheme.Surface.primary))
+        }
     }
+}
+
+/** A player's toolbar: back, the title over what's playing from, then search and more. */
+@Composable
+private fun NowPlayingToolbar(modifier: Modifier = Modifier) {
+    AMToolbar(
+        "Now playing",
+        modifier,
+        subtitle = "Recently added",
+        navigationIcon = {
+            AMToolbarButton(painterResource(R.drawable.ic_arrow_back), "Back", onClick = ::goBack)
+        },
+        actions = {
+            AMToolbarButton(painterResource(R.drawable.ic_search), "Search", onClick = ::search)
+            AMToolbarButton(painterResource(R.drawable.ic_more_vert), "More options", onClick = ::openMenu)
+        },
+        windowInsets = WindowInsets(0),
+    )
 }
 
 // Stand-ins for your own actions.

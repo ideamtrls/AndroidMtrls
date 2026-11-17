@@ -78,7 +78,7 @@ private fun PhotoActions() {
             contentDescription = "An orchard at dusk",
             modifier = Modifier.fillMaxWidth().height(320.dp).clip(MaterialTheme.shapes.large),
         )
-        AMButton("Photo actions", onClick = { showsActions = true })
+        AMButton("Photo actions", onClick = { showsActions = true }, modifier = Modifier.fillMaxWidth())
     }
     AMActionsOverlay(showsActions, onDismissRequest = close) {
         AMActionGrid {

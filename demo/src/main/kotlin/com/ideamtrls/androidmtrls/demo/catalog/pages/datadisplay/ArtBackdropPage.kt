@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -83,18 +84,29 @@ private fun Modifier.albumArt(album: ArtAlbum, lightWash: Float = AMArtDefaults.
         amArtBackdrop(album.cover, lightWash = lightWash, darkWash = darkWash)
     }
 
-/** One cover behind an album's title in art text. */
+/**
+ * Two pictures behind their titles in art text, a bright one and a deep one: the wash keeps both
+ * light in light mode and dark in dark mode, and the text follows.
+ */
 @Composable
 private fun PreviewArt() {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
+        ArtTile("Pastel", "Burano", commonsPhoto("Houses of Burano painted with complementary colours.jpg", 600), Modifier.weight(1f))
+        ArtTile("Blue hour", "Islamabad", commonsPhoto("Blue Hour at Pakistan Monument.jpg", 600), Modifier.weight(1f))
+    }
+}
+
+/** A picture's art behind its title, at least 220 dp tall, in the large shape. */
+@Composable
+private fun ArtTile(title: String, detail: String, art: String, modifier: Modifier = Modifier) {
     Box(
-        Modifier
-            .fillMaxWidth()
+        modifier
             .heightIn(min = 220.dp)
             .clip(MaterialTheme.shapes.large)
-            .amArtBackdrop(catalogPhoto("cobalt", 600)),
+            .amArtBackdrop(art),
         contentAlignment = Alignment.Center,
     ) {
-        ArtTitle("Cobalt", "Field Notes · 9 songs · 38 min", Modifier.padding(AMTheme.tokens.spacing.lg))
+        ArtTitle(title, detail, Modifier.padding(AMTheme.tokens.spacing.lg))
     }
 }
 

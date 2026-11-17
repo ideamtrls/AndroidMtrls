@@ -12,6 +12,7 @@ import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMFormActions
 import com.ideamtrls.androidmtrls.AMTextField
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 
 internal val FormActionsEntry = ComponentEntry(
@@ -42,24 +43,34 @@ private fun save() {}
 
 private fun delete() {}
 
-/** The end of a task's edit form: its title, then Delete and Save, which waits for a title. */
+/**
+ * The end of a task's edit form, first over a photo in a frosted app, then in the page's own
+ * setting: its title in a card, then Delete and Save, which waits for a title.
+ */
 @Composable
 private fun EditTask() {
     val spacing = AMTheme.tokens.spacing
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
+        CatalogFrostedStage {
+            EditTaskForm(Modifier.padding(spacing.lg))
+        }
+        EditTaskForm()
+    }
+}
+
+/** A task's title in a card, then Delete and Save, which waits for a title. */
+@Composable
+private fun EditTaskForm(modifier: Modifier = Modifier) {
+    val spacing = AMTheme.tokens.spacing
     val title = rememberTextFieldState("Write the quarterly update")
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
         Column(Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
-            AMTextField(title, label = "Title")
+            ProvideAMOnSurface {
+                AMTextField(title, label = "Title")
+            }
         }
         AMFormActions(destructive = { AMButton("Delete", onClick = ::delete, destructive = true) }) {
             AMButton("Save", onClick = ::save, enabled = title.text.isNotEmpty())
-        }
-        CatalogFrostedStage {
-            Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard(padding = PaddingValues(spacing.lg))) {
-                AMFormActions(destructive = { AMButton("Delete", onClick = ::delete, destructive = true) }) {
-                    AMButton("Save", onClick = ::save)
-                }
-            }
         }
     }
 }

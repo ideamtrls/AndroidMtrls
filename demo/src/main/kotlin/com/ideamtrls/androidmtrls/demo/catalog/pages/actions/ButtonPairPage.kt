@@ -3,6 +3,7 @@ package com.ideamtrls.androidmtrls.demo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,9 @@ import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMButtonPair
 import com.ideamtrls.androidmtrls.AMButtonStyle
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.ProvideAMOnSurface
+import com.ideamtrls.androidmtrls.amCard
+import com.ideamtrls.androidmtrls.amRowPadding
 
 internal val ButtonPairEntry = ComponentEntry(
     id = "buttonPair",
@@ -40,7 +44,12 @@ private fun ButtonPairPage() {
             )
         },
     ) {
-        DownloadedAlbum()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            CatalogFrostedStage {
+                PlayAndQueue(Modifier.padding(AMTheme.tokens.spacing.lg))
+            }
+            DownloadedEpisode()
+        }
     }
 }
 
@@ -49,26 +58,59 @@ private fun play() {}
 
 private fun shuffle() {}
 
+private fun queue() {}
+
+private fun share() {}
+
 private fun removeDownload() {}
 
+/** Play and Queue, which fit side by side. */
+@Composable
+private fun PlayAndQueue(modifier: Modifier = Modifier) {
+    AMButtonPair(
+        { AMButton("Play", onClick = ::play, icon = painterResource(R.drawable.ic_play_arrow_filled)) },
+        {
+            AMButton(
+                "Queue",
+                onClick = ::queue,
+                icon = painterResource(R.drawable.ic_playlist_add),
+                style = AMButtonStyle.Secondary(),
+            )
+        },
+        modifier,
+    )
+}
+
 /**
- * A downloaded album's title and actions: Play, and Remove download, whose label won't fit on one
- * line at half a phone's width, so the two stack.
+ * A downloaded episode in a card, then its actions: Play and Queue side by side, and Share with
+ * Remove download, whose label won't fit on one line at half a phone's width, so those two stack.
  */
 @Composable
-private fun DownloadedAlbum() {
+private fun DownloadedEpisode() {
     val spacing = AMTheme.tokens.spacing
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-        Column {
-            Text("Field Recordings", style = MaterialTheme.typography.titleLarge)
-            Text(
-                "12 songs · Downloaded, 412 MB",
-                style = MaterialTheme.typography.bodyMedium,
-                color = AMTheme.secondaryText,
-            )
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+        Column(Modifier.fillMaxWidth().amCard()) {
+            ProvideAMOnSurface {
+                Column(Modifier.amRowPadding()) {
+                    Text("The Long Way Round", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Episode 42 · 38 min · Downloaded",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AMTheme.secondaryText,
+                    )
+                }
+            }
         }
+        PlayAndQueue()
         AMButtonPair(
-            { AMButton("Play", onClick = ::play, icon = painterResource(R.drawable.ic_play_arrow_filled)) },
+            {
+                AMButton(
+                    "Share",
+                    onClick = ::share,
+                    icon = painterResource(R.drawable.ic_share),
+                    style = AMButtonStyle.Secondary(),
+                )
+            },
             {
                 AMButton(
                     "Remove download",

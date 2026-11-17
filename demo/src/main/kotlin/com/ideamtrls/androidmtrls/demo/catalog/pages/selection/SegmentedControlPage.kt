@@ -36,8 +36,8 @@ private fun SegmentedControlPage() {
         SegmentedControlEntry,
         preview = { RangePicker() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
-            FrostedRanges()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            FrostedScopes()
             DocumentsFilter()
         }
     }
@@ -61,21 +61,6 @@ private fun RangePicker() {
     )
 }
 
-/** The range picker straight on a photo, in a frosted app. */
-@Composable
-private fun FrostedRanges() {
-    var range by rememberSaveable { mutableStateOf("Week") }
-    CatalogFrostedStage {
-        AMSegmentedControl(
-            Ranges,
-            label = { it },
-            selected = range,
-            onSelectedChange = { range = it },
-            modifier = Modifier.fillMaxWidth().padding(AMTheme.tokens.spacing.lg),
-        )
-    }
-}
-
 private enum class DocumentScope(val title: String) {
     Mine("Mine"),
     Shared("Shared"),
@@ -93,6 +78,21 @@ private val Documents = listOf(
     SampleDocument("Launch checklist", "Shared by Grace Hopper", DocumentScope.Shared),
     SampleDocument("2025 taxes", "Archived in March", DocumentScope.Archived),
 )
+
+/** The documents' scopes straight on a photo, in a frosted app. */
+@Composable
+private fun FrostedScopes() {
+    var scope by rememberSaveable { mutableStateOf(DocumentScope.Shared) }
+    CatalogFrostedStage {
+        AMSegmentedControl(
+            DocumentScope.entries,
+            label = { it.title },
+            selected = scope,
+            onSelectedChange = { scope = it },
+            modifier = Modifier.fillMaxWidth().padding(AMTheme.tokens.spacing.lg),
+        )
+    }
+}
 
 /** A documents list filtered by whose they are. */
 @Composable

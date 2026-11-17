@@ -50,7 +50,7 @@ private fun PreviewTags() {
     }
 }
 
-private val TagTopics = listOf("Payments", "Search", "Onboarding", "Android", "Web", "API")
+private val TagTopics = listOf("Payments", "Search", "Onboarding", "Android", "Settings", "Web")
 
 /** A release's status board: each item's state as a tag, the build in monospace, then its topics. */
 @Composable
@@ -115,8 +115,14 @@ private fun FrostedReleaseTags() {
                 trailingContent = { AMTag("Delayed", icon = painterResource(R.drawable.ic_schedule), tint = AMTagTint.Warning) },
             )
             AMDivider(inset = spacing.lg)
+            AMListRow(
+                "Search index",
+                subtitle = "Search",
+                trailingContent = { AMTag("Failed", icon = painterResource(R.drawable.ic_close), tint = AMTagTint.Destructive) },
+            )
+            AMDivider(inset = spacing.lg)
             AMFlowLayout(Modifier.amRowPadding()) {
-                TagTopics.take(3).forEach { topic -> AMTag(topic) }
+                TagTopics.take(4).forEach { topic -> AMTag(topic) }
             }
         }
     }

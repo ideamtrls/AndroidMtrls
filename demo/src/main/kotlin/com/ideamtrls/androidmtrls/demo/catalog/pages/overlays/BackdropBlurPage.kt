@@ -73,7 +73,7 @@ private fun CrispAndBlurred() {
         AMRemoteImage(art, contentDescription = null, modifier = Modifier.size(FrameSize).clip(shape))
         AMBackdrop(
             art = { AMRemoteImage(art, contentDescription = null) },
-            modifier = Modifier.weight(1f).height(FrameSize).clip(shape),
+            modifier = Modifier.size(FrameSize).clip(shape),
         ) {
             AMBackdropBlur(Modifier.matchParentSize())
         }
@@ -99,15 +99,15 @@ private fun NowPlaying(blur: AMBlur) {
         ) {
             AMRemoteImage(
                 art,
-                contentDescription = "Harbor lights cover",
+                contentDescription = "Harbor Lights cover",
                 modifier = Modifier.size(FrameSize).clip(MaterialTheme.shapes.medium),
             )
             Column(
                 verticalArrangement = Arrangement.spacedBy(spacing.xs),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("Harbor lights", Modifier.amArtText(), style = MaterialTheme.typography.titleMedium)
-                Text("The lanterns", Modifier.amArtText(secondary = true), style = MaterialTheme.typography.bodyMedium)
+                Text("Harbor Lights", Modifier.amArtText(), style = MaterialTheme.typography.titleMedium)
+                Text("The Lanterns", Modifier.amArtText(secondary = true), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

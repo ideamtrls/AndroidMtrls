@@ -1,6 +1,8 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -36,7 +38,13 @@ private fun ReorderableCardListPage() {
         loadedLayout = StageLayout.Wide,
         preview = { TaskList(Board, R.drawable.ic_calendar_today) },
     ) {
-        TaskList(Today, R.drawable.ic_schedule)
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
+                // The cards carry their own side margins; the stage adds only the room above and below.
+                TaskList(Today.take(3), R.drawable.ic_schedule, Modifier.padding(vertical = AMTheme.tokens.spacing.md))
+            }
+            TaskList(Today, R.drawable.ic_schedule)
+        }
     }
 }
 
@@ -58,14 +66,14 @@ private val Today = listOf(
 
 /** Tasks as cards, each with its due tag, in the order you drag them to, scrolling with the page. */
 @Composable
-private fun TaskList(tasks: List<ListsTask>, @DrawableRes dueIcon: Int) {
+private fun TaskList(tasks: List<ListsTask>, @DrawableRes dueIcon: Int, modifier: Modifier = Modifier) {
     val order = rememberListsItems(tasks) { it.id }
     val icon = painterResource(dueIcon)
     AMReorderableCardList(
         order,
         key = { it.id },
         onMove = { from, to -> order.add(to, order.removeAt(from)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) { task ->
         AMListCard(
             supportingContent = {

@@ -61,8 +61,7 @@ private fun FloatingActionButtonPage() {
         loadedLayout = StageLayout.Fill,
         preview = { NotesScene() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
-            MailScene()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             CatalogFrostedStage(
                 Modifier
                     .padding(horizontal = StageLayout.PageGutter)
@@ -71,6 +70,7 @@ private fun FloatingActionButtonPage() {
             ) {
                 AMFloatingActionButton("Compose", onClick = ::compose)
             }
+            MailScene()
         }
     }
 }

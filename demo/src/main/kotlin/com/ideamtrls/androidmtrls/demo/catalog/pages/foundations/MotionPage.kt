@@ -5,21 +5,19 @@ import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,20 +25,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
+import com.ideamtrls.androidmtrls.AMButton
+import com.ideamtrls.androidmtrls.AMButtonPair
+import com.ideamtrls.androidmtrls.AMButtonStyle
+import com.ideamtrls.androidmtrls.AMCarousel
 import com.ideamtrls.androidmtrls.AMDivider
+import com.ideamtrls.androidmtrls.AMPageIndicator
 import com.ideamtrls.androidmtrls.AMRowDefaults
 import com.ideamtrls.androidmtrls.AMTheme
+import com.ideamtrls.androidmtrls.AMToast
+import com.ideamtrls.androidmtrls.AMToastItem
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amCrossfade
-import kotlinx.coroutines.launch
 import java.util.Locale
 
 internal val MotionEntry = ComponentEntry(
@@ -117,9 +124,17 @@ private fun springText(spec: FiniteAnimationSpec<Float>): String =
 
 private val Genres = listOf("Jazz", "Folk", "Ambient", "Soul")
 
+private val MotionTabs = listOf("Posts", "Replies")
+
+private val MotionStories = listOf("Morning light", "Harbor walk", "Night market")
+
+// Stand-in for your own action.
+private fun save() {}
+
 /**
- * Library and Material motion on one card: the tab indicator, a crossfading sign-in row and chip
- * selection, all replayed at once; then a snackbar presenting itself.
+ * Library and Material motion, each group with its Replay: on one card the tab indicator, a
+ * crossfading sign-in row and chip selection; then a carousel paging under its dots; last a press
+ * and a toast presenting itself.
  */
 @Composable
 private fun MotionPanel() {
@@ -127,16 +142,20 @@ private fun MotionPanel() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var signedIn by rememberSaveable { mutableStateOf(false) }
     var genres by remember { mutableStateOf(setOf("Jazz")) }
-    val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    var story by rememberSaveable { mutableIntStateOf(0) }
+    var toast by remember { mutableStateOf<AMToastItem?>(null) }
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
         Column(Modifier.fillMaxWidth().amCard()) {
             SecondaryTabRow(selectedTabIndex = tab, containerColor = Color.Transparent) {
-                listOf("Posts", "Replies").forEachIndexed { index, title ->
+                MotionTabs.forEachIndexed { index, title ->
                     Tab(selected = tab == index, onClick = { tab = index }, text = { Text(title) })
                 }
             }
+            Box(Modifier.fillMaxWidth().heightIn(min = 56.dp), contentAlignment = Alignment.Center) {
+                Text(MotionTabs[tab], style = MaterialTheme.typography.bodyLarge)
+            }
+            AMDivider(inset = spacing.lg)
             ListItem(
                 modifier = Modifier.amCrossfade(signedIn),
                 leadingContent = { Icon(painterResource(R.drawable.ic_account_circle), contentDescription = null) },
@@ -160,24 +179,55 @@ private fun MotionPanel() {
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.md), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(
-                onClick = {
-                    tab = 1 - tab
-                    signedIn = !signedIn
-                    genres = if ("Jazz" in genres) setOf("Folk", "Soul") else setOf("Jazz")
-                },
-                shape = MaterialTheme.shapes.medium,
+        AMButton(
+            "Replay",
+            onClick = {
+                tab = 1 - tab
+                signedIn = !signedIn
+                genres = if ("Jazz" in genres) setOf("Folk", "Soul") else setOf("Jazz")
+            },
+            modifier = Modifier.fillMaxWidth(),
+            style = AMButtonStyle.Secondary(),
+        )
+        AMCarousel(
+            MotionStories,
+            currentIndex = story,
+            onCurrentIndexChange = { story = it },
+            // Edge to edge, so the cards' shadows aren't cut at the gutters; the cards stand where they would.
+            modifier = Modifier.widenBy(StageLayout.PageGutter).fillMaxWidth().height(120.dp),
+            sideInset = StageLayout.PageGutter + spacing.lg,
+        ) { title ->
+            Box(
+                Modifier.fillMaxWidth().heightIn(min = 88.dp).amCard(),
+                contentAlignment = Alignment.Center,
             ) {
-                Text("Replay")
-            }
-            Button(
-                onClick = { scope.launch { snackbar.showSnackbar("Link copied") } },
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text("Copy link")
+                Text(title, style = MaterialTheme.typography.titleMedium)
             }
         }
-        SnackbarHost(snackbar)
+        AMPageIndicator(count = MotionStories.size, currentIndex = story, modifier = Modifier.align(Alignment.CenterHorizontally))
+        AMButton(
+            "Replay",
+            onClick = { story = (story + 1) % MotionStories.size },
+            modifier = Modifier.fillMaxWidth(),
+            style = AMButtonStyle.Secondary(),
+        )
+        AMButtonPair(
+            { AMButton("Press and hold", onClick = ::save, style = AMButtonStyle.Primary()) },
+            {
+                AMButton(
+                    "Replay",
+                    onClick = { toast = AMToastItem("Copied to clipboard") },
+                    style = AMButtonStyle.Secondary(),
+                )
+            },
+        )
     }
+    AMToast(toast, onDismissRequest = { toast = null })
+}
+
+/** Lays the content out [amount] wider on each side than it's given, reaching past its parent's inset. */
+private fun Modifier.widenBy(amount: Dp): Modifier = layout { measurable, constraints ->
+    val extra = amount.roundToPx()
+    val placeable = measurable.measure(constraints.offset(horizontal = 2 * extra))
+    layout(placeable.width - 2 * extra, placeable.height) { placeable.placeRelative(-extra, 0) }
 }

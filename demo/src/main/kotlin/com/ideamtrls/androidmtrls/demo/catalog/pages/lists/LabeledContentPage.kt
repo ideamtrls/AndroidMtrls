@@ -1,8 +1,10 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.ideamtrls.androidmtrls.AMDivider
@@ -43,25 +45,40 @@ private fun PlanSummary() {
 }
 
 /**
- * A subscription's details in a card, its status as a tag. The last two rows wrap: a short label
+ * A subscription's details: the plan, its status as a tag and its renewal in a frosted card over a
+ * photo; then, in the page's own setting, the whole card. Its last two rows wrap: a short label
  * beside a long address, and a long label beside a short value that stays whole.
  */
 @Composable
 private fun Subscription() {
     val inset = AMTheme.tokens.spacing.lg
-    Column(Modifier.fillMaxWidth().amCard()) {
-        AMLabeledContent("Plan", "Pro")
-        AMDivider(inset = inset)
-        AMLabeledContent("Status") {
-            AMTag("Active", tint = AMTagTint.Success)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+        CatalogFrostedStage {
+            Column(Modifier.padding(AMTheme.tokens.spacing.lg).fillMaxWidth().amCard()) {
+                PlanRows()
+            }
         }
-        AMDivider(inset = inset)
-        AMLabeledContent("Renews", "Jan 12, 2027")
-        AMDivider(inset = inset)
-        AMLabeledContent("Seats", "12 of 25")
-        AMDivider(inset = inset)
-        AMLabeledContent("Billing address", "214 Van Brunt St, Brooklyn, NY 11231")
-        AMDivider(inset = inset)
-        AMLabeledContent("Charged automatically on the renewal date", "Visa ending 4242")
+        Column(Modifier.fillMaxWidth().amCard()) {
+            PlanRows()
+            AMDivider(inset = inset)
+            AMLabeledContent("Seats", "12 of 25")
+            AMDivider(inset = inset)
+            AMLabeledContent("Billing address", "214 Van Brunt St, Brooklyn, NY 11231")
+            AMDivider(inset = inset)
+            AMLabeledContent("Charged automatically on the renewal date", "Visa ending 4242")
+        }
     }
+}
+
+/** The plan, its status as a tag, and when it renews. */
+@Composable
+private fun PlanRows() {
+    val inset = AMTheme.tokens.spacing.lg
+    AMLabeledContent("Plan", "Pro")
+    AMDivider(inset = inset)
+    AMLabeledContent("Status") {
+        AMTag("Active", tint = AMTagTint.Success)
+    }
+    AMDivider(inset = inset)
+    AMLabeledContent("Renews", "Jan 12, 2027")
 }

@@ -1,6 +1,7 @@
 package com.ideamtrls.androidmtrls.demo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,7 +33,10 @@ private fun ProgressPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { MailProgress() },
     ) {
-        SyncProgress()
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
+            FrostedUploads()
+            SyncProgress()
+        }
     }
 }
 
@@ -46,6 +50,19 @@ private fun MailProgress() {
             style = AMProgressViewStyle.Spinner(card = false),
         )
         AMProgressView("Uploading", progress = { 0.6f }, valueLabel = "60%", style = AMProgressViewStyle.Bar)
+    }
+}
+
+/** Two uploads in a frosted card over a photo: one part way, one done. */
+@Composable
+private fun FrostedUploads() {
+    val spacing = AMTheme.tokens.spacing
+    CatalogFrostedStage {
+        Column(Modifier.padding(spacing.lg).fillMaxWidth().amCard()) {
+            AMProgressView("Videos", progress = { 0.35f }, valueLabel = "35%", style = AMProgressViewStyle.Bar)
+            AMDivider(inset = spacing.lg)
+            AMProgressView("Photos", progress = { 1f }, valueLabel = "Done", style = AMProgressViewStyle.Bar)
+        }
     }
 }
 

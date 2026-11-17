@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.ideamtrls.androidmtrls.AMArtThumbnail
@@ -30,7 +31,7 @@ private fun ArtThumbnailPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { PreviewArtThumbnail() },
     ) {
-        UpNext()
+        RecentTracksCard()
     }
 }
 
@@ -38,33 +39,35 @@ private fun ArtThumbnailPage() {
 @Composable
 private fun PreviewArtThumbnail() {
     Box(Modifier.fillMaxWidth().background(AMTheme.Surface.primary).padding(AMTheme.tokens.spacing.lg)) {
-        AMArtThumbnail(catalogPhoto("orchard", 200), contentDescription = null)
+        AMArtThumbnail(CatalogArt.Mountain.url(AMTheme.isDark), contentDescription = null)
     }
 }
 
-/** A queue card: two songs with their covers, then one whose cover isn't there, showing the note. */
+@Immutable
+private class DataDisplayTrack(val title: String, val artist: String, val art: CatalogArt?)
+
+private val RecentTracks = listOf(
+    DataDisplayTrack("Above the Treeline", "The Low Tides", CatalogArt.Peaks),
+    DataDisplayTrack("Evening Light", "Marigold", CatalogArt.Forest),
+    DataDisplayTrack("First Snow", "Neon Atlas", CatalogArt.Garden),
+    DataDisplayTrack("Untitled Demo", "Voice Memo", null),
+)
+
+/** A card of recent tracks: three with their covers, then a demo with none, showing the note. */
 @Composable
-private fun UpNext() {
+private fun RecentTracksCard() {
     val inset = AMTheme.tokens.spacing.lg
+    val note = painterResource(R.drawable.ic_music_note)
     Column(Modifier.fillMaxWidth().amCard()) {
-        AMListRow(
-            "Harbor Lights",
-            subtitle = "The Lanterns",
-            leadingContent = { AMArtThumbnail(catalogPhoto("coast", 200), contentDescription = null) },
-        )
-        AMDivider(inset = inset)
-        AMListRow(
-            "Low Tide",
-            subtitle = "Marlow Fields",
-            leadingContent = { AMArtThumbnail(catalogPhoto("mountain", 200), contentDescription = null) },
-        )
-        AMDivider(inset = inset)
-        AMListRow(
-            "Paper Boats",
-            subtitle = "Juniper Row",
-            leadingContent = {
-                AMArtThumbnail(url = null, contentDescription = null, icon = painterResource(R.drawable.ic_music_note))
-            },
-        )
+        RecentTracks.forEachIndexed { index, track ->
+            if (index > 0) AMDivider(inset = inset)
+            AMListRow(
+                track.title,
+                subtitle = track.artist,
+                leadingContent = {
+                    AMArtThumbnail(track.art?.url(AMTheme.isDark), contentDescription = null, icon = note)
+                },
+            )
+        }
     }
 }
