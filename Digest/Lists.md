@@ -129,7 +129,7 @@ A container's custom actions (the swipe actions, the move actions) belong on the
 
 - `ListsSupport.kt`: `rememberListsItems` (a `SnapshotStateList` saved as its items' ids, so a reordered or trimmed demo list survives leaving the page).
 - The pages' sample classes carry a `Lists` prefix (`ListsPlan`, `ListsEpisode`, `ListsTask`, `ListsMessage`, `ListsMessageSwipes`), since the demo is one package and two private classes of one name collide.
-- Entry icons: `ic_table_rows`, `ic_view_day`, `ic_reorder`, `ic_stacks`, `ic_swipe_left`, `ic_format_align_left`. Of the demo glyphs, only these pages use `ic_hard_drive`, `ic_radio_button_unchecked`, `ic_graphic_eq`, `ic_flag` and `ic_verified`; `ic_stacks`, `ic_schedule` and `ic_mark_email_read` are shared with other pages.
+- Entry icons: `ic_table_rows`, `ic_view_day`, `ic_reorder`, `ic_stacks`, `ic_swipe_left`, `ic_format_align_left`. Of the demo glyphs, only these pages use `ic_hard_drive`, `ic_radio_button_unchecked`, `ic_flag` and `ic_verified`; `ic_stacks`, `ic_schedule`, `ic_mark_email_read` and `ic_graphic_eq` (also Art rows' placeholder) are shared with other pages.
 
 ## Tests
 

@@ -2,7 +2,7 @@
 scope: The demo's Music scene — the owner's jmsdnns.com catalog streamed with MediaPlayer, album covers read from the MP3s' ID3v2 tags, the queue, the Player and its controls card, the remote, the Queue sheet and the hold menu, its art backdrops and art-row pages — its model, data, surfaces and copy
 globs: [demo/src/main/kotlin/com/ideamtrls/androidmtrls/demo/catalog/scenes/music/**, demo/src/test/kotlin/com/ideamtrls/androidmtrls/demo/MusicId3Test.kt]
 keywords: [Music, musicScene, MusicSceneEntry, MusicScene, MusicModel, MusicCatalog, MusicTrack, MusicAlbum, MusicArtist, MusicQueueEntry, MusicQueueTarget, MusicRootView, MusicRoute, MusicRepeat, jmsdnns.com, streaming, playback, MediaPlayer, prepareAsync, SEEK_CLOSEST, scrub, seekToClock, onValueChangeFinished, audio focus, AudioFocusRequest, embedded cover, ID3v2, APIC, PIC, syncsafe, unsynchronisation, extended header, picture type, front cover, Range, HttpURLConnection, musicEmbeddedCover, musicFetchId3Tag, musicId3TagLength, musicId3Cover, musicId3Resync, MusicCoverCache, musicCachedCover, ImageDecoder, MusicId3Test, queue, up next, history, shuffle, repeat, Player, controls card, musicControlsPlacement, remote, MusicMenu, Queue sheet, AMReorderableRowList, AMSwipeAction, AMSpotlight, amHoldable, musicQueueMenu, MusicQueuePreview, musicQueueActions, musicArtBackdrop, musicArtRow, amArtRows, AMArtRowsBackdrop, AMArtPanelChrome, AMButtonPair, NavDisplay, roots form, MusicArtistsView, MusicArtEntry, MusicArtistPage, MusicAlbumPage, MusicPlayerView, MusicControlsCard, MusicQueueSheet, MusicArtCard, MusicThumb, MusicNowPlayingBadge, MusicSpeakerMark, MusicNowPlayingTint, MusicCoverOverride, cover extra, musicSlug, musicTimeLabel, musicSongsAndLength, musicArtistSummary, AMSlider, AMSheet]
-updated: 2026-11-16
+updated: 2026-11-17
 ---
 
 # Music scene
@@ -30,7 +30,7 @@ The owner's jmsdnns.com catalog, streamed: covers read from the MP3s' tags, the 
 
 Test: `demo/src/test/kotlin/com/ideamtrls/androidmtrls/demo/MusicId3Test.kt` (JUnit 4, `./gradlew :demo:testDebugUnitTest`, `Testing.md`): the tag reader over tags built byte by byte, every version and flag it handles.
 
-Glyphs only this scene uses, in the demo's `res/drawable/`: `ic_artist` (the Artists tile), `ic_repeat_on`, `ic_repeat_one_on` (Repeat all and one), `ic_playlist_add` (Add to queue), `ic_playlist_remove` (the queue's swipe), `ic_volume_up_filled` (the now-playing mark). It also uses `ic_music_note`, `ic_play_circle`, `ic_queue_music`, `ic_logout`, `ic_play_arrow_filled`, `ic_pause_filled`, `ic_skip_previous_filled`, `ic_skip_next_filled`, `ic_shuffle`, `ic_shuffle_on`, `ic_repeat`, and `ic_light_mode` / `ic_dark_mode` through `SceneAppearanceButton`. The demo's manifest declares `INTERNET`, which the streams, covers and photos need.
+Glyphs only this scene uses, in the demo's `res/drawable/`: `ic_artist` (the Artists tile), `ic_repeat_on`, `ic_repeat_one_on` (Repeat all and one), `ic_playlist_remove` (the queue's swipe), `ic_volume_up_filled` (the now-playing mark). It also uses `ic_playlist_add` (Add to queue), `ic_music_note`, `ic_play_circle`, `ic_queue_music`, `ic_logout`, `ic_play_arrow_filled`, `ic_pause_filled`, `ic_skip_previous_filled`, `ic_skip_next_filled`, `ic_shuffle`, `ic_shuffle_on`, `ic_repeat`, and `ic_light_mode` / `ic_dark_mode` through `SceneAppearanceButton`. The demo's manifest declares `INTERNET`, which the streams, covers and photos need.
 
 ## The root — `MusicScene()`
 
