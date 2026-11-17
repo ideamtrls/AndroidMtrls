@@ -47,7 +47,7 @@ private fun ToolbarPage() {
     ) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
-                NowPlayingToolbar(Modifier.padding(vertical = AMTheme.tokens.spacing.xl))
+                NowPlayingToolbar(Modifier.padding(AMTheme.tokens.spacing.lg))
             }
             NowPlayingToolbar(Modifier.background(AMTheme.Surface.primary))
         }
