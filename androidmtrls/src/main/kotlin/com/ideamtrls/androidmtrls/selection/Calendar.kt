@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.os.ConfigurationCompat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -104,7 +103,7 @@ public fun AMCalendar(
 ) {
     val isEnabled = resolveEnabled(enabled)
     val spacing = AMTheme.tokens.spacing
-    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val firstDay = remember(locale) { WeekFields.of(locale).firstDayOfWeek }
     val cells = remember(month, firstDay) { calendarMonthCells(month, firstDay) }
     val dateFormat = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale) }

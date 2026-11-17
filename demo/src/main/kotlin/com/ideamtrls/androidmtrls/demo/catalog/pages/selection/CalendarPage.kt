@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.core.os.ConfigurationCompat
 import com.ideamtrls.androidmtrls.AMCalendar
 import com.ideamtrls.androidmtrls.AMDivider
 import com.ideamtrls.androidmtrls.AMHoldAction
@@ -29,7 +28,6 @@ import com.ideamtrls.androidmtrls.amRowPadding
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 internal val CalendarEntry = ComponentEntry(
     id = "calendar",
@@ -94,7 +92,7 @@ private fun DayView() {
     var day by rememberSaveable { mutableStateOf(LocalDate.now()) }
     var held by remember { mutableStateOf<LocalDate?>(null) }
     val spacing = AMTheme.tokens.spacing
-    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val heading = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEEMMMMd"), locale) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
         AMCalendar(

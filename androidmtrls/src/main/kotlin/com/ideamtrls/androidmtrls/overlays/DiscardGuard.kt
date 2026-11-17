@@ -17,7 +17,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.ObserverModifierNode
 import androidx.compose.ui.node.currentValueOf
+import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -137,11 +139,22 @@ private data class DiscardGuardElement(val hasChanges: Boolean) : ModifierNodeEl
 }
 
 /** Reports to the nearest sheet's guard under its own identity while it's attached. */
-private class DiscardGuardNode(private var hasChanges: Boolean) : Modifier.Node(), CompositionLocalConsumerModifierNode {
+private class DiscardGuardNode(private var hasChanges: Boolean) :
+    Modifier.Node(), CompositionLocalConsumerModifierNode, ObserverModifierNode {
     private var guard: AMDiscardGuardState? = null
 
     override fun onAttach() {
-        guard = currentValueOf(LocalAMDiscardGuard)
+        onObservedReadsChanged()
+    }
+
+    // The nearest guard takes the report; another one in its place takes it over.
+    override fun onObservedReadsChanged() {
+        var nearest: AMDiscardGuardState? = null
+        observeReads { nearest = currentValueOf(LocalAMDiscardGuard) }
+        if (nearest !== guard) {
+            guard?.remove(this)
+            guard = nearest
+        }
         guard?.report(this, hasChanges)
     }
 
