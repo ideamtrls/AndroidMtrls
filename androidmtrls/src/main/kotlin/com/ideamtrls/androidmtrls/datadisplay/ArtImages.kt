@@ -75,9 +75,9 @@ internal class ArtIdentity(target: Any) {
  * One processed picture: the photo known by [photo] (its source's [ArtSource.id]: the URL, or the
  * app bitmap's identity), at a working size of [width] × [height] pixels in its frame's shape,
  * blurred by a sigma of [sigma] working pixels, saturated by [saturation], washed toward the mode
- * ([dark]) by [wash], saturated again by [washSaturation] and, for an art row's band, fading in
- * over its top [fade] working pixels. The fractional values are kept in hundredths, so equal
- * recipes make equal keys.
+ * ([dark]) by [wash], saturated again by [washSaturation] and, for an art row's band, upside down
+ * when [flipped] (a copy past an end row) and fading in over its top [fade] working pixels. The
+ * fractional values are kept in hundredths, so equal recipes make equal keys.
  */
 internal data class ArtKey(
     val photo: Any,
@@ -89,6 +89,7 @@ internal data class ArtKey(
     val wash: Int,
     val washSaturation: Int,
     val fade: Int,
+    val flipped: Boolean = false,
 )
 
 /**
@@ -129,8 +130,8 @@ internal fun blurSigma(radius: Float): Float = if (radius <= 0f) 0f else 0.57735
 /**
  * The key for [source]'s picture filling a [frame] of pixels, blurred by Android's blur
  * [blurRadius] in pixels, saturated by [saturation], washed toward the mode ([dark]) by [wash]
- * (the light or the dark wash, 0 to 1, [washTowardMode]), saturated again by [washSaturation], its
- * top [fade] pixels fading in.
+ * (the light or the dark wash, 0 to 1, [washTowardMode]), saturated again by [washSaturation],
+ * upside down when [flipped], its top [fade] pixels fading in.
  */
 internal fun artKey(
     source: ArtSource,
@@ -141,6 +142,7 @@ internal fun artKey(
     wash: Float,
     washSaturation: Float,
     fade: Float,
+    flipped: Boolean = false,
 ): ArtKey {
     val working = artWorkingSize(frame, blurSigma(blurRadius))
     return ArtKey(
@@ -153,6 +155,7 @@ internal fun artKey(
         wash = (wash.coerceIn(0f, 1f) * 100f).roundToInt(),
         washSaturation = (washSaturation * 100f).roundToInt(),
         fade = (fade * working.scale * 100f).roundToInt(),
+        flipped = flipped,
     )
 }
 
@@ -201,8 +204,8 @@ internal object ArtImages {
 /**
  * Makes [key]'s picture from a photo: cropped to the frame's shape around its center, averaged
  * down to the working size, blurred over its own pixels alone, saturated, washed toward the mode,
- * saturated again to win back the color the wash took, faded in at the top for a band, then handed
- * to the GPU. A photo smaller than the working size is worked at its own size,
+ * saturated again to win back the color the wash took, turned upside down for a flipped band and
+ * faded in at its top, then handed to the GPU. A photo smaller than the working size is worked at its own size,
  * never scaled up here. The photo itself is never changed.
  */
 private fun processArt(photo: ImageBitmap, key: ArtKey): ImageBitmap {
@@ -224,6 +227,7 @@ private fun processArt(photo: ImageBitmap, key: ArtKey): ImageBitmap {
     saturate(pixels, key.saturation / 100f)
     washTowardMode(pixels, key.dark, key.wash / 100f)
     saturate(pixels, key.washSaturation / 100f)
+    if (key.flipped) flipRows(pixels, width, height)
     fadeIn(pixels, width, height, key.fade / 100f * shrink)
 
     val bitmap = Bitmap.createBitmap(unpremultipliedColors(pixels), width, height, Bitmap.Config.ARGB_8888)
@@ -392,6 +396,19 @@ internal fun washTowardMode(pixels: FloatArray, dark: Boolean, wash: Float) {
     }
 }
 
+/** Turns four-float [pixels], [width] × [height], upside down in place: the last row first. */
+internal fun flipRows(pixels: FloatArray, width: Int, height: Int) {
+    val row = width * 4
+    val swap = FloatArray(row)
+    for (y in 0 until height / 2) {
+        val top = y * row
+        val bottom = (height - 1 - y) * row
+        pixels.copyInto(swap, 0, top, top + row)
+        pixels.copyInto(pixels, top, bottom, bottom + row)
+        swap.copyInto(pixels, bottom)
+    }
+}
+
 /** Fades premultiplied four-float [pixels] in from transparent over their top [fade] rows. */
 internal fun fadeIn(pixels: FloatArray, width: Int, height: Int, fade: Float) {
     if (fade <= 0f) return
@@ -418,20 +435,83 @@ private fun unpremultipliedColors(pixels: FloatArray): IntArray = IntArray(pixel
 /** One art row's place in its container: its top and bottom, in the container's pixels. */
 internal class ArtSpan(val top: Float, val bottom: Float)
 
-/**
- * Where each art row's color lies, given the rows' [spans] in page order in a container [height]
- * pixels tall: each band reaches [blend] past the midpoint to its neighbor on both sides, so two
- * rows' colors meet halfway between them, and fades in over its top `2 × blend` (none for the
- * first). The first and last bands run [bleed] past the container's ends, for overscroll and short
- * pages. Returns one band per span, each at least a pixel tall, with its fade in [ArtBand.fade].
- */
-internal fun artRowBands(spans: List<ArtSpan>, height: Float, blend: Float, bleed: Float): List<ArtBand> =
-    spans.indices.map { i ->
-        val top = if (i == 0) -bleed else (spans[i - 1].bottom + spans[i].top) / 2f - blend
-        val bottom = if (i == spans.lastIndex) height + bleed else (spans[i].bottom + spans[i + 1].top) / 2f + blend
-        val bandHeight = max(bottom - top, 1f)
-        ArtBand(top, top + bandHeight, fade = if (i == 0) 0f else min(2f * blend, bandHeight))
-    }
+/** The most copies of an end row that run past it. */
+private const val ArtRowMaxCopies = 6
 
-/** One art row's band of color: its top and bottom, and how far down it fades in. */
-internal class ArtBand(val top: Float, val bottom: Float, val fade: Float)
+/**
+ * Where the art rows' colors lie, given the rows' [spans] in page order in a container [height]
+ * pixels tall, in the order they draw, top down. Each band reaches [blend] past the midpoint to the
+ * frame above and the one below, so two colors meet halfway between their frames, and fades in
+ * over its top `2 × blend` (capped at its height), over the bands above it.
+ *
+ * Past the first and last rows run copies of them at the row's pitch (its height and its gap to its
+ * neighbor), each flipped against the next, for at least `2 × blend` (at most six): an end row's
+ * band lies in a frame of its own size, as every row's does, and its color runs on past it, the
+ * first copy a mirror of the row. Above, the outermost copy fades in over the page color itself;
+ * below, past the last copy, a blank band (the page color, [ArtBand.Blank]) fades in over it and
+ * runs [bleed] past the container's end. Every band is at least a pixel tall.
+ */
+internal fun artRowBands(spans: List<ArtSpan>, height: Float, blend: Float, bleed: Float): List<ArtBand> {
+    if (spans.isEmpty()) return emptyList()
+    val last = spans.lastIndex
+    // The frames in page order: the blank frame above, the copies above, the rows, the copies
+    // below, the blank frame below. The blank frame above only sets where its copy fades in.
+    val frames = past(spans, 0, -1, blend).asReversed() +
+        spans.mapIndexed { i, span -> ArtFrame(span.top, span.bottom, i, copy = false, flipped = false) } +
+        past(spans, last, 1, blend)
+    fun midpoint(above: Int) = (frames[above - 1].bottom + frames[above].top) / 2f
+    return (1 until frames.size).map { i ->
+        val frame = frames[i]
+        val top = midpoint(i) - blend
+        val bottom = if (i == frames.lastIndex) max(height + bleed, top + 2f * blend) else midpoint(i + 1) + blend
+        val bandHeight = max(bottom - top, 1f)
+        ArtBand(top, top + bandHeight, min(2f * blend, bandHeight), frame.row, frame.copy, frame.flipped)
+    }
+}
+
+/** A row's frame, a copy's or a blank one, in page order, for [artRowBands]. */
+private class ArtFrame(val top: Float, val bottom: Float, val row: Int, val copy: Boolean, val flipped: Boolean)
+
+/**
+ * The copies past row [index] of [spans], outward ([direction] −1 above, 1 below), at its pitch,
+ * then the blank frame past them: enough copies to cover twice the [blend], at most six, each
+ * flipped against the one before it, the first a mirror of the row.
+ */
+private fun past(spans: List<ArtSpan>, index: Int, direction: Int, blend: Float): List<ArtFrame> {
+    val row = spans[index]
+    val neighbor = spans.getOrNull(index - direction)
+    val gap = when {
+        neighbor == null -> 0f
+        direction > 0 -> max(row.top - neighbor.bottom, 0f)
+        else -> max(neighbor.top - row.bottom, 0f)
+    }
+    val pitch = max(row.bottom - row.top + gap, 1f)
+    val count = ceil(2f * blend / pitch).toInt().coerceIn(1, ArtRowMaxCopies)
+    return (1..count + 1).map { step ->
+        val shift = direction * step * pitch
+        if (step > count) {
+            ArtFrame(row.top + shift, row.bottom + shift, ArtBand.Blank, copy = false, flipped = false)
+        } else {
+            ArtFrame(row.top + shift, row.bottom + shift, index, copy = true, flipped = step % 2 == 1)
+        }
+    }
+}
+
+/**
+ * One band of color: its top and bottom, how far down it fades in, the row whose picture it shows
+ * ([row], an index into the spans, or [Blank] for the page color), whether it's a [copy] past an end
+ * row rather than the row's own band, and whether its picture is [flipped] upside down.
+ */
+internal class ArtBand(
+    val top: Float,
+    val bottom: Float,
+    val fade: Float,
+    val row: Int,
+    val copy: Boolean,
+    val flipped: Boolean,
+) {
+    companion object {
+        /** The [row] of a band that shows no picture, only the page color. */
+        const val Blank = -1
+    }
+}

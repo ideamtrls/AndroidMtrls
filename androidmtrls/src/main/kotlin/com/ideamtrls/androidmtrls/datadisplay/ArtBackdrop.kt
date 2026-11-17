@@ -686,11 +686,13 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
 
     /**
      * Draws each row's band, in this container's frame, for content of [contentSize]: the colors
-     * alone, over the page color the caller drew. A band whose picture for its frame and the mode
-     * isn't ready draws its row's last picture stretched to the band, until the new one is; a band
-     * with no picture at all is the page color, faded in like a picture, so the band above blends
-     * into it instead of ending in a line. Over nothing but the page color it has nothing to cover,
-     * so a page whose bands have no pictures stays exactly the page color.
+     * alone, over the page color the caller drew. Past the first and last rows, copies of them run
+     * on, flipped against each other, before the page color fades back in. A band whose picture
+     * for its frame and the mode isn't ready draws its row's last picture stretched to the band,
+     * until the new one is; a band with no picture at all is the page color, faded in like a
+     * picture, so the band above blends into it instead of ending in a line. Over nothing but the
+     * page color it has nothing to cover, so a page whose bands have no pictures stays exactly the
+     * page color.
      */
     fun DrawScope.drawBands(contentSize: Size) {
         val container = coordinates?.takeIf { it.isAttached } ?: return
@@ -707,24 +709,24 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
             ArtRowBleed.toPx(),
         )
         val blurRadius = AMArtDefaults.BlurRadius.toPx()
+        val washSaturation = if (dark) ArtDarkWashSaturation else ArtLightWashSaturation
         val page = pageColor(dark)
         // How far down the pictures drawn so far reach: a band with no picture above it lies on
         // the page color alone.
         var artBottom = Float.NEGATIVE_INFINITY
-        placed.forEachIndexed { index, (row, _) ->
-            val band = bands[index]
+        bands.forEach { band ->
             val bandSize = Size(contentSize.width, band.bottom - band.top)
             val frame = IntSize(ceil(bandSize.width).toInt(), ceil(bandSize.height).toInt())
-            if (frame.width <= 0 || frame.height <= 0) return@forEachIndexed
-            val source = row.source
-            val picture = if (source == null) {
+            if (frame.width <= 0 || frame.height <= 0) return@forEach
+            val row = placed.getOrNull(band.row)?.first
+            val source = row?.source
+            val picture = if (row == null || source == null) {
                 null
             } else {
-                val washSaturation = if (dark) ArtDarkWashSaturation else ArtLightWashSaturation
-                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, washSaturation, band.fade)
+                val key = artKey(source, frame, blurRadius, ArtSaturation, dark, wash, washSaturation, band.fade, band.flipped)
                 val image = ArtImages.cached(key)
-                if (image == null) request(source, key) else row.lastPicture = image
-                // Until its picture for this band is ready, a band keeps the one it showed last.
+                if (image == null) request(source, key) else if (!band.copy) row.lastPicture = image
+                // Until its picture for this band is ready, a band keeps its row's last one.
                 image ?: row.lastPicture
             }
             if (picture != null) {
