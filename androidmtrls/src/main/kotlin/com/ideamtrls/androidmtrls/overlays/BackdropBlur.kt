@@ -20,8 +20,9 @@ import androidx.compose.ui.unit.Dp
 
 /**
  * A pure Gaussian blur of the art behind this area, with no tint: the nearest [AMBackdrop]'s art,
- * the part under this area, blurred and drawn over it, so the picture's own colors and brightness
- * come through untouched.
+ * the part under this area, blurred and drawn over it. In light mode the blur lies bare, so the
+ * picture's own colors and brightness come through untouched; in dark mode the remote's dark scrim
+ * (black at 0.4) lies over it, so the blurred art dims as the remote's paused screen does.
  *
  * ```kotlin
  * AMBackdrop(art = { AMRemoteImage(cover, contentDescription = null) }, Modifier.height(280.dp)) {
@@ -62,7 +63,10 @@ private data class BackdropBlurElement(val radius: Dp) : ModifierNodeElement<Bac
     }
 }
 
-/** Draws its slice of the nearest backdrop's art, blurred, and redraws as it moves over the art. */
+/**
+ * Draws its slice of the nearest backdrop's art, blurred, under the dark scrim in dark mode, and
+ * redraws as it moves over the art.
+ */
 private class BackdropBlurNode(var radius: Dp) :
     Modifier.Node(),
     DrawModifierNode,
@@ -100,6 +104,7 @@ private class BackdropBlurNode(var radius: Dp) :
         if (backdrop != null) {
             val area = Path().apply { addRect(size.toRect()) }
             slice.draw(this, area, backdrop, coordinates, radius.toPx())
+            if (currentValueOf(LocalAMDarkTheme) == true) drawRect(Style.ModalOverlay.ScrimDark)
         }
         drawContent()
     }
