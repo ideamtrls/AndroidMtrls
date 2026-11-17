@@ -19,19 +19,19 @@ import com.ideamtrls.androidmtrls.AMDisclosureGroup
 import com.ideamtrls.androidmtrls.AMRowDefaults
 import com.ideamtrls.androidmtrls.AMTheme
 
-internal val DisclosureGroupEntry = ComponentEntry(
-    id = "disclosureGroup",
+internal val DisclosureEntry = ComponentEntry(
+    id = "disclosure",
     category = CatalogCategory.Layout,
-    title = "Disclosure group",
+    title = "Disclosure",
     summary = "A card that folds open in place",
     icon = R.drawable.ic_expand_circle_down,
-    keywords = listOf("AMDisclosureGroup", "disclosure", "folding", "expand", "collapse", "accordion", "expandable"),
-) { DisclosureGroupPage() }
+    keywords = listOf("AMDisclosureGroup", "disclosure group", "folding", "expand", "collapse", "accordion", "expandable"),
+) { DisclosurePage() }
 
 @Composable
-private fun DisclosureGroupPage() {
+private fun DisclosurePage() {
     ComponentPage(
-        DisclosureGroupEntry,
+        DisclosureEntry,
         preview = { AdvancedOptions() },
     ) {
         OrderDetails()

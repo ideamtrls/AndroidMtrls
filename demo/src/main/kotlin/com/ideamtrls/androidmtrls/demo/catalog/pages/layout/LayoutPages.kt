@@ -5,7 +5,7 @@ internal object LayoutPages {
     val entries: List<ComponentEntry> = listOf(
         CardEntry,
         SectionEntry,
-        DisclosureGroupEntry,
+        DisclosureEntry,
         DividerEntry,
     )
 }

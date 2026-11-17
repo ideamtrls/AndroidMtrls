@@ -159,13 +159,13 @@ Folding: a card (`amCard()`, in the app's setting) whose header opens it in plac
 
 ## Catalog pages
 
-`demo/.../catalog/pages/layout/`, registered in `LayoutPages.entries` in this order (ids): `card`, `section`, `disclosureGroup`, `divider`.
+`demo/.../catalog/pages/layout/`, registered in `LayoutPages.entries` in this order (ids): `card`, `section`, `disclosure`, `divider`.
 
 | Page | Preview | Loaded |
 |---|---|---|
 | Card (`CardPage.kt`) | a two-line row ("Project Atlas") in a card | a frosted card ("Project Atlas", its content in `ProvideAMOnSurface`) in a 200 dp `CatalogFrostedStage` (`Demo.md`), a prose card padded `spacing.lg`, and a card of a two-line row over a switch row, all `spacing.lg` apart |
 | Section (`SectionPage.kt`) | `FullBleed`: a flat "Account" section (label over value, footer) on a surface strip | `Wide`, all `spacing.xl` apart: a `CatalogFrostedStage` inset by the page gutter holding Notifications (`Rows`, two switch rows); Notifications again (`Rows`, footer); Team (`Rows`, two members); About (`Card` at `AMElevation.None`); then Episodes, a 560 dp `LazyColumn` holding one `amSection` of a podcast's 240 episodes (`AMListRow`s, newest first, footer) |
-| Disclosure group (`DisclosureGroupPage.kt`) | a closed "Advanced" card holding a strict-mode switch row | a `CatalogFrostedStage` first, padded `spacing.lg`: "Order summary" open and "Shipping details" closed, `spacing.md` apart, frosted over the photo, each with its own state; then, `spacing.xl` below and `spacing.md` apart: "Order summary" open, "Billing" with a credit-card glyph, "Shipping details" |
+| Disclosure (`DisclosurePage.kt`) | a closed "Advanced" card holding a strict-mode switch row | a `CatalogFrostedStage` first, padded `spacing.lg`: "Order summary" open and "Shipping details" closed, `spacing.md` apart, frosted over the photo, each with its own state; then, `spacing.xl` below and `spacing.md` apart: "Order summary" open, "Billing" with a credit-card glyph, "Shipping details" |
 | Divider (`DividerPage.kt`) | `FullBleed`: "Inbox" and "Archive" rows on a surface strip with a full-width divider | a card: an order total title row, a full-width divider, then subtotal, shipping and total rows (`ListItem` with the amount trailing) with inset dividers |
 
 Demo glyphs these pages use: `ic_rectangle`, `ic_view_agenda`, `ic_expand_circle_down`, `ic_horizontal_rule` (entry icons) and `ic_credit_card`.
