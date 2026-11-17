@@ -13,8 +13,7 @@ shapes, type, motion and behavior. The style layer sits on top: floating surface
 two-layer shadows and hairlines, cards, the remote, the spotlight, no dimming behind sheets, folding
 and quiet defaults. The screen is a backdrop layer (the app's backdrop, a sheet's background, the
 blurred screen behind the remote and the spotlight: always frosty) and a surface layer on it, made
-solid or frosted by one setting, `AMTheme(surfaceFill = …)`; the remote, the + that opens it and the
-spotlight's tiles stay solid in either setting. Stateless surfaces wear the style;
+solid or frosted by one setting, `AMTheme(surfaceFill = …)`. Stateless surfaces wear the style;
 native controls keep Material's shapes, outlines and behavior and take the model's container colors.
 When in doubt, lean Android.
 
