@@ -50,7 +50,7 @@ private fun PreviewTags() {
     }
 }
 
-private val TagTopics = listOf("Payments", "Search", "Onboarding", "Android", "Settings", "Web")
+private val TagTopics = listOf("Payments", "Search", "Onboarding", "Mobile", "Settings", "Web")
 
 /** A release's status board: each item's state as a tag, the build in monospace, then its topics. */
 @Composable

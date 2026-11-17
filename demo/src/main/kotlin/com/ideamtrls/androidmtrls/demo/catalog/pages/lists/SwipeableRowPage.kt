@@ -77,7 +77,7 @@ private class ListsMessage(
 
 private val Messages = listOf(
     ListsMessage(1, "Grace commented", "On “Cache policies”", R.drawable.ic_chat_bubble, AMSemantic.Info, ListsMessageSwipes.ArchiveOrDelete),
-    ListsMessage(2, "Build succeeded", "AndroidMtrls · 2m ago", R.drawable.ic_verified, AMSemantic.Success, ListsMessageSwipes.Flag),
+    ListsMessage(2, "Build succeeded", "Mtrls · 2m ago", R.drawable.ic_verified, AMSemantic.Success, ListsMessageSwipes.Flag),
     ListsMessage(3, "Storage almost full", "1.2 GB remaining", R.drawable.ic_hard_drive, AMSemantic.Warning, ListsMessageSwipes.Delete),
 )
 
