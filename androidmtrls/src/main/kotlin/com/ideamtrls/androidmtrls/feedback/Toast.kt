@@ -1,12 +1,17 @@
 package com.ideamtrls.androidmtrls
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDefaults
@@ -23,8 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,21 +46,26 @@ import kotlin.time.Duration.Companion.seconds
  *
  * ```kotlin
  * AMToastItem("Link copied")
+ * AMToastItem("Copied to clipboard", icon = painterResource(R.drawable.ic_content_copy))
  * ```
  *
  * @property text the confirmation, in sentence case.
+ * @property icon a glyph before the text, in the text's color, saying what was done: decorative,
+ *   since the text says it. Null shows none.
  * @property duration how long the toast stays up once it shows: 2 seconds by default, longer when
  *   the user has asked Android for more time to act (Accessibility, Time to take action).
  */
 @Immutable
 public class AMToastItem(
     public val text: String,
+    public val icon: Painter? = null,
     public val duration: Duration = 2.seconds,
 )
 
 /**
  * Shows [item] as a toast at the bottom of the window while it's non-null: Material's snackbar,
- * with its own shape, shadow and motion and no action, above the navigation bar and the keyboard.
+ * with its own shape, shadow and motion and no action, above the navigation bar and the keyboard,
+ * its text led by the item's glyph when it has one.
  * Its container follows the app's surface setting ([AMTheme.surfaceFill]): Material's own in a
  * solid app; in a frosted app frost over the page color, opaque, with `onSurface` text and the
  * frosted edge around it, at the bottom of a sheet too, so the sheet's content never shows
@@ -140,8 +150,9 @@ internal fun ToastHost(
     // the toast then asks its caller to go.
     LaunchedEffect(posting) {
         val shown = posting ?: return@LaunchedEffect
-        val timeout = accessibility.transientTimeout(shown.item.duration, containsIcons = false, containsControls = false)
-        withTimeoutOrNull(timeout) { snackbars.showSnackbar(ToastVisuals(shown.item.text)) }
+        val item = shown.item
+        val timeout = accessibility.transientTimeout(item.duration, containsIcons = item.icon != null, containsControls = false)
+        withTimeoutOrNull(timeout) { snackbars.showSnackbar(ToastVisuals(item.text, item.icon)) }
         shown.caller.onDismissRequest()
     }
 
@@ -154,36 +165,42 @@ internal fun ToastHost(
                 .padding(bottom = bottomClearance),
             contentAlignment = Alignment.BottomCenter,
         ) {
-            SnackbarHost(snackbars) { data ->
-                // In a frosted app the container follows the setting, the text is the surface's and
-                // the frosted edge outlines it; in a solid app it's Material's snackbar as it is.
-                val container = frostedContainerColor()
-                if (container.isSpecified) {
-                    FrostedSnackbar(data.visuals.message, container)
-                } else {
-                    Snackbar(data)
-                }
-            }
+            SnackbarHost(snackbars) { data -> ToastSnackbar(data.visuals as ToastVisuals) }
         }
     }
 }
 
 /**
- * The toast's snackbar in a frosted app: Material's, on [container] with `onSurface` text and the
- * frosted edge on its own shape. It's Material's content form, since the data form pads the
- * modifier it's given by [SnackbarMargin] outside the snackbar, where an edge passed through it
- * would be drawn; the same margin here places it as the data form does. A toast has no action or
- * dismiss button, so the text is all it shows.
+ * The toast's snackbar: Material's content form, which the data form draws too, placed with the
+ * same [SnackbarMargin] the data form keeps around it. In a solid app it's Material's colors; in a
+ * frosted app the container follows the setting, the text is the surface's and the frosted edge
+ * outlines its shape (drawn inside the margin, where the data form would pad an edge passed
+ * through its modifier out of place). A toast has no action or dismiss button: it shows its text,
+ * led by its glyph when it has one, at Material's icon size and spacing for a label.
  */
 @Composable
-private fun FrostedSnackbar(message: String, container: Color) {
+private fun ToastSnackbar(visuals: ToastVisuals) {
     val shape = SnackbarDefaults.shape
+    val frosted = frostedContainerColor()
     Snackbar(
-        modifier = Modifier.padding(SnackbarMargin).amHairline(shape, AMTheme.Frosted.edge),
+        modifier = Modifier
+            .padding(SnackbarMargin)
+            .then(if (frosted.isSpecified) Modifier.amHairline(shape, AMTheme.Frosted.edge) else Modifier),
         shape = shape,
-        containerColor = container,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) { Text(message) }
+        containerColor = if (frosted.isSpecified) frosted else SnackbarDefaults.color,
+        contentColor = if (frosted.isSpecified) MaterialTheme.colorScheme.onSurface else SnackbarDefaults.contentColor,
+    ) {
+        val icon = visuals.icon
+        if (icon == null) {
+            Text(visuals.message)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(visuals.message)
+            }
+        }
+    }
 }
 
 /** The margin Material's snackbar keeps around itself in its host. */
@@ -194,8 +211,8 @@ internal val LocalAMToastHost = staticCompositionLocalOf<TransientHost<AMToastIt
 
 private const val NoToastHost = "AMToast shows in the nearest AMToastHost: put one at the root of the window"
 
-/** A toast as Material's snackbar sees it: the text alone, no action, timed by the toast host. */
-private class ToastVisuals(override val message: String) : SnackbarVisuals {
+/** A toast as Material's snackbar sees it: the text and its glyph, no action, timed by the toast host. */
+private class ToastVisuals(override val message: String, val icon: Painter?) : SnackbarVisuals {
     override val actionLabel: String? get() = null
     override val withDismissAction: Boolean get() = false
     override val duration: SnackbarDuration get() = SnackbarDuration.Indefinite

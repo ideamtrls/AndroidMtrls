@@ -144,6 +144,7 @@ private fun MotionPanel() {
     var genres by remember { mutableStateOf(setOf("Jazz")) }
     var story by rememberSaveable { mutableIntStateOf(0) }
     var toast by remember { mutableStateOf<AMToastItem?>(null) }
+    val copy = painterResource(R.drawable.ic_content_copy)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
         Column(Modifier.fillMaxWidth().amCard()) {
@@ -216,7 +217,7 @@ private fun MotionPanel() {
             {
                 AMButton(
                     "Replay",
-                    onClick = { toast = AMToastItem("Copied to clipboard") },
+                    onClick = { toast = AMToastItem("Copied to clipboard", icon = copy) },
                     style = AMButtonStyle.Secondary(),
                 )
             },
