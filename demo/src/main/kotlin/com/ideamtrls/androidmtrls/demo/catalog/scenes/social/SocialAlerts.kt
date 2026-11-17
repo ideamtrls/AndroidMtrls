@@ -50,7 +50,7 @@ import com.ideamtrls.androidmtrls.amFloatingActions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocialAlerts(model: SocialModel) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { AMPageHeader("Alerts", scrollBehavior = scrollBehavior) },

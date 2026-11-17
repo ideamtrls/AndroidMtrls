@@ -41,6 +41,12 @@ internal enum class LiesOn {
     /** A floating surface: a card, a section, a disclosure group, a list card, tabs ([ProvideAMOnSurface]). */
     Surface,
 
+    /**
+     * A floating surface on a sheet: tinted in a frosted app, solid in a solid one. What it holds
+     * lies on the surface's own fill, so a field there draws none of its own ([fieldContainer]).
+     */
+    EmbeddedSurface,
+
     /** A sheet, which is a window of its own, so a piece on it can't find it in the layout tree. */
     Sheet,
 }
@@ -145,11 +151,12 @@ internal enum class FieldContainer {
 
 /**
  * The container of a text field under the app's [setting] where it [liesOn]: the tint in a frosted
- * app off the page; solid on a sheet in a solid app, since a sheet is frost in either setting;
- * otherwise the field's own.
+ * app on frost (a sheet, or a frosted surface); solid on a sheet in a solid app, since a sheet is
+ * frost in either setting; otherwise the field's own. On a surface that's already tinted (a card on
+ * a sheet) it draws none, so the surface's tint shows through once.
  */
 internal fun fieldContainer(setting: AMSurfaceFill, liesOn: LiesOn): FieldContainer = when {
-    setting == AMSurfaceFill.Frosted && liesOn != LiesOn.Page -> FieldContainer.Tint
+    setting == AMSurfaceFill.Frosted && (liesOn == LiesOn.Sheet || liesOn == LiesOn.Surface) -> FieldContainer.Tint
     setting == AMSurfaceFill.Solid && liesOn == LiesOn.Sheet -> FieldContainer.Solid
     else -> FieldContainer.Clear
 }

@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun CatalogList() {
     val navigator = LocalCatalogNavigator.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val searchState = rememberSearchBarState()
     val query = rememberTextFieldState()
     val scope = rememberCoroutineScope()

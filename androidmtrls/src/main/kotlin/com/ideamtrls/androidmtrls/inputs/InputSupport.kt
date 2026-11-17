@@ -57,8 +57,9 @@ internal const val InputDisabledAlpha: Float = 0.38f
 
 /**
  * The trailing clear button of a text input: Material's icon button with the filled `cancel`
- * glyph, in the field's trailing icon color, that empties [state]. Callers show it only while the
- * field holds text and is enabled.
+ * glyph, in the field's trailing icon color, that empties [state]. A form field shows it only
+ * while it's focused, enabled and holds text; the search field whenever it's enabled and holds a
+ * query.
  */
 @Composable
 internal fun InputClearButton(state: TextFieldState) {

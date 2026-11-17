@@ -135,11 +135,11 @@ private fun selectionRing(dark: Boolean): Color = if (dark) Style.SelectionRing.
  *   [AMTheme.Surface.primary], the content, then a hairline: in dark mode only, where the shadow
  *   alone can't lift black off the page, or in both modes with [alwaysOutlined].
  * - **Frosted**: the shadow outside the shape only (under frost it would show through), the
- *   nearest [AMBackdrop]'s art under the shape blurred by [AMTheme.Frosted.blurRadius], the
+ *   nearest [AMBackdrop]'s art under the shape blurred by [AMBlur.Frost], the
  *   frosted fill, the content, then the frosted edge in both modes. With no backdrop, or before
  *   the art is placed, the page color takes the art's place under the fill: frost over the page,
- *   opaque, never unblurred translucency. In a blurred window (the remote's, the spotlight's) the
- *   window's own blur-behind is the blur: the fill lies straight over it and samples nothing, and
+ *   opaque, never unblurred translucency. In a blurred window (the spotlight's) the window's own
+ *   blur-behind is the blur: the fill lies straight over it and samples nothing, and
  *   while the system has cross-window blur off the surface draws solid ([frostPath]).
  * - **Tinted**: the shadow outside the shape only, [AMTheme.Frosted.embeddedFill] in the shape
  *   with no blur of its own, the content, then the frosted edge. A [lifted] surface is never
@@ -388,7 +388,7 @@ internal class ElevatedSurfaceDrawer {
     ): FrostPath? {
         if (look != SurfaceLook.Frosted) return null
         val placed = windowBlur == null && backdrop != null &&
-            slice.place(this, backdrop, coordinates, Style.Frosted.BlurRadius.toPx())
+            slice.place(this, backdrop, coordinates, AMBlur.Frost.radius.toPx())
         return frostPath(placed, windowBlur)
     }
 

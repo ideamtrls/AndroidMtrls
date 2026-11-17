@@ -229,7 +229,7 @@ internal fun <T> ReorderableColumn(
  * The list in a scrolling page: [items] in a plain column, as tall as its items, each built by
  * [cell]. It scrolls with the page that holds it; a lifted item scrolls the page near the edges of
  * what's visible of the list, through nested scrolling, so whatever scrolls the page (a scrolling
- * column, a lazy list, a collapsing top app bar above them) takes part. Neighbors slide out of the
+ * column, a lazy list, a top app bar above them) takes part. Neighbors slide out of the
  * lifted item's way with Material's motion.
  */
 @Composable

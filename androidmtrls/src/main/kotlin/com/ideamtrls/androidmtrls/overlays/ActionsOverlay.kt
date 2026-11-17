@@ -3,6 +3,7 @@ package com.ideamtrls.androidmtrls
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
@@ -25,17 +26,19 @@ import androidx.compose.ui.Modifier
  *
  * It's a window of its own, so it covers the whole screen from wherever it's called, sheets
  * included, and takes back before anything under it. The screen behind blurs with the platform's
- * blur-behind ([AMTheme.Overlay.blurRadius]), under the mode's wash ([AMTheme.Overlay.wash]);
+ * blur-behind ([AMBlur.Mist]), bare in light mode and under a black scrim in dark mode;
  * where the system has cross-window blur off (battery saver, some devices) the wash alone stills
- * it, following that setting live. Blur, wash and content fade in and out together with Material's
+ * it, following that setting live. Blur, scrim and content fade in and out together with Material's
  * motion.
  *
  * Back, and a tap on the blur (between tiles too), call [onDismissRequest]; set your state to hide
  * it. A tile that acts should hide it too. Opening and closing it changes nothing underneath.
  *
- * Its content is always enabled, whatever the screen behind it sets, and in the app's surface
- * setting; screen readers stay inside it while it's up. While [visible] it reports to the nearest
- * scene, so the floating action button fades out of its way.
+ * Its content is always enabled, whatever the screen behind it sets, and always solid, whatever
+ * the app's surface setting: the tiles, and any card or button the content holds, wear the opaque
+ * floating surface, so the remote's buttons never show the blurred screen through them. Screen
+ * readers stay inside it while it's up. While [visible] it reports to the nearest scene, so the
+ * floating action button fades out of its way.
  *
  * @param visible whether the overlay is up.
  * @param onDismissRequest called on back and on a tap outside the content.
@@ -50,7 +53,10 @@ public fun AMActionsOverlay(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    AMOverlayWindow(visible, onDismissRequest) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) { content() }
+    AMOverlayWindow(visible, onDismissRequest, OverlayCover.Scrim) {
+        // The remote's buttons are never transparent: solid in either surface setting.
+        CompositionLocalProvider(LocalAMSurfaceFill provides AMSurfaceFill.Solid) {
+            Box(modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) { content() }
+        }
     }
 }

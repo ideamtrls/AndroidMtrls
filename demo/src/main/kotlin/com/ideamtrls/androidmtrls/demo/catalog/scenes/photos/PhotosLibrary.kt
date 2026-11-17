@@ -69,7 +69,7 @@ internal fun PhotosLibrary(model: PhotosModel) {
     val selecting = model.selecting == PhotosSelectScope.Library
     val loading = model.isLoading
     val photos = model.libraryPhotos
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     PhotosSelectBackHandler(selecting, model::endSelecting)
 

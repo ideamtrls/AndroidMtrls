@@ -2,7 +2,6 @@ package com.ideamtrls.androidmtrls
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +49,7 @@ internal fun FrostedBar(fill: () -> Float, covers: Boolean, modifier: Modifier =
 }
 
 /**
- * Whether content has scrolled under a one-row top app bar: Material's own test, the overlap past
+ * Whether content has scrolled under a top app bar: Material's own test, the overlap past
  * [BarScrolledFraction]. False without a scroll behavior.
  */
 @Composable
@@ -60,11 +59,11 @@ internal fun barScrolledState(scrollBehavior: TopAppBarScrollBehavior?): State<B
     }
 
 /**
- * A one-row bar's frosted fill: in once content scrolls under it, fading with Material's effects
- * motion, as Material fades a one-row bar's scrolled color.
+ * A bar's frosted fill: in once content scrolls under it, fading with Material's effects motion,
+ * as Material fades a top app bar's scrolled color.
  */
 @Composable
-internal fun oneRowBarFill(scrollBehavior: TopAppBarScrollBehavior?): State<Float> {
+internal fun barFill(scrollBehavior: TopAppBarScrollBehavior?): State<Float> {
     val scrolled by barScrolledState(scrollBehavior)
     return animateFloatAsState(
         targetValue = if (scrolled) 1f else 0f,
@@ -72,29 +71,8 @@ internal fun oneRowBarFill(scrollBehavior: TopAppBarScrollBehavior?): State<Floa
     )
 }
 
-/**
- * A two-row (large) bar's frosted fill: in at the rate the bar collapses, eased as Material eases
- * a two-row bar's scrolled color, so it's full once the bar is collapsed.
- */
-internal fun twoRowBarFill(scrollBehavior: TopAppBarScrollBehavior?): Float =
-    FastOutLinearInEasing.transform(scrollBehavior?.state?.collapsedFraction ?: 0f)
-
 /** The overlap past which Material's top app bar counts content as under it. */
 internal const val BarScrolledFraction: Float = 0.01f
-
-/**
- * Whether a two-row bar's frosted fill has come in far enough for its lines to take the bar's own
- * colors: from [BarLinesFilledFill]. Before that they lie on the art.
- */
-@Composable
-internal fun twoRowBarFilledState(scrollBehavior: TopAppBarScrollBehavior?): State<Boolean> =
-    remember(scrollBehavior) { derivedStateOf { twoRowBarFill(scrollBehavior) >= BarLinesFilledFill } }
-
-/**
- * How far a bar's frosted fill comes in before its lines take the bar's own colors on it: from
- * 0.9, `onSurface` holds 4.5:1 on the fill even where the art under it is black in light mode.
- */
-internal const val BarLinesFilledFill: Float = 0.9f
 
 /**
  * The color of one of a bar's lines (its title, its subtitle): on art (an art tone around it) and
@@ -165,7 +143,7 @@ private class FrostedBarFillNode :
         val backdrop = currentValueOf(LocalAMBackdrop)
         val bounds = Path().apply { addRect(size.toRect()) }
         val frosted = backdrop != null &&
-            slice.draw(this, bounds, backdrop, coordinates, Style.Frosted.BlurRadius.toPx())
+            slice.draw(this, bounds, backdrop, coordinates, AMBlur.Frost.radius.toPx())
         when {
             frosted -> drawRect(if (dark) Style.Frosted.FillDark else Style.Frosted.FillLight)
             else -> drawRect(if (dark) Style.Surface.Dark else Style.Surface.Light)

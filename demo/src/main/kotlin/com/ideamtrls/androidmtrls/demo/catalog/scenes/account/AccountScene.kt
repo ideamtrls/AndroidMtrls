@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -115,18 +116,21 @@ internal fun AccountScene() {
 }
 
 /**
- * The picture behind every screen of the app: a warm shelf of books (Wikimedia Commons,
- * "Books HD (8314929977).jpg" by Abhi Sharma from India, CC BY 2.0),
- * washed toward the mode at the library's defaults, so the screens read as one place and the
+ * A design studio (a desk with two screens under a window, shelves and a lamp), from Wikimedia
+ * Commons ("My working space (Unsplash).jpg", CC0, by Vadim Sherbakov), asked at its full 5472 px
+ * width so its light blur stays crisp.
+ */
+private val AccountStudioUrl = commonsPhoto("My working space (Unsplash).jpg", 5472)
+
+/**
+ * The picture behind every screen of the app, so the app feels like a stylish place to work: the
+ * design studio as an art backdrop, blurred a little (20 dp) and frosted toward the mode (0.45 in
+ * light mode, 0.5 in dark mode), so the room still reads, the screens read as one place and the
  * frosted surfaces over it have art to blur.
  */
 @Composable
 internal fun AccountBackdrop() {
-    Box(
-        Modifier.fillMaxSize().amArtBackdrop(
-            commonsPhoto("Books HD (8314929977).jpg", 1698),
-        ),
-    )
+    Box(Modifier.fillMaxSize().amArtBackdrop(AccountStudioUrl, blurRadius = 20.dp, lightWash = 0.45f, darkWash = 0.5f))
 }
 
 /**
@@ -256,9 +260,8 @@ private fun AccountOverlays(model: AccountModel) {
 }
 
 /**
- * The page every step after the intro sits on: one header, Material's large top app bar with the
- * back button ([onBack]) in its top row and the step's [title] under it, collapsing as the page
- * scrolls; then a scrolling column inset by the page gutter that starts with the [subtitle] and
+ * The page every step after the intro sits on: one header, the back button ([onBack]) and the
+ * step's [title] on one row, filled once the page scrolls under it; then a scrolling column inset by the page gutter that starts with the [subtitle] and
  * ends clear of the floating action button, making room for the keyboard.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -270,7 +273,7 @@ internal fun AccountStepPage(
     content: @Composable () -> Unit,
 ) {
     val spacing = AMTheme.tokens.spacing
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -309,8 +312,8 @@ internal fun AccountStepPage(
 }
 
 /**
- * The page each signed-in view sits on: its header (collapsing as the page scrolls, with [actions]
- * at its end) over a scrolling column inset by the page gutter, blocks `spacing.xl` apart, ending
+ * The page each signed-in view sits on: its header (filled once the page scrolls under it, with
+ * [actions] at its end) over a scrolling column inset by the page gutter, blocks `spacing.xl` apart, ending
  * clear of the floating action button.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -321,7 +324,7 @@ internal fun AccountPage(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spacing = AMTheme.tokens.spacing
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { AMPageHeader(title, actions = actions, scrollBehavior = scrollBehavior) },

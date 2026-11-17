@@ -1,5 +1,7 @@
 package com.ideamtrls.androidmtrls
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
@@ -103,6 +105,8 @@ public fun AMTextField(
 ) {
     val isEnabled = resolveEnabled(enabled)
     val hasText by remember(state) { derivedStateOf { state.text.isNotEmpty() } }
+    val interactions = remember { MutableInteractionSource() }
+    val focused by interactions.collectIsFocusedAsState()
     val container = outlinedFieldContainer()
     OutlinedTextField(
         state = state,
@@ -110,7 +114,7 @@ public fun AMTextField(
         enabled = isEnabled,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
-        trailingIcon = if (isEnabled && hasText) { { InputClearButton(state) } } else null,
+        trailingIcon = if (isEnabled && focused && hasText) { { InputClearButton(state) } } else null,
         supportingText = supportingText?.let { { Text(it, container.supporting) } },
         isError = isError,
         inputTransformation = inputTransformation,
@@ -118,5 +122,6 @@ public fun AMTextField(
         onKeyboardAction = onKeyboardAction,
         lineLimits = TextFieldLineLimits.SingleLine,
         colors = container.colors,
+        interactionSource = interactions,
     )
 }

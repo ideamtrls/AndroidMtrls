@@ -22,12 +22,14 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInWindow
 
 /**
- * The art behind a region, as frosted surfaces sample it: the layer the art records itself into
- * each time it draws, and where the art sits, so a surface can find its own slice.
+ * A region with art behind it, as what's over it samples it: [layer], the art alone, which the
+ * frosted surfaces on it blur; [screen], the region whole (the art and everything on it), which a
+ * sheet over it blurs from its own window. Each records itself each time it draws. And where the
+ * region sits, so a surface can find its own slice.
  */
 @Stable
-internal class AMBackdropSource(val layer: GraphicsLayer) {
-    /** The art's placement, once it has one. */
+internal class AMBackdropSource(val layer: GraphicsLayer, val screen: GraphicsLayer) {
+    /** The art's placement, once it has one: the region's, which the art fills. */
     var coordinates: LayoutCoordinates? = null
 
     /**
@@ -35,27 +37,6 @@ internal class AMBackdropSource(val layer: GraphicsLayer) {
      * the status bar lies on the fill, not on the art. Snapshot state.
      */
     var topCovers: Int by mutableIntStateOf(0)
-
-    /**
-     * What to tell each time the art records itself anew. A surface in another window (a frosted
-     * sheet) draws the art's layer into its own and isn't redrawn when the art changes, so it
-     * listens here to sample it again. Main thread only.
-     */
-    private val recordListeners = mutableListOf<() -> Unit>()
-
-    fun addRecordListener(listener: () -> Unit) {
-        recordListeners += listener
-    }
-
-    fun removeRecordListener(listener: () -> Unit) {
-        recordListeners -= listener
-    }
-
-    /** The art just recorded itself: tells every listener. */
-    fun recorded() {
-        if (recordListeners.isEmpty()) return
-        recordListeners.toList().forEach { it() }
-    }
 }
 
 /**
@@ -133,8 +114,8 @@ internal fun sceneBackdrop(source: AMBackdropSource): ProvidedValue<AMSceneBackd
 }
 
 /**
- * Records what this draws into [source]'s layer, then draws the layer, so the art shows as usual
- * and frosted surfaces can sample it; then tells the source's listeners the art changed.
+ * Records what this draws, the art, into [source]'s layer, then draws the layer, so the art shows
+ * as usual and frosted surfaces can sample it.
  */
 internal fun Modifier.backdropSource(source: AMBackdropSource): Modifier =
     this
@@ -142,5 +123,15 @@ internal fun Modifier.backdropSource(source: AMBackdropSource): Modifier =
         .drawWithContent {
             source.layer.record { this@drawWithContent.drawContent() }
             drawLayer(source.layer)
-            source.recorded()
         }
+
+/**
+ * Records what this draws, the region whole with its art, into [source]'s screen layer, then
+ * draws the layer, so the region shows as usual and a sheet over it can blur it from its own
+ * window. It goes on the region's box, which the art fills, so both layers share the art's place.
+ */
+internal fun Modifier.backdropScreen(source: AMBackdropSource): Modifier =
+    drawWithContent {
+        source.screen.record { this@drawWithContent.drawContent() }
+        drawLayer(source.screen)
+    }

@@ -88,8 +88,8 @@ internal fun ShopBackdrop() {
 // Root views
 
 /**
- * The page each root view sits on: its header (collapsing as the page scrolls, with [actions] at
- * its end), transparent over the scene's backdrop. [content] gets the scaffold's padding, to apply
+ * The page each root view sits on: its header (filled once the page scrolls under it, with
+ * [actions] at its end), transparent over the scene's backdrop. [content] gets the scaffold's padding, to apply
  * inside its scrolling container.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +99,7 @@ internal fun ShopRootPage(
     actions: (@Composable RowScope.() -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { AMPageHeader(title, actions = actions, scrollBehavior = scrollBehavior) },

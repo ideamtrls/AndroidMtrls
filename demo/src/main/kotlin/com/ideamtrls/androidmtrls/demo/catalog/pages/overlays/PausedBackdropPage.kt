@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMArtTone
+import com.ideamtrls.androidmtrls.AMBlur
 import com.ideamtrls.androidmtrls.AMPausedScrim
 import com.ideamtrls.androidmtrls.AMRemoteImage
 import com.ideamtrls.androidmtrls.AMTheme
@@ -35,7 +40,11 @@ private fun PausedBackdropPage() {
         PausedBackdropEntry,
         preview = { Paused() },
     ) {
-        PhotoDetail()
+        var blur by rememberSaveable { mutableStateOf(AMBlur.Mist) }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.md)) {
+            BlurChoice(blur, onBlurChange = { blur = it })
+            PhotoDetail(blur)
+        }
     }
 }
 
@@ -54,9 +63,9 @@ private fun Paused() {
     }
 }
 
-/** A photo's detail: the photo itself over its own page wash. */
+/** A photo's detail: the photo itself over its own page wash, blurred by [blur]. */
 @Composable
-private fun PhotoDetail() {
+private fun PhotoDetail(blur: AMBlur) {
     val spacing = AMTheme.tokens.spacing
     Box(
         Modifier.fillMaxWidth().height(280.dp).clip(MaterialTheme.shapes.large),
@@ -65,7 +74,7 @@ private fun PhotoDetail() {
         AMRemoteImage(
             photo(),
             contentDescription = null,
-            modifier = Modifier.matchParentSize().amPausedBackdrop(AMPausedScrim.Page),
+            modifier = Modifier.matchParentSize().amPausedBackdrop(AMPausedScrim.Page, blur),
         )
         Column(
             verticalArrangement = Arrangement.spacedBy(spacing.md),

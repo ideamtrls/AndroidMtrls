@@ -26,12 +26,11 @@ import com.ideamtrls.androidmtrls.amCard
 import kotlin.math.max
 
 /**
- * The playback controls on a frosted card: the song's title over "Artist · Album", the scrubber,
- * then one row of Shuffle · Previous · Play/Pause · Next · Repeat. The Player places it with
- * [musicControlsPlacement], and the remote shows the same card as the first row of its grid; both
- * put its bottom edge in the same place, so opening the remote on the Player leaves the controls
- * where they were. In the remote's window there's no art to sample, so there it's frost over the
- * window's own blur, and solid while the system has cross-window blur off.
+ * The playback controls on a card: the song's title over "Artist · Album", the scrubber, then one
+ * row of Shuffle · Previous · Play/Pause · Next · Repeat. The Player places it with
+ * [musicControlsPlacement], frosted over the cover's art, and the remote shows the same card as
+ * the first row of its grid, solid like everything in the remote; both put its bottom edge in the
+ * same place, so opening the remote on the Player leaves the controls where they were.
  *
  * The scrubber is a slider row that brings its own gutter and the row recipe's room above and
  * below it; the title takes `spacing.lg` at its sides, and the transport row is centered. With

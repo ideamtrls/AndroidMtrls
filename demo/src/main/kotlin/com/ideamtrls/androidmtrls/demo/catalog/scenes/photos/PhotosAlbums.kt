@@ -60,12 +60,11 @@ private fun photosAlbumCountLabel(count: Int): String = if (count == 1) "1 album
 internal fun PhotosAlbums(model: PhotosModel) {
     val spacing = AMTheme.tokens.spacing
     val albums = model.albums
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     PhotosPageBackdrop(model.latestPhoto) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            // With a scroll behavior it's the Library's two-row header, so the titles sit alike.
             topBar = { AMPageHeader("Albums", scrollBehavior = scrollBehavior) },
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,

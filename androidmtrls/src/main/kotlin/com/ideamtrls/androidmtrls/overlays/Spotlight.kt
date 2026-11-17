@@ -42,10 +42,10 @@ import androidx.compose.ui.Modifier
  *   (the tone's fixed ink, which holds over the window's wash), and an
  *   optional row of tiles ([actions]) below it at the action grid's insets. When the card is taller
  *   than the room above the tiles (large text, a long list), it scrolls.
- * - **The app's surface setting**: the card and the tiles follow [AMTheme.surfaceFill], whatever
- *   the item was on the screen behind. In a solid app they're solid. In a frosted app they're frost
- *   over the window's own blur, sampling nothing, and solid while the system has cross-window blur
- *   off. For a moment after cross-window blur comes back the platform's blur lags, and a faint
+ * - **The app's surface setting**: the card follows [AMTheme.surfaceFill], whatever the item was
+ *   on the screen behind. In a solid app it's solid. In a frosted app it's frost over the window's
+ *   own blur, sampling nothing, and solid while the system has cross-window blur off. The tiles are
+ *   always solid, like the remote's: buttons on an overlay are never see-through. For a moment after cross-window blur comes back the platform's blur lags, and a faint
  *   ghost of the sharp screen shows through the frost while text on it still holds. [content]
  *   lies on the card ([ProvideAMOnSurface]): its secondary text resolves from the card, and in a
  *   frosted app a control with its own shape inside draws the tint. A card the content brings
@@ -86,7 +86,7 @@ public fun AMSpotlight(
     elevation: AMElevation = AMElevation.Low,
     content: @Composable () -> Unit,
 ) {
-    AMOverlayWindow(visible, onDismissRequest) {
+    AMOverlayWindow(visible, onDismissRequest, OverlayCover.Wash) {
         SpotlightLayout(modifier, title, actions, elevation, content)
     }
 }
@@ -287,7 +287,10 @@ private fun SpotlightLayout(
             }
         }
         if (actions != null) {
-            Box(Modifier.fillMaxWidth().padding(horizontal = spacing.lg)) { actions() }
+            // Like the remote's, the tiles are never transparent: solid in either surface setting.
+            CompositionLocalProvider(LocalAMSurfaceFill provides AMSurfaceFill.Solid) {
+                Box(Modifier.fillMaxWidth().padding(horizontal = spacing.lg)) { actions() }
+            }
         }
     }
 }

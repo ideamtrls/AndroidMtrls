@@ -45,7 +45,8 @@ private const val ShowActionsLabel = "Show actions"
  *
  * - **The button** is an [AMFloatingActionButton] over the whole scene, its pushed panels
  *   included: the + at the bottom center, movable by a long press, where it stays ([state]). A tap
- *   calls [onExpandedChange] with true.
+ *   calls [onExpandedChange] with true. It's solid in either surface setting, as the menu's tiles
+ *   are, so the app's main navigation is always easy to see.
  * - **The menu** is [menu] in an [AMActionsOverlay], up while [expanded]: an [AMActionGrid] whose
  *   rows of tiles land where a thumb reaches them. Back and a tap on the blur call
  *   [onExpandedChange] with false.

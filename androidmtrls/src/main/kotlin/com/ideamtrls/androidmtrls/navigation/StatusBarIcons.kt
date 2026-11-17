@@ -41,7 +41,7 @@ import java.util.WeakHashMap
  *
  * @param tone how light what lies under the status bar is.
  * @param enabled whether this claim is held: true while that lies under the status bar, false once
- *   something solid covers it (a collapsed header, a scrolled bar's fill).
+ *   something solid covers it (a scrolled bar's fill).
  */
 @Composable
 public fun AMStatusBarIcons(tone: AMArtTone, enabled: Boolean = true) {

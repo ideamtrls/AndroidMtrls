@@ -26,17 +26,18 @@ public enum class AMSurfaceFill {
 
     /**
      * The frosted recipe on the backdrop: the art of the nearest [AMBackdrop] under the surface
-     * blurred ([AMTheme.Frosted.blurRadius], a pure Gaussian blur, no tint), [AMTheme.Frosted.fill]
+     * blurred ([AMBlur.Frost], a pure Gaussian blur, no tint), [AMTheme.Frosted.fill]
      * over it, the light [AMTheme.Frosted.edge] in both modes, and the shadow outside the shape
      * only. Text on it uses the usual text colors, with [AMTheme.Frosted.secondaryText] for
      * supporting lines, which [AMTheme.secondaryText] gives content lying on it.
      *
      * With no art behind it (no backdrop, or the art not placed yet) it's frost over the page
      * color: the page under the frosted fill, opaque, so it never shows unblurred content. In the
-     * remote's and the spotlight's blurred windows the window's own blur is the blur: the fill lies
-     * over it, sampling nothing, and while the system has cross-window blur off the surface draws
-     * solid. A piece embedded in it draws the tint ([AMTheme.Frosted.embeddedFill]) with the same
-     * edge and no blur of its own.
+     * spotlight's blurred window the window's own blur is the blur: the fill lies over it, sampling
+     * nothing, and while the system has cross-window blur off the surface draws solid. The remote
+     * ([AMActionsOverlay]) and the + that opens it ([AMFloatingActionButton]) are solid in either
+     * setting. A piece embedded in it draws the tint
+     * ([AMTheme.Frosted.embeddedFill]) with the same edge and no blur of its own.
      */
     Frosted,
 }
@@ -71,11 +72,22 @@ public fun ProvideAMOnSurface(content: @Composable () -> Unit): Unit = readOnSur
  * is the card.
  */
 @Composable
-internal inline fun <T> readOnSurface(content: @Composable () -> T): T =
-    withCompositionLocals(LocalAMLiesOn provides LiesOn.Surface, LocalAMArtTone provides null, content = content)
+internal inline fun <T> readOnSurface(content: @Composable () -> T): T {
+    // On a sheet the surface is embedded; inside a surface it stays as it is, so providing it twice
+    // over one surface changes nothing.
+    val on = when (LocalAMLiesOn.current) {
+        LiesOn.Page -> LiesOn.Surface
+        LiesOn.Sheet -> LiesOn.EmbeddedSurface
+        LiesOn.Surface -> LiesOn.Surface
+        LiesOn.EmbeddedSurface -> LiesOn.EmbeddedSurface
+    }
+    return withCompositionLocals(LocalAMLiesOn provides on, LocalAMArtTone provides null, content = content)
+}
 
 /**
- * The app's surface setting, provided only by [AMTheme]: [AMSurfaceFill.Solid] at the root.
- * Dynamic, so modifier nodes that read it while drawing redraw on a change.
+ * The app's surface setting, provided by [AMTheme]: [AMSurfaceFill.Solid] at the root. Only the
+ * remote ([AMActionsOverlay]) and the + that opens it ([AMFloatingActionButton]) provide it
+ * themselves, solid, for what they draw. Dynamic, so modifier nodes that read it while drawing
+ * redraw on a change.
  */
 internal val LocalAMSurfaceFill = compositionLocalOf { AMSurfaceFill.Solid }

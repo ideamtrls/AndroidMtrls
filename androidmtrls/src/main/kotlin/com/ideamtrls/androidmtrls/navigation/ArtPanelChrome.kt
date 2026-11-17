@@ -78,7 +78,7 @@ public fun AMArtPanelChrome(
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
 ) {
     val scrolled by barScrolledState(scrollBehavior)
-    val fill by oneRowBarFill(scrollBehavior)
+    val fill by barFill(scrollBehavior)
 
     val colors = TopAppBarDefaults.topAppBarColors(
         containerColor = Color.Transparent,

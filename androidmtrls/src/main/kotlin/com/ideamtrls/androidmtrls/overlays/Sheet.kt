@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -57,11 +58,12 @@ public enum class AMSheetHeight {
  *   tap outside to dismiss and predictive back. It slides in when [visible] turns true; setting
  *   [visible] false from code slides it away and never asks.
  * - **The style**: its background is frosted in either surface setting ([AMTheme.surfaceFill]):
- *   the art of the [AMBackdrop] it's presented from (in an [AMScene]'s overlays, the backdrop the
- *   showing root draws), blurred under the frosted fill, with the frosted edge in both modes and
- *   the `Medium` two-layer shadow falling outside its shape. With no art to sample it's frost over
- *   the page color, opaque. The screen behind isn't dimmed: the scrim is transparent, and still
- *   takes a tap outside.
+ *   the screen under it, blurred under the frosted fill (the region of the [AMBackdrop] it's
+ *   presented from, the art and everything on it; in an [AMScene]'s overlays, the backdrop the
+ *   showing root draws), with the frosted edge in both modes and the `Medium` two-layer shadow
+ *   falling outside its shape. The frost follows what's under it as it changes. With no backdrop
+ *   to sample it's frost over the page color, opaque. The screen behind isn't dimmed: the scrim
+ *   is transparent, and still takes a tap outside.
  * - **The discard guard**: while [Modifier.amDiscardGuard][amDiscardGuard] inside reports changes,
  *   a drag down, a tap outside and back raise "Discard changes?" instead of closing.
  * - **A fresh context**: what the sheet holds is enabled whatever surrounds the call, and cards in
@@ -139,13 +141,15 @@ public fun AMSheet(
         )
     }
     val shape = BottomSheetDefaults.ExpandedShape
+    // The window the sheet goes over, whose draws its frost follows.
+    val screen = LocalView.current
 
     ModalBottomSheet(
         onDismissRequest = {
             composed = false
             dismiss()
         },
-        modifier = modifier.sheetChrome(sheetState, shape, LocalAMBackdrop.current),
+        modifier = modifier.sheetChrome(sheetState, shape, LocalAMBackdrop.current, screen),
         sheetState = sheetState,
         shape = shape,
         // The frost is the chrome's.

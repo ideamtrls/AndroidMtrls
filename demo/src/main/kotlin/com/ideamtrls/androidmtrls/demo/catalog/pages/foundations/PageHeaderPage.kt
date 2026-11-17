@@ -20,11 +20,11 @@ internal val PageHeaderEntry = ComponentEntry(
     id = "pageHeader",
     category = CatalogCategory.Foundations,
     title = "Page header",
-    summary = "A large title that collapses as you scroll",
+    summary = "A large title, with back and actions beside it",
     icon = R.drawable.ic_web_asset,
     keywords = listOf(
-        "AMPageHeader", "LargeTopAppBar", "top app bar", "title", "heading", "screen title",
-        "scroll behavior", "collapsing", "navigation icon", "actions", "status bar", "scroll edge",
+        "AMPageHeader", "TopAppBar", "top app bar", "title", "heading", "screen title",
+        "scroll behavior", "pinned", "navigation icon", "actions", "status bar", "scroll edge",
         "amStatusBarEdge",
     ),
 ) { PageHeaderPage() }
