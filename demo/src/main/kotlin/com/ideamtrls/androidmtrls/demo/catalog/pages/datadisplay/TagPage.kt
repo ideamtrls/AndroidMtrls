@@ -55,7 +55,7 @@ private val TagTopics = listOf("Payments", "Search", "Onboarding", "Android", "S
 /** A release's status board: each item's state as a tag, the build in monospace, then its topics. */
 @Composable
 private fun ReleaseStatus() {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
         FrostedReleaseTags()
         ReleaseBoard()
     }

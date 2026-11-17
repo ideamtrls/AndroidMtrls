@@ -78,7 +78,7 @@ private fun PreviewButtons() {
 @Composable
 private fun PlaylistActions() {
     val spacing = AMTheme.tokens.spacing
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
         CatalogFrostedStage(Modifier.height(220.dp), art = CatalogArt.Mountain) {
             Row(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(spacing.lg),
@@ -100,22 +100,24 @@ private fun PlaylistActions() {
                 )
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
+                AMButton(
+                    "Download",
+                    onClick = ::download,
+                    modifier = Modifier.weight(1f),
+                    style = AMButtonStyle.Secondary(),
+                    enabled = false,
+                )
+                AMButton("Share", onClick = ::share, modifier = Modifier.weight(1f), style = AMButtonStyle.Secondary())
+            }
             AMButton(
-                "Download",
-                onClick = ::download,
-                modifier = Modifier.weight(1f),
+                "Delete playlist",
+                onClick = ::deletePlaylist,
+                modifier = Modifier.fillMaxWidth(),
                 style = AMButtonStyle.Secondary(),
-                enabled = false,
+                destructive = true,
             )
-            AMButton("Share", onClick = ::share, modifier = Modifier.weight(1f), style = AMButtonStyle.Secondary())
         }
-        AMButton(
-            "Delete playlist",
-            onClick = ::deletePlaylist,
-            modifier = Modifier.fillMaxWidth(),
-            style = AMButtonStyle.Secondary(),
-            destructive = true,
-        )
     }
 }

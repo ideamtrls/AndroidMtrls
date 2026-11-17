@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ideamtrls.androidmtrls.AMButton
 import com.ideamtrls.androidmtrls.AMDivider
@@ -49,7 +50,7 @@ private fun ToastPage() {
         ToastEntry,
         preview = { ShowToast() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedToast()
             QueueCard()
         }
@@ -60,7 +61,8 @@ private fun ToastPage() {
 @Composable
 private fun ShowToast() {
     var toast by remember { mutableStateOf<AMToastItem?>(null) }
-    AMButton("Show toast", onClick = { toast = AMToastItem("Link copied") }, modifier = Modifier.fillMaxWidth())
+    val link = painterResource(R.drawable.ic_link)
+    AMButton("Show toast", onClick = { toast = AMToastItem("Link copied", icon = link) }, modifier = Modifier.fillMaxWidth())
     AMToast(toast, onDismissRequest = { toast = null })
 }
 
@@ -73,7 +75,8 @@ private fun ShowToast() {
 @Composable
 private fun FrostedToast() {
     val spacing = AMTheme.tokens.spacing
-    var toast by remember { mutableStateOf<AMToastItem?>(AMToastItem("Added to queue", duration = 1.hours)) }
+    val queueAdd = painterResource(R.drawable.ic_playlist_add)
+    var toast by remember { mutableStateOf<AMToastItem?>(AMToastItem("Added to queue", icon = queueAdd, duration = 1.hours)) }
     CatalogFrostedStage {
         AMToastHost(Modifier.fillMaxWidth().heightIn(min = FrostedStageHeight)) {
             Column(Modifier.fillMaxWidth().padding(spacing.lg)) {
@@ -105,6 +108,7 @@ private val ToastRoom = 72.dp
 private fun QueueCard() {
     val spacing = AMTheme.tokens.spacing
     var toast by remember { mutableStateOf<AMToastItem?>(null) }
+    val queueAdd = painterResource(R.drawable.ic_playlist_add)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
         Column(Modifier.fillMaxWidth().amCard()) {
             TrackRow("Harbor Lights", "The Lanterns")
@@ -113,7 +117,7 @@ private fun QueueCard() {
         }
         AMButton(
             "Add to queue",
-            onClick = { toast = AMToastItem("Added to queue", duration = 4.seconds) },
+            onClick = { toast = AMToastItem("Added to queue", icon = queueAdd, duration = 4.seconds) },
             modifier = Modifier.fillMaxWidth(),
         )
     }

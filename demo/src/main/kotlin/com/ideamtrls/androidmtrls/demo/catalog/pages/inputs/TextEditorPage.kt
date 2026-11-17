@@ -50,7 +50,7 @@ private fun TextEditorPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { NoteEditor() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedNoteCard()
             WeeklyUpdate()
             PlainReply()

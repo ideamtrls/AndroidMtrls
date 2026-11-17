@@ -48,7 +48,7 @@ private fun BannerPage() {
         BannerEntry,
         preview = { ShowBanner() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedBanner()
             SuggestName()
         }

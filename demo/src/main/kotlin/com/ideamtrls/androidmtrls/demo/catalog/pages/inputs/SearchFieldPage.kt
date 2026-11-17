@@ -36,7 +36,7 @@ private fun SearchFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { SearchStrip() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedCitySearch()
             CitySearch()
         }

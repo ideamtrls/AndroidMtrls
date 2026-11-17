@@ -64,7 +64,7 @@ private fun ProjectSummary() {
 private fun ProjectDetail() {
     val spacing = AMTheme.tokens.spacing
     var sendsReport by rememberSaveable { mutableStateOf(true) }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
         CatalogFrostedStage(Modifier.height(200.dp)) {
             Column(
                 Modifier
@@ -78,23 +78,25 @@ private fun ProjectDetail() {
                 }
             }
         }
-        Text(
-            "Atlas keeps every survey, task, and deadline in one place so nothing slips between site visits.",
-            Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Column(Modifier.fillMaxWidth().amCard()) {
-            TitledRow("Weekly report", "Sent every Monday at 9:00 AM")
-            AMDivider(inset = spacing.lg)
-            ListItem(
-                checked = sendsReport,
-                onCheckedChange = { sendsReport = it },
-                trailingContent = { Switch(checked = sendsReport, onCheckedChange = null) },
-                colors = AMRowDefaults.colors(),
-                shapes = AMRowDefaults.shapes(),
-                contentPadding = AMRowDefaults.contentPadding,
-            ) {
-                Text("Send weekly report")
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
+            Text(
+                "Atlas keeps every survey, task, and deadline in one place so nothing slips between site visits.",
+                Modifier.fillMaxWidth().amCard(padding = PaddingValues(spacing.lg)),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Column(Modifier.fillMaxWidth().amCard()) {
+                TitledRow("Weekly report", "Sent every Monday at 9:00 AM")
+                AMDivider(inset = spacing.lg)
+                ListItem(
+                    checked = sendsReport,
+                    onCheckedChange = { sendsReport = it },
+                    trailingContent = { Switch(checked = sendsReport, onCheckedChange = null) },
+                    colors = AMRowDefaults.colors(),
+                    shapes = AMRowDefaults.shapes(),
+                    contentPadding = AMRowDefaults.contentPadding,
+                ) {
+                    Text("Send weekly report")
+                }
             }
         }
     }
