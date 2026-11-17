@@ -41,11 +41,12 @@ import androidx.compose.ui.unit.dp
  * Fill its slots with [AMToolbarButton]s. Visual only: taps stay with the buttons in the slots.
  * The title and subtitle each take one line, ellipsized, in the bar's own type; the title stays
  * centered whatever the slots hold. On a picture ([AMBackdrop]) the toolbar's buttons turn into
- * chips in the app's surface setting and the title takes the fixed ink of the art's tone at rest
- * (white on dark art, black on light art); give a picture of your own the tone it has. Scrolled
- * over the picture, the bar fades in the picture under it blurred under [AMTheme.Frosted.fill],
- * with the frosted edge along its bottom (the solid surface until the art is placed), never a
- * page band, and the title takes the bar's own color.
+ * chips in the app's surface setting, and at rest the title and subtitle are art text
+ * ([amArtText]): the fixed ink of the art's tone (white on dark art, black on light art), the
+ * subtitle in its secondary ink, each with the tone's shadow under its glyphs; give a picture of
+ * your own the tone it has. Scrolled over the picture, the bar fades in the picture under it
+ * blurred under [AMTheme.Frosted.fill], with the frosted edge along its bottom (the solid surface
+ * until the art is placed), never a page band, and the lines take the bar's own colors.
  *
  * @param title the toolbar's title, one line.
  * @param modifier the toolbar's placement.
@@ -94,8 +95,8 @@ public fun AMToolbar(
  *
  * The bar sets the title's and the subtitle's type and color around what the slots emit, so
  * custom content stays on-system. Visual only: taps stay with the content in the slots. On a
- * picture ([AMBackdrop]) the toolbar's buttons turn into chips, the title takes the ink of the
- * art's tone at rest, and scrolled content brings in the frosted fill.
+ * picture ([AMBackdrop]) the toolbar's buttons turn into chips, the title and subtitle are art
+ * text at rest, and scrolled content brings in the frosted fill.
  *
  * @param modifier the toolbar's placement.
  * @param subtitle a line under the title. Null shows none.
@@ -118,17 +119,22 @@ public fun AMToolbar(
 ) {
     // Over art, content scrolling under the bar brings in the frosted fill, never a page band.
     val frosted = LocalAMBackdrop.current != null && scrollBehavior != null
-    // On art the title is the art tone's ink until content scrolls under the bar.
+    // On art the lines are art text, the tone's ink with its shadow, until content scrolls under
+    // the bar; then, and off art, the bar's own colors.
     val scrolled by barScrolledState(scrollBehavior)
+    val artLines = LocalAMArtTone.current != null && !scrolled
     val colors = TopAppBarDefaults.topAppBarColors(
         containerColor = Color.Transparent,
         scrolledContainerColor = if (frosted) Color.Transparent else AMTheme.Surface.page,
         titleContentColor = barLineColor(scrolled, MaterialTheme.colorScheme.onSurface),
+        subtitleContentColor = barLineColor(scrolled, MaterialTheme.colorScheme.onSurfaceVariant, secondary = true),
     )
+    val titleLine = @Composable { BarLine(artLines, secondary = false, title) }
+    val subtitleLine = subtitle?.let { line -> @Composable { BarLine(artLines, secondary = true, line) } }
     val bar = @Composable { barModifier: Modifier ->
-        if (subtitle == null) {
+        if (subtitleLine == null) {
             CenterAlignedTopAppBar(
-                title = title,
+                title = titleLine,
                 modifier = barModifier,
                 navigationIcon = navigationIcon ?: {},
                 actions = actions ?: {},
@@ -138,8 +144,8 @@ public fun AMToolbar(
             )
         } else {
             TopAppBar(
-                title = title,
-                subtitle = subtitle,
+                title = titleLine,
+                subtitle = subtitleLine,
                 modifier = barModifier,
                 navigationIcon = navigationIcon ?: {},
                 actions = actions ?: {},
@@ -156,6 +162,12 @@ public fun AMToolbar(
     } else {
         bar(modifier)
     }
+}
+
+/** One of the toolbar's lines, as art text ([secondary] for the subtitle) while [art]. */
+@Composable
+private fun BarLine(art: Boolean, secondary: Boolean, content: @Composable () -> Unit) {
+    Box(if (art) Modifier.amArtText(secondary = secondary) else Modifier) { content() }
 }
 
 /**
