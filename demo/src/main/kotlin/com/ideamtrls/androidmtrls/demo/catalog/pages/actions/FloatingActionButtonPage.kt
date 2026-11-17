@@ -30,7 +30,6 @@ import com.ideamtrls.androidmtrls.AMActionGrid
 import com.ideamtrls.androidmtrls.AMActionGridButton
 import com.ideamtrls.androidmtrls.AMActionGridRow
 import com.ideamtrls.androidmtrls.AMDivider
-import com.ideamtrls.androidmtrls.AMFloatingActionButton
 import com.ideamtrls.androidmtrls.AMFloatingActions
 import com.ideamtrls.androidmtrls.AMPageHeader
 import com.ideamtrls.androidmtrls.AMScene
@@ -68,7 +67,7 @@ private fun FloatingActionButtonPage() {
                     .height(PhotoSceneHeight)
                     .consumeWindowInsets(WindowInsets.safeDrawing),
             ) {
-                AMFloatingActionButton("Compose", onClick = ::compose)
+                PhotoScene()
             }
             MailScene()
         }
@@ -80,7 +79,7 @@ private fun compose() {}
 
 private fun search() {}
 
-/** The + over a photo in a frosted app, solid there too: its height. */
+/** The scene over a photo in a frosted app: its height. */
 private val PhotoSceneHeight = 220.dp
 
 /** The band's height: the scene's screen. */
@@ -130,6 +129,33 @@ private fun NotesScene() {
         }
     }
     CatalogAutoPresent { showsMenu = true }
+}
+
+/**
+ * A scene over a photo in a frosted app, the photo its screen: its button, solid there too, rests
+ * at the bottom center and opens Compose and Search; a tile closes the menu.
+ */
+@Composable
+private fun PhotoScene() {
+    var showsMenu by rememberSaveable { mutableStateOf(false) }
+    fun closeThen(action: () -> Unit): () -> Unit = {
+        showsMenu = false
+        action()
+    }
+    AMScene(
+        Modifier.fillMaxSize(),
+        floatingActions = {
+            AMFloatingActions(showsMenu, onExpandedChange = { showsMenu = it }) {
+                AMActionGrid {
+                    AMActionGridRow(
+                        { Tile(R.drawable.ic_edit_square, "Compose", closeThen(::compose)) },
+                        { Tile(R.drawable.ic_search, "Search", closeThen(::search)) },
+                    )
+                }
+            }
+        },
+        containerColor = Color.Transparent,
+    ) {}
 }
 
 /** The mail app's two root views, which its remote switches between. */

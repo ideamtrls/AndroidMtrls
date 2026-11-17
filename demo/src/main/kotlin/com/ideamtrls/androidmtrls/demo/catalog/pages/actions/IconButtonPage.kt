@@ -96,7 +96,7 @@ private fun NowPlaying() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Harbor lights", style = MaterialTheme.typography.titleMedium)
+                Text("Harbor Lights", style = MaterialTheme.typography.titleMedium)
                 Text(
                     "The Tides",
                     style = MaterialTheme.typography.bodyMedium,

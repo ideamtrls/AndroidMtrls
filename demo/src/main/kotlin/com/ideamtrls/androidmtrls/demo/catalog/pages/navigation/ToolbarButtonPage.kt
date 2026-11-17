@@ -74,7 +74,7 @@ private val Photo: String
 private fun PhotoDetail() {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
         CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
-            BrooklynToolbar(Modifier.padding(vertical = AMTheme.tokens.spacing.xl))
+            BrooklynToolbar(Modifier.padding(AMTheme.tokens.spacing.lg))
         }
         PhotoScreen()
     }

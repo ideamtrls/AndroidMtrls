@@ -85,7 +85,7 @@ private fun WorkspaceSettings() {
     var emailDigest by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.xl)) {
         CatalogFrostedStage(Modifier.padding(horizontal = StageLayout.PageGutter)) {
-            AMSection("Notifications", Modifier.padding(spacing.lg).padding(top = spacing.sm), style = AMSectionStyle.Rows) {
+            AMSection("Notifications", Modifier.padding(spacing.lg).padding(top = spacing.sm), style = AMSectionStyle.Rows, inset = false) {
                 SwitchRow("Push alerts", pushAlerts) { pushAlerts = it }
                 AMDivider(inset = spacing.lg)
                 SwitchRow("Email digest", emailDigest) { emailDigest = it }

@@ -37,7 +37,7 @@ private fun SecureFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { PasswordField() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedPasswordCard()
             ChangePassword()
         }

@@ -38,7 +38,7 @@ private fun TextFieldPage() {
         previewLayout = StageLayout.FullBleed,
         preview = { NameField() },
     ) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.lg)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AMTheme.tokens.spacing.xl)) {
             FrostedContactCard()
             ContactForm()
         }

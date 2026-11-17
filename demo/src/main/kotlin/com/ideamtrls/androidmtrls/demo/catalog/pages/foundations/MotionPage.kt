@@ -164,7 +164,7 @@ private fun MotionPanel() {
                 shapes = AMRowDefaults.shapes(),
                 contentPadding = AMRowDefaults.contentPadding,
             ) {
-                Text(if (signedIn) "Welcome back, Ada" else "Sign in to continue")
+                Text(if (signedIn) "Welcome back, Ada" else "Sign in to continue", style = MaterialTheme.typography.titleMedium)
             }
             AMDivider(inset = spacing.lg)
             FlowRow(
