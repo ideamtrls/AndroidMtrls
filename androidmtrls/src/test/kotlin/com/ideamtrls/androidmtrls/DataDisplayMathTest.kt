@@ -197,6 +197,16 @@ class DataDisplayMathTest {
     }
 
     @Test
+    fun blurWeighsAnEdgePixelNoMoreThanItsNeighbors() {
+        // One red pixel at the left edge of a row of three, blurred far wider than the row: every
+        // pixel lands near a third red, the edge one included.
+        val pixels = floatArrayOf(1f, 0f, 0f, 1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
+        gaussianBlur(pixels, width = 3, height = 1, sigma = 10f)
+        for (pixel in 0 until 3) assertEquals(1f / 3f, pixels[pixel * 4], 0.01f)
+        for (pixel in 0 until 3) assertEquals(1f, pixels[pixel * 4 + 3], 1e-5f)
+    }
+
+    @Test
     fun fadeInRampsTheTopRows() {
         val pixels = FloatArray(1 * 4 * 4) { 1f }
         fadeIn(pixels, width = 1, height = 4, fade = 2f)

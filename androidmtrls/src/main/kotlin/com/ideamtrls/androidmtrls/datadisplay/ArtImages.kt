@@ -200,7 +200,7 @@ internal object ArtImages {
 
 /**
  * Makes [key]'s picture from a photo: cropped to the frame's shape around its center, averaged
- * down to the working size, blurred with its edges clamped, saturated, washed toward the mode,
+ * down to the working size, blurred over its own pixels alone, saturated, washed toward the mode,
  * saturated again to win back the color the wash took, faded in at the top for a band, then handed
  * to the GPU. A photo smaller than the working size is worked at its own size,
  * never scaled up here. The photo itself is never changed.
@@ -295,8 +295,10 @@ internal fun areaAverage(
 
 /**
  * Blurs four-float [pixels] in place with a Gaussian of [sigma] pixels, horizontally then
- * vertically, repeating the edge pixels past the picture's edges, so it never darkens toward
- * them. A sigma under a quarter pixel leaves the picture as it is.
+ * vertically, over the picture's own pixels alone: near an edge the kernel's weights that fall
+ * past it are dropped and the rest scaled back up to one, so it never darkens toward the edges and
+ * an edge pixel weighs no more than its neighbors. A sigma under a quarter pixel leaves the picture
+ * as it is.
  */
 internal fun gaussianBlur(pixels: FloatArray, width: Int, height: Int, sigma: Float) {
     if (sigma < 0.25f) return
@@ -305,27 +307,33 @@ internal fun gaussianBlur(pixels: FloatArray, width: Int, height: Int, sigma: Fl
         val distance = (i - radius).toFloat()
         exp(-distance * distance / (2f * sigma * sigma))
     }
-    val total = kernel.sum()
-    for (i in kernel.indices) kernel[i] /= total
 
     val scratch = FloatArray(pixels.size)
     for (y in 0 until height) {
         for (x in 0 until width) {
             val out = (y * width + x) * 4
-            for (k in -radius..radius) {
-                val weight = kernel[k + radius]
-                val from = (y * width + (x + k).coerceIn(0, width - 1)) * 4
+            val first = max(-radius, -x)
+            val last = min(radius, width - 1 - x)
+            var total = 0f
+            for (k in first..last) total += kernel[k + radius]
+            for (k in first..last) {
+                val weight = kernel[k + radius] / total
+                val from = (y * width + x + k) * 4
                 for (channel in 0 until 4) scratch[out + channel] += pixels[from + channel] * weight
             }
         }
     }
     pixels.fill(0f)
     for (y in 0 until height) {
+        val first = max(-radius, -y)
+        val last = min(radius, height - 1 - y)
+        var total = 0f
+        for (k in first..last) total += kernel[k + radius]
         for (x in 0 until width) {
             val out = (y * width + x) * 4
-            for (k in -radius..radius) {
-                val weight = kernel[k + radius]
-                val from = ((y + k).coerceIn(0, height - 1) * width + x) * 4
+            for (k in first..last) {
+                val weight = kernel[k + radius] / total
+                val from = ((y + k) * width + x) * 4
                 for (channel in 0 until 4) pixels[out + channel] += scratch[from + channel] * weight
             }
         }
