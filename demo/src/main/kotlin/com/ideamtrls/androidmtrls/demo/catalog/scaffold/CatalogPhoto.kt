@@ -30,9 +30,9 @@ private class CatalogPick(val day: String, val night: String) {
 }
 
 /**
- * Every catalog seed, no file repeated within a set. A named person's portrait ("ada",
- * "spacing-ada") shows that person in both sets, another portrait of them at night. The selection
- * grids' seeds show photos from the Photos scene's library, the same file in both sets.
+ * Every catalog seed, no file repeated within a set. A named person's portrait ("ada") shows that
+ * person in both sets, another portrait of them at night. The selection grids' seeds show photos
+ * from the Photos scene's library, the same file in both sets.
  */
 private val CatalogPhotos: Map<String, CatalogPick> = mapOf(
     "orchard" to CatalogPick(
@@ -56,12 +56,8 @@ private val CatalogPhotos: Map<String, CatalogPick> = mapOf(
         night = "036 Milky Way during Perseids seen from Oeschinensee with water reflections Photo by Giles Laurent.jpg",
     ),
     "ada" to CatalogPick(
-        day = "Ada_Lovelace_daguerreotype_by_Antoine_Claudet_1843_-_cropped.png",
-        night = "Carpenter portrait of Ada Lovelace - detail.png",
-    ),
-    "spacing-ada" to CatalogPick(
         day = "Ada Lovelace portrait.jpg",
-        night = "Ada Lovelace portrait circa 1840.jpg",
+        night = "Ada Byron daguerreotype by Antoine Claudet 1843 or 1850.jpg",
     ),
     "selection-tile-1" to CatalogPick("Torii path with lantern at Fushimi Inari Taisha Shrine, Kyoto, Japan.jpg"),
     "selection-tile-2" to CatalogPick("Azulejos Parque Eduardo VII-1.jpg"),
