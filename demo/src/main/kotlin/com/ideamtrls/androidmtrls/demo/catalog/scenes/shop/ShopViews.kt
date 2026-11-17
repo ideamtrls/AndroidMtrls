@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -50,7 +51,6 @@ import com.ideamtrls.androidmtrls.ProvideAMOnSurface
 import com.ideamtrls.androidmtrls.amCard
 import com.ideamtrls.androidmtrls.amArtBackdrop
 import com.ideamtrls.androidmtrls.amArtText
-import java.util.Locale
 
 // Shared sizes
 
@@ -177,7 +177,7 @@ internal fun ShopLabelArt(product: ShopProduct, style: ShopLabelStyle, modifier:
             val type = if (photo != null) Modifier.fillMaxWidth(ShopBannerTypeWidth).amArtText(AMArtTone.Dark) else Modifier.fillMaxWidth()
             Column(Modifier.fillMaxHeight().then(type).padding(spacing.lg)) {
                 ShopLabelText(
-                    style.kicker.uppercase(Locale.getDefault()), ink.copy(alpha = 0.8f),
+                    style.kicker.uppercase(LocalConfiguration.current.locales[0]), ink.copy(alpha = 0.8f),
                     size = 11f, weight = FontWeight.Bold, tracking = 1.5f,
                 )
                 Spacer(Modifier.weight(1f))

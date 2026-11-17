@@ -12,9 +12,11 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DelegatingNode
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.ObserverModifierNode
 import androidx.compose.ui.node.SemanticsModifierNode
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateSemantics
+import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -102,7 +104,7 @@ private class HoldableNode(
     var onHold: () -> Unit,
     private var actions: List<AMHoldAction>,
     private var enabled: Boolean,
-) : DelegatingNode(), SemanticsModifierNode, CompositionLocalConsumerModifierNode {
+) : DelegatingNode(), SemanticsModifierNode, CompositionLocalConsumerModifierNode, ObserverModifierNode {
 
     /** The row container the hold adds its actions to, or null to carry them itself. */
     private var row: RowActions? = null
@@ -145,13 +147,29 @@ private class HoldableNode(
     }
 
     override fun onAttach() {
-        row = currentValueOf(LocalAMRowHold)
+        onObservedReadsChanged()
+    }
+
+    // The nearest row container takes the actions; another one in its place takes them over.
+    override fun onObservedReadsChanged() {
+        var nearest: RowActions? = null
+        observeReads { nearest = currentValueOf(LocalAMRowHold) }
+        if (nearest !== row) {
+            withdraw()
+            row = nearest
+            invalidateSemantics()
+        }
         publish()
     }
 
     override fun onDetach() {
-        row?.let { if (it.held === spoken) it.held = emptyList() }
+        withdraw()
         row = null
+    }
+
+    /** Takes the actions off the row they're on, so the next publish puts them up afresh. */
+    private fun withdraw() {
+        row?.let { if (it.held === spoken) it.held = emptyList() }
         spoken = emptyList()
     }
 

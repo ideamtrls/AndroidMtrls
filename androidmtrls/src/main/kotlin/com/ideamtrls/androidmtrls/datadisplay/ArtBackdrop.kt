@@ -600,7 +600,8 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
     TraversableNode,
     LayoutAwareModifierNode,
     GlobalPositionAwareModifierNode,
-    CompositionLocalConsumerModifierNode {
+    CompositionLocalConsumerModifierNode,
+    ObserverModifierNode {
 
     override val traverseKey: Any get() = ArtRowsKey
 
@@ -640,10 +641,21 @@ private class ArtRowsNode(private var lightWash: Float, private var darkWash: Fl
     }
 
     override fun onAttach() {
-        // Only a backdrop that is the nearest one takes the bands: inside a sheet or an overlay,
-        // or under an AMBackdrop of its own, the content keeps drawing them.
-        val art = currentValueOf(LocalArtRowsArt)
-        backdrop = art?.takeIf { currentValueOf(LocalAMBackdrop) === it.source }?.also { it.register(this) }
+        onObservedReadsChanged()
+    }
+
+    // Only a backdrop that is the nearest one takes the bands: inside a sheet or an overlay, or
+    // under an AMBackdrop of its own, the content keeps drawing them. Another nearest backdrop
+    // takes them over.
+    override fun onObservedReadsChanged() {
+        var nearest: ArtRowsArt? = null
+        observeReads {
+            nearest = currentValueOf(LocalArtRowsArt)?.takeIf { currentValueOf(LocalAMBackdrop) === it.source }
+        }
+        if (nearest === backdrop) return
+        backdrop?.unregister(this)
+        backdrop = nearest?.also { it.register(this) }
+        invalidateDraw()
     }
 
     override fun onPlaced(coordinates: LayoutCoordinates) {
