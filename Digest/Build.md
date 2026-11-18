@@ -1,8 +1,8 @@
 ---
 scope: Building and running the library and the demo — Gradle and its wrapper, the version catalog, the environment variables, SDK levels, the two modules, the demo's manifest and window theme, and installing and launching the demo with adb.
-globs: [settings.gradle.kts, build.gradle.kts, gradle.properties, gradle/libs.versions.toml, gradle/wrapper/**, gradlew, gradlew.bat, androidmtrls/build.gradle.kts, demo/build.gradle.kts, demo/src/main/AndroidManifest.xml, demo/src/main/res/values/strings.xml, demo/src/main/res/values/themes.xml, demo/src/main/res/values-night/themes.xml, .gitignore]
+globs: [README.md, screenshots/**, settings.gradle.kts, build.gradle.kts, gradle.properties, gradle/libs.versions.toml, gradle/wrapper/**, gradlew, gradlew.bat, androidmtrls/build.gradle.kts, demo/build.gradle.kts, demo/src/main/AndroidManifest.xml, demo/src/main/res/values/strings.xml, demo/src/main/res/values/themes.xml, demo/src/main/res/values-night/themes.xml, .gitignore]
 keywords: [build, gradle, gradlew, wrapper, gradle-wrapper.jar, Gradle 9.6.1, AGP, Android Gradle Plugin 9.5.1, built-in Kotlin, Kotlin 2.4.21, compose compiler plugin, kotlin.compiler.execution.strategy, in-process, Kotlin daemon, JAVA_HOME, ANDROID_HOME, GRADLE_USER_HOME, .gradle-home, local.properties, repositories, FAIL_ON_PROJECT_REPOS, version catalog, libs.versions.toml, Compose BOM, material3 1.5.0-rc01, Navigation 3, navigationevent, activity-compose, lifecycle-runtime-compose, core-ktx, JUnit, espresso-core, testDebugUnitTest, connectedDebugAndroidTest, minSdk 36, compileSdk 37, targetSdk 37, JVM 17, explicitApi, modules, androidmtrls, demo, applicationId, namespace, BuildConfig, assembleDebug, installDebug, build outputs, adb, am start, launch extras, screencap, portrait, supportsRtl, app_name, edge-to-edge, INTERNET, Theme.Demo, .gitignore]
-updated: 2026-11-15
+updated: 2026-11-17
 ---
 
 # Build
@@ -18,6 +18,7 @@ How to build and run the library and its demo catalog app.
 - `androidmtrls/build.gradle.kts` and `demo/build.gradle.kts`: the modules.
 - `gradlew`, `gradlew.bat` and `gradle/wrapper/` (`gradle-wrapper.jar`, `gradle-wrapper.properties`): the Gradle 9.6.1 wrapper. Use it as it is; don't replace it.
 - `demo/src/main/AndroidManifest.xml`: the demo's permission and its one activity; `demo/src/main/res/values/strings.xml`: its label, `app_name`; `demo/src/main/res/values/themes.xml` and `values-night/themes.xml`: its window theme, `Theme.Demo`.
+- `README.md`: the human-facing front page, plain and built around screenshots: a one-line pitch; the six demo apps; what sets the library apart (the + and the remote of tiles it opens, overlays that blur and surfaces that frost, 80 dp rows); then requirements, install, a quick start, a theme override, running the demo, and the build and test commands. It holds no API reference. Its screenshots live in `screenshots/`, a light and a dark copy of each (`<name>.jpg` and `<name>-dark.jpg`, scaled to 1200 px tall with `sips -Z 1200 -s formatOptions 80`), captured from the demo's scenes; each shows as a `<picture>` that follows the reader's light or dark appearance, three to a row for the apps and two for each idea.
 - `.gitignore`: `build/`, `.gradle/`, `.gradle-home/`, `.kotlin/` (the Kotlin plugin's session state), `local.properties`, `.idea/`, `.DS_Store`, `.claude/settings.local.json`.
 
 ## Environment

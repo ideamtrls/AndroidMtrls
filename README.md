@@ -1,62 +1,66 @@
 # AndroidMtrls
 
-AndroidMtrls is a Jetpack Compose design system for Android. It provides the visual components an
-app is built from (actions, inputs, selection, navigation, layout, lists, feedback, overlays, data
-display, collections) and the style values behind them. It has no app logic and no data.
+A Jetpack Compose design system for Android 16 phones: the look and the components of an app, none
+of the logic. Pre-release, so the API still moves, and not published: it's a module you build with
+your app.
 
-- **Android 16 (API 36) and later, phones only.** There are no tablet, foldable or landscape
-  designs.
-- **Pre-release.** The API still changes, and parameter reorders that break callers are allowed.
-- **Local, not published.** The library is the `:androidmtrls` module of this Gradle build, in one
-  package, `com.ideamtrls.androidmtrls`. It isn't published to any repository.
+## Six apps
 
-## Two layers
+Social, Music, Photos, Calendar, Shop and Account, built from nothing but the kit. They live in the
+demo app.
 
-- **The native layer is Android's own.** Jetpack and Material 3 components keep Material's shapes,
-  outlines, type, motion and behavior: the Material type scale in the phone's font, ripple, Android
-  gestures, system and predictive back, edge to edge, and saved and restored state. Text and accent
-  colors come from a static Material color scheme (never dynamic color). The container colors of
-  Material's chips, fields, segmented buttons, date chips, snackbar and dialog follow the app's
-  surface setting.
-- **The style layer sits on top.** White and black floating surfaces on a tuned page, two-layer
-  shadows and hairlines, cards, the remote (the floating action button and its tiles) as the app's
-  main navigation, the spotlight for press and hold and for pickers, no dimming behind sheets, color
-  under cards, folding, and quiet defaults. The screen is a backdrop layer (always frosty) and a surface
-  layer on it, solid or frosted by one setting, `AMTheme(surfaceFill = …)`. The remote is solid in
-  either setting, so the app's main navigation is always easy to see.
-- **Where the line falls: stateless surfaces wear the style; native controls keep Material's
-  shapes, outlines and behavior and take the model's container colors.** Cards, buttons, tiles and
-  the floating action button get the floating surface, the shadow and the hairline; sheets get a
-  frosted background in either setting. Text fields, pickers, chips and segmented controls take
-  container colors from the app's surface setting (solid, frosted or the tint), a selected chip
-  takes `primary`, and switches, sliders and stepper buttons keep their own colors. When in doubt,
-  the library leans Android.
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/social-01-feed-dark.jpg"><img src="screenshots/social-01-feed.jpg" width="250" alt="Social: a feed of posts on frosted cards over a blue gradient"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/music-03-album-dark.jpg"><img src="screenshots/music-03-album.jpg" width="250" alt="Music: an album page with its cover, Play and Shuffle buttons and the track list"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/photos-01-library-dark.jpg"><img src="screenshots/photos-01-library.jpg" width="250" alt="Photos: the library, with filter chips over a grid of photos by month"></picture>
+</p>
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/calendar-01-month-dark.jpg"><img src="screenshots/calendar-01-month.jpg" width="250" alt="Calendar: the month grid over today's agenda, with a line marking now"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/shop-01-home-dark.jpg"><img src="screenshots/shop-01-home.jpg" width="250" alt="Shop: a coffee shop's home, a featured carousel over product cards"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/account-01-intro-dark.jpg"><img src="screenshots/account-01-intro.jpg" width="250" alt="Account: the Scrollies intro over a blurred photo, with Sign in and Create account"></picture>
+</p>
 
-## What's in it
+## What's different
 
-Sources live in area folders under `androidmtrls/src/main/kotlin/com/ideamtrls/androidmtrls/`, all in
-the one package.
+### One + instead of tab bars
 
-| Area | Main components |
-|---|---|
-| `foundations` | `AMTheme` and its style values, `AMTokens` (spacing, semantic tints), `AMSemantic`, `AMElevation` and `Modifier.amElevation`, `Modifier.amHairline`, `Modifier.amTextShadow`, `AMSurfaceFill` and `AMBackdrop` (frost over art), `AMBlur` (`Frost`, `Mist`), `AMSurfaceStyle`, `amInstantSwitch` and `Modifier.amCrossfade`, `Modifier.amStatusBarEdge`, `AMPageHeader`, `AMSectionHeader` |
-| `actions` | `AMButton` and `AMButtonStyle`, `AMIconButton`, `AMCardButton`, `AMFloatingActionButton`, `AMFloatingActions` (the remote), `AMActionGrid`, `AMActionGridRow`, `AMActionGridButton`, `AMFormActions`, `AMCardActionRow` |
-| `inputs` | `AMTextField`, `AMSecureField`, `AMSearchField`, `AMTextEditor`, `AMPlainTextEditor`, `AMToggle`, `AMSlider`, `AMStepper`, `AMDatePicker` |
-| `selection` | `AMSegmentedControl`, `AMMenuPicker`, `AMChipGroup`, `AMFlowLayout`, `AMCalendar`, `AMSelectionMark` and `Modifier.amSelectionCheck` |
-| `navigation` | `AMScene` (a screen's root, with slots for the remote and scene-wide overlays), `AMKeepsPlace`, `AMStatusBarIcons`, `AMPanel`, `AMPanelChrome`, `AMArtPanelChrome`, `AMToolbar`, `AMToolbarButton`, `AMTabs`, `AMPageIndicator` |
-| `layout` | `Modifier.amCard()`, the row recipe (`Modifier.amRowPadding()`, `AMRowDefaults`), `AMSection`, `AMDisclosureGroup`, `AMDivider` |
-| `lists` | `AMListRow`, `AMListCard`, `AMLabeledContent`, `AMReorderableRowList`, `AMReorderableCardList`, `AMSwipeableRow` and `AMSwipeAction` |
-| `feedback` | `AMBanner` and `AMBannerHost`, `AMToast` and `AMToastHost`, `AMLoadingOverlay`, `AMEmptyState`, `AMSkeleton` and `Modifier.amShimmer`, `AMProgressView` |
-| `overlays` | `AMSheet`, `AMAlert`, `AMActionsOverlay`, `AMSpotlight` and `Modifier.amHoldable`, `AMBackdropBlur`, `Modifier.amPausedBackdrop`, `Modifier.amDiscardGuard` |
-| `datadisplay` | `AMAvatar`, `AMTag`, `AMBadge` and `AMBadgedBox`, `AMTimeline`, `AMRemoteImage`, `Modifier.amArtBackdrop` and `AMArtDefaults`, `Modifier.amArtRows` and `Modifier.amArtRow` inside `AMArtRowsBackdrop`, `AMArtTone`, `Modifier.amArtText` |
-| `collections` | `AMCarousel`, `AMCardStack` |
+Each app keeps its navigation behind a single + button. It opens a remote: big tiles that switch
+views (the current one ringed) or do something, and in Music, a working player.
 
-## Getting started
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/social-00-menu-dark.jpg"><img src="screenshots/social-00-menu.jpg" width="250" alt="Social's remote: tiles for Compose, Search, Feed, Alerts, Profile and Exit over the blurred feed, with Feed ringed"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/music-05-menu-dark.jpg"><img src="screenshots/music-05-menu.jpg" width="250" alt="Music's remote: a player card with playback controls above tiles for Artists, Player, Queue and Exit"></picture>
+</p>
 
-### Add the module
+### Blur and frost, never see-through
 
-The library isn't published, so an app builds as a module of this Gradle build, the way `demo/`
-does (`demo/build.gradle.kts`):
+The remote, sheets and press-and-hold menus blur the screen behind them. Flip one setting and every
+surface over art turns frosted, a blur of what's behind it, while the + and the remote's tiles
+always stay solid.
+
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/shop-02-quick-add-dark.jpg"><img src="screenshots/shop-02-quick-add.jpg" width="250" alt="Shop: holding a coffee brings it up close over the blurred store, with solid 250 g, 500 g and 1 kg tiles"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/photos-07-detail-dark.jpg"><img src="screenshots/photos-07-detail.jpg" width="250" alt="A photo in Photos with a frosted card for its date and favorite below it"></picture>
+</p>
+
+### Room to breathe
+
+Rows run 80 dp where Material uses 56, so forms breathe and every row is easy to hit.
+
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/calendar-05-new-event-scrolled-dark.jpg"><img src="screenshots/calendar-05-new-event-scrolled.jpg" width="250" alt="Calendar: the New event form, row after 80 dp row"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/account-06-settings-dark.jpg"><img src="screenshots/account-06-settings.jpg" width="250" alt="Account's settings: tall rows of values and switches on frosted cards"></picture>
+</p>
+
+## Requirements
+
+- Android 16 (API 36) and later
+- Phones only
+- The Android 37 SDK platform to build
+
+## Install
+
+Your app joins this Gradle build as a module beside `:androidmtrls`, the way `demo/` does:
 
 ```kotlin
 // settings.gradle.kts
@@ -82,39 +86,22 @@ dependencies {
 }
 ```
 
-### The theme
-
-`AMTheme` installs `MaterialTheme` (Material's baseline static scheme by default, or the app's own
-`colorScheme`) and provides the style layer to everything below. Draw edge to edge:
+## Quick start
 
 ```kotlin
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContent {
-            AMTheme {
-                NotesApp()
-            }
-        }
+        setContent { AMTheme { NotesScreen() } }
     }
 }
-```
 
-### A card and a button
-
-A screen lies on the page color under its `AMPageHeader`. Flat content goes in a card,
-`Modifier.amCard()`; rows inside it keep the row recipe. A filled `AMButton` floats on its own.
-
-```kotlin
 @Composable
 fun NotesScreen() {
     var reminders by rememberSaveable { mutableStateOf(true) }
     val spacing = AMTheme.tokens.spacing
-    Scaffold(
-        topBar = { AMPageHeader("Notes") },
-        containerColor = AMTheme.Surface.page,
-    ) { padding ->
+    Scaffold(topBar = { AMPageHeader("Notes") }, containerColor = AMTheme.Surface.page) { padding ->
         Column(
             Modifier.padding(padding).padding(horizontal = spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
@@ -130,146 +117,39 @@ fun NotesScreen() {
 }
 ```
 
-### A scene with the remote
+Everything the library adds carries an `AM` prefix, or `Modifier.am…` for modifiers, so its pieces
+are easy to spot beside Compose's own.
 
-Every screen's root is `AMScene`. Its `floatingActions` slot holds the remote: `AMFloatingActions`,
-a floating action button that opens a grid of tiles over the blurred screen. With several root
-views, the scene keeps each one's place and takes back to the landing view before leaving the app.
+## Make it yours
 
 ```kotlin
-enum class Root { Notes, Archive }
-
-@Composable
-fun NotesApp() {
-    var current by rememberSaveable { mutableStateOf(Root.Notes) }
-    var showsRemote by rememberSaveable { mutableStateOf(false) }
-    fun open(root: Root) {
-        showsRemote = false                    // close the remote, then swap the root at once
-        amInstantSwitch { current = root }
-    }
-
-    AMScene(
-        current = current,
-        landing = Root.Notes,
-        onCurrentChange = { current = it },
-        floatingActions = {
-            AMFloatingActions(showsRemote, onExpandedChange = { showsRemote = it }) {
-                AMActionGrid {
-                    AMActionGridRow(
-                        {
-                            AMActionGridButton(
-                                painterResource(R.drawable.ic_notes), "Notes",
-                                onClick = { open(Root.Notes) }, active = current == Root.Notes,
-                            )
-                        },
-                        {
-                            AMActionGridButton(
-                                painterResource(R.drawable.ic_archive), "Archive",
-                                onClick = { open(Root.Archive) }, active = current == Root.Archive,
-                            )
-                        },
-                    )
-                }
-            }
-        },
-    ) { root ->
-        when (root) {
-            Root.Notes -> NotesScreen()
-            Root.Archive -> ArchiveScreen()
-        }
-    }
+AMTheme(colorScheme = brandColors, surfaceFill = AMSurfaceFill.Frosted) {
+    NotesScreen()
 }
 ```
 
-`ic_notes` and `ic_archive` are the app's own glyphs, Material Symbols Outlined vector drawables. The
-scene fades the button while any overlay inside it is up, shows banners and toasts posted inside
-it, and needs no back code: windows take back first, then a root's panels (a root with panels
-passes its Navigation 3 back stack as `backStack`), then the landing view.
+Your own Material color scheme flows into every piece, and `AMSurfaceFill.Frosted` frosts the whole
+app.
 
-## Conventions in brief
+## Run the demo
 
-- **The `AM` prefix.** Every public symbol carries an `AM` mark: `AM` on types and composables
-  (`AMButton`, `AMTheme`), `Modifier.am…` on modifiers (`Modifier.amCard()`), `LocalAM…` on
-  composition locals, `am_` on resources. Nested types aren't prefixed again
-  (`AMButtonStyle.Primary`).
-- **Compose's parameter order.** Required parameters, then `modifier`, then optional ones, then the
-  content lambda last. Components with a content slot come as a string form and a slot form.
-- **Hoisted state.** A control takes its value and a callback (`checked` and `onCheckedChange`);
-  it never owns the value. An overlay is a composable its state drives (`AMSheet(visible,
-  onDismissRequest) { … }`). Screen state uses `rememberSaveable`, so views you leave are saved
-  and restored.
-- **`enabled` on every control**, defaulting to true. A container can disable the controls inside
-  it (`AMFormActions(enabled = false)`).
-- **Sealed styles.** A style is a sealed type (`AMButtonStyle.Primary()`, `.Secondary()`,
-  `.Ghost`), and its default comes from a composition local, so a container styles the buttons in
-  its slots.
-- **Quiet defaults.** Autofocus is off, overlays appear only when their state says so, and nothing
-  moves on its own. Controls draw flat; the container supplies the surface.
-- **Android's behavior.** Ripple, 48 dp touch targets, system and predictive back, TalkBack, font
-  scale, and Material's motion scheme.
-- **No third-party libraries.** Jetpack, AndroidX and Google only, in the library and the demo.
-  Image loading and blur are built in-house.
-
-## The catalog app
-
-`demo/` is the catalog app: a page for every component, built with the library itself. Its
-searchable list groups the pages by category: Foundations, Actions, Inputs, Selection, Navigation,
-Layout, Lists, Feedback, Overlays, Data display, and Showcase. A component page shows the component
-live: a simple Preview in its default setup (where it adds something), and one Loaded composition,
-a fragment of a real screen. The inspection menu on the list and on every page switches the appearance, the text size
-and the layout direction.
-
-Showcase holds six scenes, small apps built on the library: Social (a feed, alerts and profiles),
-Music (artists, albums and a player over the art), Photos (browse, favorite and organize photos),
-Calendar (a month calendar with a day's events), Shop (a coffee shop with a bag, checkout and
-orders) and Account (onboarding, sign-in and settings).
-
-Debug builds read launch extras, for screenshots and page checks:
-
-```bash
-adb shell am start -S -n com.ideamtrls.androidmtrls.demo/.MainActivity --es entry card --es appearance dark
-```
-
-| Extra | Values | Effect |
-|---|---|---|
-| `entry` | an entry id (`card`, `buttonStyles`, `musicScene`) | opens that page or scene over the list |
-| `scrollTo` | `preview`, `loaded` | scrolls the page to that section |
-| `present` | `preview`, `loaded` | opens, once, the demo in that section that shows something inline |
-| `appearance` | `light`, `dark`, `system` | pins the appearance |
-| `fontScale` | a number, such as `1.3` | pins the font scale |
-| `rtl` | `true`, `false` | pins the layout direction |
-| `artwork` | `night` | switches the sample photos to their second set |
-| `demoTime` | `H:MM`, such as `9:41` | pins the time of day the clock-driven samples show |
-| `shopFillsCheckout` | `yes` | opens the Shop scene's checkout filled in |
-
-## Building and testing
-
-Gradle needs three variables, then `./gradlew` from the project root. `JAVA_HOME` is Android
-Studio's bundled runtime, and `GRADLE_USER_HOME` keeps Gradle's caches in the gitignored
-`.gradle-home/`:
+Gradle needs three variables. Then install the demo on a phone or emulator running Android 16 or
+later: a live page for every component, and the six apps under Showcase.
 
 ```bash
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
        ANDROID_HOME=~/Library/Android/sdk \
        GRADLE_USER_HOME="$PWD/.gradle-home"
 
-./gradlew :androidmtrls:assembleDebug :demo:assembleDebug --console=plain   # build both modules
-./gradlew :androidmtrls:testDebugUnitTest --console=plain                    # the library's JUnit tests
-./gradlew :demo:testDebugUnitTest --console=plain                           # the demo's JUnit tests
-./gradlew :demo:installDebug --console=plain                                 # build and install the demo
+./gradlew :demo:installDebug
 ```
 
-The build needs the Android 37 SDK platform (minSdk 36, compileSdk and targetSdk 37) and is
-warning-free. Testing is minimal on purpose: JUnit covers pure logic that's easy to get wrong
-(index clamping, the card stack's rules, the image pipeline's bookkeeping), and a change is checked
-by building it and looking at its catalog page in light and dark. There are no screenshot, golden
-or UI test suites.
+## Build and test
 
-## Documentation
+From the project root, with the same three variables; the build is warning-free, and the unit tests
+pin the logic that's easy to get wrong.
 
-- **KDoc** on every public symbol is the API reference.
-- **`Digest/`** holds the detailed working docs, one file per area: `Conventions.md` (the rules
-  every public API follows), `Patterns.md` (how to compose a screen), `Foundations.md`, one file per
-  component area (`Actions.md` through `Collections.md`), `Demo.md` and the scene files for the
-  catalog app, `Build.md` and `Testing.md`.
-- **`CLAUDE.md`** holds the routing table that maps a task to the Digest files that cover it.
+```bash
+./gradlew :androidmtrls:assembleDebug :demo:assembleDebug           # build both modules
+./gradlew :androidmtrls:testDebugUnitTest :demo:testDebugUnitTest   # the unit tests
+```
